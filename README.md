@@ -31,7 +31,7 @@ npm start
 
 Всё, что сделали модели, лежит файлами: `matches/match-2026-11-14/round-N/fable/fighter/` (Цугцванг) и `…/carbon/fighter/` (КАЙРОС). Мозги в `brain.js`, способности в `abilities/*.js`, приёмы в `moves.json`, скелет и анимации в `body.json`, картинки частей в `parts/`.
 
-![Раунд 3 в «Серверной»](docs/img/fight.jpg)
+![Раунд 2 на крыше под дождём](docs/img/fight.jpg)
 
 ## Сыграть
 
