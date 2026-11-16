@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Ринг моделей · разработчик</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Cpath d=%22M3 13 13 3M3 3l10 10%22 stroke=%22%23f3c64d%22 stroke-width=%222.5%22/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">{ "imports": { "pixi.js": "/kit/arena/vendor/pixi.mjs", "pixi-filters": "/kit/arena/vendor/pixi-filters.mjs" } }</script>
+</head>
+<body>
+  <div id="frame"></div>
+  <div id="result" hidden></div>
+  <form id="menu" onsubmit="return false">
+    <h1>Ринг моделей</h1>
+    <div class="row">
+      <label>Матч <select id="match"></select></label>
+      <label class="narrow">Раунд <select id="round"></select></label>
+      <button type="button" id="btnRound">Показать раунд</button>
+    </div>
+    <div class="row sep">
+      <label>Слева <select id="fa"></select></label>
+      <span class="vs">vs</span>
+      <label>Справа <select id="fb"></select></label>
+    </div>
+    <div class="row">
+      <label>Манекен <select id="dummy"><option>stand</option><option>block</option><option>crouch</option><option>jump</option><option>walk</option><option>parry</option><option>throw</option></select></label>
+      <label>Сцена <select id="stage"></select></label>
+    </div>
+    <div class="row">
+      <button type="button" id="btnIntro">Представление и бой</button>
+      <button type="button" id="btnFight" class="ghost">Сразу бой</button>
+    </div>
+    <div class="row sep">
+      <label class="narrow">Кадр <select id="aspect"><option value="16:9">16:9</option><option value="9:16">9:16</option></select></label>
+      <label class="check"><input type="checkbox" id="ads"> Реклама</label>
+    </div>
+    <p id="status"></p>
+    <p class="keys">Пробел — пауза · 1/2/0 — скорость ×1/×2/×0.5 · R — повтор боя · D — хитбоксы · M — звук · S — сохранить запись · F — полный экран · Esc — меню</p>
+  </form>
+  <script type="module" src="dev.js"></script>
+</body>
+</html>

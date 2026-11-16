@@ -1,0 +1,26 @@
+{
+  "sound": "foundry",
+  "name": "Литейный цех",
+  "sky": "#090403",
+  "skyBottom": "#24100a",
+  "fighterTint": "#f2d3bc",
+  "grade": {"contrast": 0.12, "saturation": 0.15, "tint": "#ffb070", "tintAmount": 0.1},
+  "rim": {"color": "#ff9a40", "alpha": 0.75},
+  "layers": [
+    { "image": "far.png", "hd": "far.hd.webp", "parallax": 0.12, "width": 3300, "groundAt": 0.64, "y": 140, "blur": 2 },
+    { "image": "mid.png", "hd": "mid.hd.webp", "parallax": 0.45, "width": 1150, "repeat": 3, "mirror": true, "groundAt": 0.87, "y": 104, "tint": "#b39a8a", "blur": 1 },
+    { "image": "floor.png", "hd": "floor.hd.webp", "parallax": 1, "width": 2800, "height": 640, "groundAt": 0.2, "y": 0, "tint": "#b8a69a" }
+  ],
+  "ambient": [
+    { "type": "heat", "layers": ["far.png", "mid.png"], "strength": 5, "speed": [4, 50], "scale": 1.6 },
+    { "type": "glow", "layer": "far.png", "atUv": [[0.735, 0.47], [0.325, 0.5], [0.51, 0.52], [0.26, 0.61], [0.58, 0.62], [0.69, 0.6]], "size": 520, "alpha": 0.32, "pulse": 0.18, "flicker": 0.25, "speed": 0.35, "colors": ["#ff7a1e", "#ff9a30"] },
+    { "type": "sparks", "layer": "far.png", "atUv": [[0.715, 0.57], [0.73, 0.58]], "rate": 70, "life": 1.1, "speed": 520, "angle": 90, "spread": 55, "gravity": -1000, "size": 14, "colors": ["#ffd27a", "#ff9a3c"], "bursty": 0.25 },
+    { "type": "steam", "layer": "far.png", "uv": [0.15, 0.25, 0.95, 0.5], "rate": 3, "life": 9, "speed": [12, 40], "spread": 8, "size": 420, "grow": 1.2, "alpha": 0.22, "color": "#3b2a22" },
+    { "type": "glow", "layer": "mid.png", "atUv": [[0.51, 0.47], [0.13, 0.68], [0.3, 0.68], [0.86, 0.8]], "size": 300, "alpha": 0.3, "pulse": 0.2, "flicker": 0.3, "speed": 0.5, "color": "#ff8a2a" },
+    { "type": "embers", "layer": "mid.png", "atUv": [[0.51, 0.46], [0.13, 0.68], [0.3, 0.68]], "rate": 6, "life": 3.2, "speed": [6, 70], "spread": 20, "size": 6, "colors": ["#ffb050", "#ff7a2a"] },
+    { "type": "glow", "layer": "floor.png", "match": { "color": "#ff7a2a", "tolerance": 0.3, "min": 0.6, "contrast": 0.1, "cell": 12 }, "count": 24, "size": 90, "alpha": 0.25, "pulse": 0.35, "flicker": 0.2, "speed": 0.4, "color": "#ff6a1a" },
+    { "type": "embers", "layer": "back", "area": [-400, -20, 2600, 120], "rate": 18, "life": 5, "speed": [18, 80], "spread": 25, "size": 7, "wobble": 30, "colors": ["#ffb050", "#ff8a30", "#ffd27a"] },
+    { "type": "sparks", "layer": "back", "at": [[380, 760], [1500, 820]], "rate": 26, "life": 1.3, "speed": 180, "angle": -90, "spread": 35, "gravity": -900, "size": 12, "colors": ["#ffe0a0", "#ff9a3c"], "bursty": 0.55, "burstRate": 0.5 },
+    { "type": "embers", "layer": "front", "parallax": 1.2, "area": [-600, -80, 2800, 60], "rate": 5, "life": 5, "speed": [24, 90], "spread": 25, "size": 10, "wobble": 40, "alpha": 0.8, "colors": ["#ffb050", "#ff7a2a"] }
+  ]
+}

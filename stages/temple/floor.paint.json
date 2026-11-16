@@ -1,0 +1,9 @@
+{
+  "description": "Ancient stone temple courtyard for a 2D fighting game stage, seen from a low side camera: a wide floor strip of large worn granite flagstones in gentle perspective, moss in the cracks, a few fallen leaves and pink petals, soft golden dawn light and cool blue shadows, painted serious realistic style, the top edge of the image is the far edge of the stone platform against misty air, the floor fills the image, no text",
+  "aspect": "landscape",
+  "transparent": false,
+  "refs": [],
+  "at": "2026-11-06T17:44:01.621Z",
+  "seconds": 166,
+  "edited": "top 190 px (sky and the curb row) cut off, 70 px alpha fade on the new top edge so the floor melts into the far layer (ffmpeg crop+geq)"
+}

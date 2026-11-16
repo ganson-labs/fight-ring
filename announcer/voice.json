@@ -1,0 +1,18 @@
+{
+  "description": "Ведущий турнира по боям: низкий мужской голос, мощный и торжественный, объявляет громко и с паузой, как на большой арене. Чистая студийная запись, без музыки.",
+  "language": "ru",
+  "lines": [
+    { "id": "round_1", "kind": "other", "text": "Раунд первый!" },
+    { "id": "round_2", "kind": "other", "text": "Раунд второй!" },
+    { "id": "round_3", "kind": "other", "text": "Раунд третий!" },
+    { "id": "round_4", "kind": "other", "text": "Раунд четвёртый!" },
+    { "id": "round_5", "kind": "other", "text": "Раунд пятый!" },
+    { "id": "round_final", "kind": "other", "text": "Решающий раунд!" },
+    { "id": "fight", "kind": "other", "text": "Бой!" },
+    { "id": "ko", "kind": "other", "text": "Нокаут!" },
+    { "id": "double_ko", "kind": "other", "text": "Двойной нокаут!" },
+    { "id": "time", "kind": "other", "text": "Время!" },
+    { "id": "draw", "kind": "other", "text": "Ничья!" },
+    { "id": "match_winner", "kind": "other", "text": "Победитель матча!" }
+  ]
+}

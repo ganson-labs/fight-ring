@@ -1,0 +1,377 @@
+{
+ "moves": [
+  {
+   "id": "jab",
+   "name": "Лисий коготь",
+   "slot": "normal",
+   "posture": "stand",
+   "blocks": [
+    {
+     "type": "strike",
+     "startup": 5,
+     "active": 3,
+     "recovery": 10,
+     "damage": 30,
+     "reach": "short",
+     "zone": "mid"
+    }
+   ],
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": "stance"
+     },
+     {
+      "t": 2,
+      "pose": "punch_ready"
+     },
+     {
+      "t": 5,
+      "pose": "punch",
+      "ease": "hold"
+     },
+     {
+      "t": 8,
+      "pose": "punch"
+     },
+     {
+      "t": 18,
+      "pose": "stance"
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "active",
+     "type": "trail",
+     "bone": "hand_front",
+     "color": "#ff5533"
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "color": "#ffcc44",
+     "count": 12
+    }
+   ],
+   "line": "hit_1"
+  },
+  {
+   "id": "kick",
+   "name": "Хвост лисы",
+   "slot": "normal",
+   "posture": "stand",
+   "blocks": [
+    {
+     "type": "strike",
+     "startup": 9,
+     "active": 4,
+     "recovery": 16,
+     "damage": 50,
+     "reach": "long",
+     "zone": "mid",
+     "push": "heavy"
+    }
+   ],
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": "stance"
+     },
+     {
+      "t": 4,
+      "pose": "kick_ready"
+     },
+     {
+      "t": 9,
+      "pose": "kick",
+      "ease": "hold"
+     },
+     {
+      "t": 13,
+      "pose": "kick"
+     },
+     {
+      "t": 25,
+      "pose": "stance"
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "active",
+     "type": "trail",
+     "bone": "foot_front",
+     "color": "#ff7744",
+     "size": 1.5
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "color": "#ffcc44",
+     "count": 18
+    }
+   ]
+  },
+  {
+   "id": "sweep",
+   "name": "Подсечка",
+   "slot": "normal",
+   "posture": "crouch",
+   "blocks": [
+    {
+     "type": "strike",
+     "startup": 8,
+     "active": 3,
+     "recovery": 18,
+     "damage": 35,
+     "reach": "mid",
+     "zone": "low"
+    }
+   ],
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": "crouch"
+     },
+     {
+      "t": 8,
+      "pose": "sweep",
+      "ease": "hold"
+     },
+     {
+      "t": 11,
+      "pose": "sweep"
+     },
+     {
+      "t": 29,
+      "pose": "crouch"
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "active",
+     "type": "trail",
+     "bone": "foot_front",
+     "color": "#ffffff"
+    }
+   ]
+  },
+  {
+   "id": "fire",
+   "name": "Лисий огонь",
+   "slot": "special",
+   "posture": "stand",
+   "blocks": [
+    {
+     "type": "projectile",
+     "startup": 14,
+     "recovery": 30,
+     "damage": 45,
+     "speed": "mid",
+     "zone": "mid"
+    }
+   ],
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": "stance"
+     },
+     {
+      "t": 8,
+      "pose": "cast_ready"
+     },
+     {
+      "t": 14,
+      "pose": "cast",
+      "ease": "hold"
+     },
+     {
+      "t": 20,
+      "pose": "cast"
+     },
+     {
+      "t": 44,
+      "pose": "stance"
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "start",
+     "type": "glow",
+     "color": "#ff6622",
+     "duration": 14
+    },
+    {
+     "on": "projectile",
+     "type": "particles",
+     "color": "#ff8833",
+     "color2": "#ffdd55",
+     "size": 1.2
+    },
+    {
+     "on": "hit",
+     "type": "shockwave",
+     "color": "#ff7733"
+    }
+   ]
+  },
+  {
+   "id": "air_kick",
+   "name": "Падающий лис",
+   "slot": "special",
+   "posture": "air",
+   "blocks": [
+    {
+     "type": "strike",
+     "startup": 6,
+     "active": 6,
+     "recovery": 10,
+     "damage": 40,
+     "reach": "short",
+     "zone": "air"
+    }
+   ],
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": "tuck"
+     },
+     {
+      "t": 6,
+      "pose": "air_kick",
+      "ease": "hold"
+     },
+     {
+      "t": 12,
+      "pose": "air_kick"
+     },
+     {
+      "t": 22,
+      "pose": "tuck"
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "active",
+     "type": "trail",
+     "bone": "foot_front",
+     "color": "#ffaa33"
+    }
+   ]
+  },
+  {
+   "id": "super_1",
+   "name": "Алая буря",
+   "slot": "super",
+   "posture": "stand",
+   "blocks": [
+    {
+     "type": "strike",
+     "startup": 12,
+     "active": 10,
+     "recovery": 24,
+     "damage": 50,
+     "hits": 5,
+     "reach": "mid",
+     "zone": "mid",
+     "launch": true
+    }
+   ],
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": "super_crouch"
+     },
+     {
+      "t": 10,
+      "pose": "super_crouch",
+      "ease": "hold"
+     },
+     {
+      "t": 12,
+      "pose": "super_pose"
+     },
+     {
+      "t": 14,
+      "pose": "punch_back"
+     },
+     {
+      "t": 16,
+      "pose": "punch"
+     },
+     {
+      "t": 18,
+      "pose": "punch_back"
+     },
+     {
+      "t": 20,
+      "pose": "punch"
+     },
+     {
+      "t": 22,
+      "pose": "super_pose"
+     },
+     {
+      "t": 34,
+      "pose": "super_pose"
+     },
+     {
+      "t": 46,
+      "pose": "stance"
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "start",
+     "type": "glow",
+     "color": "#ff2200"
+    },
+    {
+     "on": "active",
+     "type": "afterimage",
+     "color": "#ff3311"
+    },
+    {
+     "on": "active",
+     "type": "trail",
+     "bone": "hand_front",
+     "color": "#ffdd44",
+     "size": 2
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "color": "#ffffff",
+     "count": 20
+    },
+    {
+     "on": "hit",
+     "type": "flash",
+     "color": "#ff4422"
+    }
+   ],
+   "director": {
+    "title": "АЛАЯ БУРЯ",
+    "titleColor": "#ff3322",
+    "zoom": 1.8,
+    "angle": "close",
+    "flash": "#ffffff",
+    "background": "color",
+    "backgroundColor": "#2a0505",
+    "slowmo": 0.5,
+    "line": "super_1"
+   }
+  }
+ ]
+}

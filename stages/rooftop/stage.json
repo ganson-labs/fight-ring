@@ -1,0 +1,56 @@
+{
+  "sound": "rooftop",
+  "name": "Крыша под дождём",
+  "sky": "#03050a",
+  "skyBottom": "#0b1220",
+  "fighterTint": "#cfd8f2",
+  "grade": {"contrast": 0.08, "saturation": 0.05, "tint": "#9fb8ff", "tintAmount": 0.06},
+  "rim": {"color": "#8fb4ff", "alpha": 0.55},
+  "reflect": 0.22,
+  "layers": [
+    {
+      "image": "far.png", "hd": "far.hd.webp",
+      "parallax": 0.12,
+      "width": 3300,
+      "groundAt": 0.6,
+      "y": 140,
+      "blur": 2
+    },
+    {
+      "image": "mid.png", "hd": "mid.hd.webp",
+      "parallax": 0.45,
+      "width": 1150,
+      "repeat": 3,
+      "mirror": true,
+      "groundAt": 0.955,
+      "y": 104,
+      "tint": "#a3aec8",
+      "blur": 1
+    },
+    {
+      "image": "floor.png", "hd": "floor.hd.webp",
+      "parallax": 1,
+      "width": 2800,
+      "height": 640,
+      "groundAt": 0.2,
+      "y": 0
+    }
+  ],
+  "rain": {
+    "count": 360,
+    "color": "#9fb4d6",
+    "angle": 12,
+    "speed": 1700
+  },
+  "ads": {
+    "billboard": {
+      "layer": 1,
+      "x": 1420,
+      "y": 175,
+      "w": 190,
+      "h": 107,
+      "legs": 80,
+      "tint": "#b9c3d8"
+    }
+  }
+}

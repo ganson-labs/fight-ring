@@ -1,0 +1,1 @@
+{ "name": "Ведущий ринга", "note": "Не боец: папка голоса ведущего. Голос делается командами voice из kit (node arena/cli.mjs voice design --fighter ../announcer)." }

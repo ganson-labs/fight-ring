@@ -1,0 +1,292 @@
+{
+  "moves": [
+    {
+      "id": "strike_1",
+      "name": "Удар",
+      "slot": "normal",
+      "posture": "stand",
+      "blocks": [
+        {
+          "type": "strike",
+          "startup": 6,
+          "active": 3,
+          "recovery": 12,
+          "damage": 40,
+          "reach": "mid",
+          "zone": "mid"
+        }
+      ],
+      "anim": {
+        "keys": [
+          {
+            "t": 0,
+            "pose": "stance"
+          },
+          {
+            "t": 3,
+            "pose": "punch_ready"
+          },
+          {
+            "t": 6,
+            "pose": "punch",
+            "ease": "hold"
+          },
+          {
+            "t": 9,
+            "pose": "punch"
+          },
+          {
+            "t": 21,
+            "pose": "stance"
+          }
+        ]
+      }
+    },
+    {
+      "id": "super_1",
+      "name": "Суперприём",
+      "slot": "super",
+      "posture": "stand",
+      "blocks": [
+        {
+          "type": "strike",
+          "startup": 10,
+          "active": 8,
+          "recovery": 24,
+          "damage": 40,
+          "hits": 4,
+          "reach": "mid",
+          "zone": "mid"
+        }
+      ],
+      "anim": {
+        "keys": [
+          {
+            "t": 0,
+            "pose": "stance"
+          },
+          {
+            "t": 8,
+            "pose": "windup"
+          },
+          {
+            "t": 10,
+            "pose": "punch"
+          },
+          {
+            "t": 12,
+            "pose": "punch_back"
+          },
+          {
+            "t": 14,
+            "pose": "punch"
+          },
+          {
+            "t": 16,
+            "pose": "punch_back"
+          },
+          {
+            "t": 18,
+            "pose": "punch"
+          },
+          {
+            "t": 30,
+            "pose": "punch"
+          },
+          {
+            "t": 42,
+            "pose": "stance"
+          }
+        ]
+      },
+      "director": {
+        "title": "Суперприём"
+      }
+    },
+    {
+      "id": "spark",
+      "name": "Искра",
+      "slot": "special",
+      "posture": "stand",
+      "blocks": [
+        {
+          "type": "ability",
+          "script": "abilities/spark.js",
+          "startup": 8,
+          "recovery": 14
+        }
+      ],
+      "anim": {
+        "keys": [
+          {
+            "t": 0,
+            "pose": "stance"
+          },
+          {
+            "t": 6,
+            "pose": "punch_ready"
+          },
+          {
+            "t": 12,
+            "pose": "punch",
+            "ease": "hold"
+          },
+          {
+            "t": 20,
+            "pose": "stance"
+          }
+        ]
+      },
+      "fx": [
+        {
+          "on": "ability",
+          "type": "sparks",
+          "color": "#fff2a0",
+          "count": 24
+        }
+      ]
+    },
+    {
+      "id": "frost",
+      "name": "Ледяной осколок",
+      "slot": "special",
+      "posture": "stand",
+      "blocks": [
+        {
+          "type": "ability",
+          "script": "abilities/frost.js",
+          "startup": 12,
+          "recovery": 20
+        }
+      ],
+      "anim": {
+        "keys": [
+          {
+            "t": 0,
+            "pose": "stance"
+          },
+          {
+            "t": 6,
+            "pose": "punch_ready"
+          },
+          {
+            "t": 12,
+            "pose": "punch",
+            "ease": "hold"
+          },
+          {
+            "t": 20,
+            "pose": "stance"
+          }
+        ]
+      },
+      "fx": [
+        {
+          "on": "ability",
+          "type": "ring",
+          "color": "#9fe8ff",
+          "bone": "hand_front"
+        },
+        {
+          "on": "hit",
+          "type": "sparks",
+          "color": "#dff8ff",
+          "color2": "#5ac8ff",
+          "count": 30
+        }
+      ]
+    },
+    {
+      "id": "burn",
+      "name": "Поджог",
+      "slot": "special",
+      "posture": "stand",
+      "blocks": [
+        {
+          "type": "ability",
+          "script": "abilities/burn.js",
+          "startup": 10,
+          "recovery": 18
+        }
+      ],
+      "anim": {
+        "keys": [
+          {
+            "t": 0,
+            "pose": "stance"
+          },
+          {
+            "t": 6,
+            "pose": "punch_ready"
+          },
+          {
+            "t": 12,
+            "pose": "punch",
+            "ease": "hold"
+          },
+          {
+            "t": 20,
+            "pose": "stance"
+          }
+        ]
+      },
+      "fx": [
+        {
+          "on": "ability",
+          "type": "particles",
+          "color": "#ff7a33",
+          "color2": "#ffd24a",
+          "count": 60,
+          "duration": 20,
+          "bone": "hand_front"
+        }
+      ]
+    },
+    {
+      "id": "flare",
+      "name": "Вспышка жара",
+      "slot": "special",
+      "posture": "stand",
+      "stance": "hot",
+      "blocks": [
+        {
+          "type": "strike",
+          "startup": 6,
+          "active": 3,
+          "recovery": 14,
+          "damage": 45,
+          "reach": "mid",
+          "zone": "mid"
+        }
+      ],
+      "anim": {
+        "keys": [
+          {
+            "t": 0,
+            "pose": "stance"
+          },
+          {
+            "t": 6,
+            "pose": "punch_ready"
+          },
+          {
+            "t": 12,
+            "pose": "punch",
+            "ease": "hold"
+          },
+          {
+            "t": 20,
+            "pose": "stance"
+          }
+        ]
+      },
+      "fx": [
+        {
+          "on": "active",
+          "type": "trail",
+          "color": "#ff7a33"
+        }
+      ]
+    }
+  ]
+}

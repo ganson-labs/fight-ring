@@ -1,0 +1,466 @@
+{
+  "match": "match-2026-11-14",
+  "rounds": [
+    {
+      "n": 1,
+      "sides": [
+        "fable",
+        "carbon"
+      ],
+      "names": [
+        "Цугцванг",
+        "КАЙРОС"
+      ],
+      "counters": [
+        {
+          "hits": 83,
+          "damage": 7615,
+          "blocks": 0,
+          "parries": 0,
+          "throws": 0,
+          "supers": 1,
+          "abilityDamage": 3658,
+          "maxCombo": 5,
+          "knockdowns": 1
+        },
+        {
+          "hits": 0,
+          "damage": 0,
+          "blocks": 0,
+          "parries": 0,
+          "throws": 0,
+          "supers": 0,
+          "abilityDamage": 0,
+          "maxCombo": 0,
+          "knockdowns": 0
+        }
+      ],
+      "result": {
+        "winner": null,
+        "reason": null,
+        "ticks": 1963,
+        "seconds": 32.72
+      },
+      "juicy": {
+        "side": 0,
+        "move": "mate",
+        "name": "Шах и мат",
+        "damage": 3066,
+        "tick": 1830
+      },
+      "top": [
+        {
+          "kind": "combo",
+          "side": 0,
+          "at": 45,
+          "from": 0,
+          "to": 114,
+          "score": 9,
+          "hits": 5,
+          "damage": 255,
+          "text": "Цугцванг: серия из 5 ударов, 255 урона"
+        },
+        {
+          "kind": "juicy",
+          "side": 0,
+          "at": 1830,
+          "from": 1755,
+          "to": 1890,
+          "score": 157.3,
+          "move": "mate",
+          "damage": 3066,
+          "counter": false,
+          "text": "Самый сочный удар: Цугцванг, «Шах и мат» — 3066"
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "sides": [
+        "carbon",
+        "fable"
+      ],
+      "names": [
+        "КАЙРОС",
+        "Цугцванг"
+      ],
+      "counters": [
+        {
+          "hits": 23,
+          "damage": 3567,
+          "blocks": 0,
+          "parries": 0,
+          "throws": 0,
+          "supers": 1,
+          "abilityDamage": 2742,
+          "maxCombo": 4,
+          "knockdowns": 0
+        },
+        {
+          "hits": 143,
+          "damage": 16355,
+          "blocks": 0,
+          "parries": 13,
+          "throws": 0,
+          "supers": 3,
+          "abilityDamage": 10220,
+          "maxCombo": 5,
+          "knockdowns": 3
+        }
+      ],
+      "result": {
+        "winner": 1,
+        "reason": "ko",
+        "ticks": 2503,
+        "seconds": 41.72
+      },
+      "juicy": {
+        "side": 1,
+        "move": "mate",
+        "name": "Шах и мат",
+        "damage": 3066,
+        "tick": 766
+      },
+      "top": [
+        {
+          "kind": "combo",
+          "side": 1,
+          "at": 49,
+          "from": 4,
+          "to": 118,
+          "score": 9,
+          "hits": 5,
+          "damage": 255,
+          "text": "Цугцванг: серия из 5 ударов, 255 урона"
+        },
+        {
+          "kind": "juicy",
+          "side": 1,
+          "at": 766,
+          "from": 691,
+          "to": 826,
+          "score": 157.3,
+          "move": "mate",
+          "damage": 3066,
+          "counter": false,
+          "text": "Самый сочный удар: Цугцванг, «Шах и мат» — 3066"
+        },
+        {
+          "kind": "super",
+          "side": 0,
+          "at": 1503,
+          "from": 1473,
+          "to": 1557,
+          "score": 11,
+          "move": "zero_meridian",
+          "damage": 2385,
+          "text": "КАЙРОС: суперприём «Нулевой Меридиан», 2385 урона"
+        },
+        {
+          "kind": "last",
+          "side": 1,
+          "at": 2503,
+          "from": 2383,
+          "to": 2578,
+          "score": 10,
+          "move": "mate",
+          "damage": 3066,
+          "text": "Нокаутирующий удар: Цугцванг, «Шах и мат» (3066)"
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "sides": [
+        "fable",
+        "carbon"
+      ],
+      "names": [
+        "Цугцванг",
+        "КАЙРОС"
+      ],
+      "counters": [
+        {
+          "hits": 144,
+          "damage": 13462,
+          "blocks": 166,
+          "parries": 0,
+          "throws": 0,
+          "supers": 2,
+          "abilityDamage": 7008,
+          "maxCombo": 5,
+          "knockdowns": 3
+        },
+        {
+          "hits": 39,
+          "damage": 8286,
+          "blocks": 0,
+          "parries": 0,
+          "throws": 0,
+          "supers": 2,
+          "abilityDamage": 6652,
+          "maxCombo": 4,
+          "knockdowns": 0
+        }
+      ],
+      "result": {
+        "winner": 0,
+        "reason": "ko",
+        "ticks": 3502,
+        "seconds": 58.37
+      },
+      "juicy": {
+        "side": 1,
+        "move": "zero_meridian",
+        "name": "Нулевой Меридиан",
+        "damage": 3101,
+        "tick": 1389
+      },
+      "top": [
+        {
+          "kind": "combo",
+          "side": 0,
+          "at": 78,
+          "from": 33,
+          "to": 147,
+          "score": 9,
+          "hits": 5,
+          "damage": 247,
+          "text": "Цугцванг: серия из 5 ударов, 247 урона"
+        },
+        {
+          "kind": "super",
+          "side": 0,
+          "at": 1178,
+          "from": 1148,
+          "to": 1280,
+          "score": 11,
+          "move": "mate",
+          "damage": 2981,
+          "text": "Цугцванг: суперприём «Шах и мат», 2981 урона"
+        },
+        {
+          "kind": "juicy",
+          "side": 1,
+          "at": 1389,
+          "from": 1314,
+          "to": 1449,
+          "score": 159.05,
+          "move": "zero_meridian",
+          "damage": 3101,
+          "counter": false,
+          "text": "Самый сочный удар: КАЙРОС, «Нулевой Меридиан» — 3101"
+        },
+        {
+          "kind": "last",
+          "side": 0,
+          "at": 3502,
+          "from": 3382,
+          "to": 3577,
+          "score": 10,
+          "move": "fork",
+          "damage": 54,
+          "text": "Нокаутирующий удар: Цугцванг, «Вилка» (54)"
+        }
+      ]
+    }
+  ],
+  "lockers": [
+    {
+      "cid": "fable",
+      "from": 1,
+      "to": 2,
+      "effect": {
+        "hits": {
+          "before": 83,
+          "after": 143,
+          "delta": 60
+        },
+        "damage": {
+          "before": 7615,
+          "after": 16355,
+          "delta": 8740
+        },
+        "blocks": {
+          "before": 0,
+          "after": 0,
+          "delta": 0
+        },
+        "parries": {
+          "before": 0,
+          "after": 13,
+          "delta": 13
+        },
+        "throws": {
+          "before": 0,
+          "after": 0,
+          "delta": 0
+        },
+        "supers": {
+          "before": 1,
+          "after": 3,
+          "delta": 2
+        },
+        "abilityDamage": {
+          "before": 3658,
+          "after": 10220,
+          "delta": 6562
+        },
+        "maxCombo": {
+          "before": 5,
+          "after": 5,
+          "delta": 0
+        }
+      },
+      "wonBefore": false,
+      "wonAfter": true
+    },
+    {
+      "cid": "fable",
+      "from": 2,
+      "to": 3,
+      "effect": {
+        "hits": {
+          "before": 143,
+          "after": 144,
+          "delta": 1
+        },
+        "damage": {
+          "before": 16355,
+          "after": 13462,
+          "delta": -2893
+        },
+        "blocks": {
+          "before": 0,
+          "after": 166,
+          "delta": 166
+        },
+        "parries": {
+          "before": 13,
+          "after": 0,
+          "delta": -13
+        },
+        "throws": {
+          "before": 0,
+          "after": 0,
+          "delta": 0
+        },
+        "supers": {
+          "before": 3,
+          "after": 2,
+          "delta": -1
+        },
+        "abilityDamage": {
+          "before": 10220,
+          "after": 7008,
+          "delta": -3212
+        },
+        "maxCombo": {
+          "before": 5,
+          "after": 5,
+          "delta": 0
+        }
+      },
+      "wonBefore": true,
+      "wonAfter": true
+    },
+    {
+      "cid": "carbon",
+      "from": 1,
+      "to": 2,
+      "effect": {
+        "hits": {
+          "before": 0,
+          "after": 23,
+          "delta": 23
+        },
+        "damage": {
+          "before": 0,
+          "after": 3567,
+          "delta": 3567
+        },
+        "blocks": {
+          "before": 0,
+          "after": 0,
+          "delta": 0
+        },
+        "parries": {
+          "before": 0,
+          "after": 0,
+          "delta": 0
+        },
+        "throws": {
+          "before": 0,
+          "after": 0,
+          "delta": 0
+        },
+        "supers": {
+          "before": 0,
+          "after": 1,
+          "delta": 1
+        },
+        "abilityDamage": {
+          "before": 0,
+          "after": 2742,
+          "delta": 2742
+        },
+        "maxCombo": {
+          "before": 0,
+          "after": 4,
+          "delta": 4
+        }
+      },
+      "wonBefore": false,
+      "wonAfter": false
+    },
+    {
+      "cid": "carbon",
+      "from": 2,
+      "to": 3,
+      "effect": {
+        "hits": {
+          "before": 23,
+          "after": 39,
+          "delta": 16
+        },
+        "damage": {
+          "before": 3567,
+          "after": 8286,
+          "delta": 4719
+        },
+        "blocks": {
+          "before": 0,
+          "after": 0,
+          "delta": 0
+        },
+        "parries": {
+          "before": 0,
+          "after": 0,
+          "delta": 0
+        },
+        "throws": {
+          "before": 0,
+          "after": 0,
+          "delta": 0
+        },
+        "supers": {
+          "before": 1,
+          "after": 2,
+          "delta": 1
+        },
+        "abilityDamage": {
+          "before": 2742,
+          "after": 6652,
+          "delta": 3910
+        },
+        "maxCombo": {
+          "before": 4,
+          "after": 4,
+          "delta": 0
+        }
+      },
+      "wonBefore": false,
+      "wonAfter": false
+    }
+  ]
+}

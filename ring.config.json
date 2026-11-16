@@ -1,0 +1,8 @@
+{
+  "limits": {
+    "paint": 40,
+    "voiceDesigns": 3,
+    "voiceSeconds": 150
+  },
+  "contestRoot": "../ring-contest-{id}"
+}

@@ -1,0 +1,107 @@
+{
+  "moves": [
+    {
+      "id": "strike_1",
+      "name": "Удар",
+      "slot": "normal",
+      "posture": "stand",
+      "blocks": [
+        {
+          "type": "strike",
+          "startup": 6,
+          "active": 3,
+          "recovery": 12,
+          "damage": 40,
+          "reach": "mid",
+          "zone": "mid"
+        }
+      ],
+      "anim": {
+        "keys": [
+          {
+            "t": 0,
+            "pose": "stance"
+          },
+          {
+            "t": 3,
+            "pose": "punch_ready"
+          },
+          {
+            "t": 6,
+            "pose": "punch",
+            "ease": "hold"
+          },
+          {
+            "t": 9,
+            "pose": "punch"
+          },
+          {
+            "t": 21,
+            "pose": "stance"
+          }
+        ]
+      }
+    },
+    {
+      "id": "super_1",
+      "name": "Суперприём",
+      "slot": "super",
+      "posture": "stand",
+      "blocks": [
+        {
+          "type": "strike",
+          "startup": 10,
+          "active": 8,
+          "recovery": 24,
+          "damage": 40,
+          "hits": 4,
+          "reach": "mid",
+          "zone": "mid"
+        }
+      ],
+      "anim": {
+        "keys": [
+          {
+            "t": 0,
+            "pose": "stance"
+          },
+          {
+            "t": 8,
+            "pose": "windup"
+          },
+          {
+            "t": 10,
+            "pose": "punch"
+          },
+          {
+            "t": 12,
+            "pose": "punch_back"
+          },
+          {
+            "t": 14,
+            "pose": "punch"
+          },
+          {
+            "t": 16,
+            "pose": "punch_back"
+          },
+          {
+            "t": 18,
+            "pose": "punch"
+          },
+          {
+            "t": 30,
+            "pose": "punch"
+          },
+          {
+            "t": 42,
+            "pose": "stance"
+          }
+        ]
+      },
+      "director": {
+        "title": "Манекен"
+      }
+    }
+  ]
+}

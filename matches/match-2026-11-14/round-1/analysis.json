@@ -1,0 +1,217 @@
+{
+  "result": {
+    "winner": 0,
+    "reason": "ko",
+    "ticks": 1168,
+    "hp": [
+      13440,
+      0
+    ],
+    "maxHp": [
+      13440,
+      13440
+    ]
+  },
+  "summary": [
+    {
+      "side": 0,
+      "name": "Цугцванг",
+      "hp": 13440,
+      "maxHp": 13440,
+      "tally": {
+        "damageDealt": 14542,
+        "damageTaken": 0,
+        "hits": 133,
+        "blocked": 0,
+        "parries": 0,
+        "throws": 0,
+        "techs": 0,
+        "maxCombo": 0,
+        "supers": 2,
+        "armorHits": 0
+      },
+      "throwsTried": 0,
+      "throwsLanded": 0,
+      "thrownBy": 0,
+      "techs": 0,
+      "knockdowns": 0,
+      "dizzied": 0,
+      "parriedOpp": 0,
+      "supers": {
+        "used": 2,
+        "landed": 2
+      },
+      "moves": [
+        {
+          "id": "queen",
+          "name": "Связка: ферзь",
+          "slot": "special",
+          "used": 4,
+          "landed": 3,
+          "blocked": 0,
+          "parried": 0,
+          "armored": 0,
+          "whiffed": 1,
+          "damage": 151,
+          "hits": 3,
+          "avgDist": 214,
+          "whiffAvgDist": 145
+        },
+        {
+          "id": "rook",
+          "name": "Связка: ладья",
+          "slot": "special",
+          "used": 3,
+          "landed": 1,
+          "blocked": 0,
+          "parried": 0,
+          "armored": 0,
+          "whiffed": 2,
+          "damage": 48,
+          "hits": 1,
+          "avgDist": 251,
+          "whiffAvgDist": 146
+        },
+        {
+          "id": "pawn",
+          "name": "Связка: пешка",
+          "slot": "special",
+          "used": 3,
+          "landed": 0,
+          "blocked": 0,
+          "parried": 0,
+          "armored": 0,
+          "whiffed": 3,
+          "damage": 0,
+          "hits": 0,
+          "avgDist": 241,
+          "whiffAvgDist": 241
+        },
+        {
+          "id": "castle",
+          "name": "Рокировка",
+          "slot": "special",
+          "used": 1,
+          "landed": 0,
+          "blocked": 0,
+          "parried": 0,
+          "armored": 0,
+          "whiffed": 1,
+          "damage": 0,
+          "hits": 0,
+          "avgDist": 205,
+          "whiffAvgDist": 205
+        },
+        {
+          "id": "fork",
+          "name": "Вилка",
+          "slot": "normal",
+          "used": 32,
+          "landed": 32,
+          "blocked": 0,
+          "parried": 0,
+          "armored": 0,
+          "whiffed": 0,
+          "damage": 8211,
+          "hits": 127,
+          "avgDist": 112,
+          "whiffAvgDist": null
+        },
+        {
+          "id": "mate",
+          "name": "Шах и мат",
+          "slot": "super",
+          "used": 2,
+          "landed": 2,
+          "blocked": 0,
+          "parried": 0,
+          "armored": 0,
+          "whiffed": 0,
+          "damage": 6132,
+          "hits": 2,
+          "avgDist": 136,
+          "whiffAvgDist": null
+        }
+      ],
+      "taken": [],
+      "blockedFromOpponent": {}
+    },
+    {
+      "side": 1,
+      "name": "КАЙРОС",
+      "hp": 0,
+      "maxHp": 13440,
+      "tally": {
+        "damageDealt": 0,
+        "damageTaken": 14542,
+        "hits": 0,
+        "blocked": 0,
+        "parries": 0,
+        "throws": 0,
+        "techs": 0,
+        "maxCombo": 4,
+        "supers": 0,
+        "armorHits": 0
+      },
+      "throwsTried": 0,
+      "throwsLanded": 0,
+      "thrownBy": 0,
+      "techs": 0,
+      "knockdowns": 2,
+      "dizzied": 4,
+      "parriedOpp": 0,
+      "supers": {
+        "used": 0,
+        "landed": 0
+      },
+      "moves": [
+        {
+          "id": "aegis_orb",
+          "name": "Часовой Эгиды",
+          "slot": "special",
+          "used": 1,
+          "landed": 0,
+          "blocked": 0,
+          "parried": 0,
+          "armored": 0,
+          "whiffed": 1,
+          "damage": 0,
+          "hits": 0,
+          "avgDist": 440,
+          "whiffAvgDist": 440
+        }
+      ],
+      "taken": [
+        {
+          "id": "fork",
+          "name": "Вилка",
+          "hits": 127,
+          "damage": 8211,
+          "counter": 0
+        },
+        {
+          "id": "mate",
+          "name": "Шах и мат",
+          "hits": 2,
+          "damage": 6132,
+          "counter": 0
+        },
+        {
+          "id": "queen",
+          "name": "Связка: ферзь",
+          "hits": 3,
+          "damage": 151,
+          "counter": 1
+        },
+        {
+          "id": "rook",
+          "name": "Связка: ладья",
+          "hits": 1,
+          "damage": 48,
+          "counter": 0
+        }
+      ],
+      "blockedFromOpponent": {}
+    }
+  ]
+}

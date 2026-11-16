@@ -1,0 +1,566 @@
+{
+ "moves": [
+  {
+   "id": "fork",
+   "name": "Вилка",
+   "slot": "normal",
+   "posture": "stand",
+   "command": "HP",
+   "blocks": [
+    {
+     "type": "strike",
+     "startup": 6,
+     "active": 4,
+     "recovery": 4,
+     "damage": 80,
+     "hits": 4,
+     "reach": "mid",
+     "zone": "mid"
+    }
+   ],
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": "stance",
+      "ease": "out"
+     },
+     {
+      "t": 3,
+      "pose": "fork_wind",
+      "ease": "in"
+     },
+     {
+      "t": 6,
+      "pose": "fork_a"
+     },
+     {
+      "t": 7,
+      "pose": "fork_b"
+     },
+     {
+      "t": 8,
+      "pose": "fork_a"
+     },
+     {
+      "t": 9,
+      "pose": "fork_b"
+     },
+     {
+      "t": 10,
+      "pose": "fork_a",
+      "ease": "inout"
+     },
+     {
+      "t": 14,
+      "pose": "stance"
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "active",
+     "type": "trail",
+     "bone": "hand_front",
+     "color": "#ff5a2e",
+     "color2": "#ffc24a",
+     "size": 1.0,
+     "duration": 5
+    },
+    {
+     "on": "active",
+     "type": "trail",
+     "bone": "hand_back",
+     "color": "#ece4d0",
+     "color2": "#ffc24a",
+     "size": 0.8,
+     "duration": 5
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "color": "#ff5a2e",
+     "color2": "#ffc24a",
+     "count": 22,
+     "size": 1.0
+    },
+    {
+     "on": "block",
+     "type": "sparks",
+     "color": "#ece4d0",
+     "count": 10,
+     "size": 0.7
+    }
+   ],
+   "sounds": {
+    "start": "whoosh-light",
+    "hit": "hit-heavy"
+   }
+  },
+  {
+   "id": "castle",
+   "name": "Рокировка",
+   "slot": "special",
+   "posture": "stand",
+   "command": "214P",
+   "blocks": [
+    {
+     "type": "teleport",
+     "startup": 8,
+     "recovery": 4,
+     "to": "behind"
+    }
+   ],
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": "stance",
+      "ease": "in"
+     },
+     {
+      "t": 2,
+      "pose": "sink"
+     },
+     {
+      "t": 8,
+      "pose": "arrive",
+      "ease": "inout"
+     },
+     {
+      "t": 13,
+      "pose": "stance"
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "start",
+     "type": "afterimage",
+     "color": "#ece4d0",
+     "color2": "#ff5a2e",
+     "duration": 13,
+     "size": 1.0
+    },
+    {
+     "on": "start",
+     "type": "ring",
+     "color": "#ece4d0",
+     "size": 1.0
+    },
+    {
+     "on": "active",
+     "type": "ring",
+     "color": "#ff5a2e",
+     "size": 1.2
+    },
+    {
+     "on": "active",
+     "type": "sparks",
+     "bone": "pelvis",
+     "color": "#ece4d0",
+     "color2": "#ff5a2e",
+     "count": 24,
+     "size": 1.0
+    }
+   ],
+   "sounds": {
+    "start": "teleport-magic"
+   },
+   "line": "castle_1"
+  },
+  {
+   "id": "pawn",
+   "name": "Связка: пешка",
+   "slot": "special",
+   "posture": "stand",
+   "blocks": [
+    {
+     "type": "ability",
+     "script": "abilities/guard.js",
+     "startup": 4,
+     "active": 1,
+     "recovery": 6
+    }
+   ],
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": "stance",
+      "ease": "out"
+     },
+     {
+      "t": 2,
+      "pose": "raise",
+      "ease": "in"
+     },
+     {
+      "t": 4,
+      "pose": "point"
+     },
+     {
+      "t": 8,
+      "pose": "point",
+      "ease": "inout"
+     },
+     {
+      "t": 11,
+      "pose": "stance"
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "start",
+     "type": "glow",
+     "color": "#ffd9a0",
+     "size": 0.9,
+     "duration": 11
+    },
+    {
+     "on": "start",
+     "type": "particles",
+     "bone": "hand_front",
+     "color": "#ffd9a0",
+     "color2": "#ece4d0",
+     "count": 60,
+     "duration": 8,
+     "size": 0.6
+    },
+    {
+     "on": "ability",
+     "type": "ring",
+     "color": "#ffd9a0",
+     "size": 0.8800000000000001
+    },
+    {
+     "on": "ability",
+     "type": "sparks",
+     "color": "#ffd9a0",
+     "color2": "#ece4d0",
+     "count": 18,
+     "size": 0.7200000000000001
+    },
+    {
+     "on": "hit",
+     "type": "shockwave",
+     "color": "#ffd9a0",
+     "size": 0.6400000000000001
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "color": "#ffd9a0",
+     "color2": "#ffc24a",
+     "count": 30,
+     "size": 0.8800000000000001
+    }
+   ],
+   "sounds": {
+    "start": "sparkle",
+    "ability": "magic-impact",
+    "hit": "whip"
+   }
+  },
+  {
+   "id": "rook",
+   "name": "Связка: ладья",
+   "slot": "special",
+   "posture": "stand",
+   "blocks": [
+    {
+     "type": "ability",
+     "script": "abilities/guard.js",
+     "startup": 4,
+     "active": 1,
+     "recovery": 6
+    }
+   ],
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": "stance",
+      "ease": "out"
+     },
+     {
+      "t": 2,
+      "pose": "raise2",
+      "ease": "in"
+     },
+     {
+      "t": 4,
+      "pose": "slam2"
+     },
+     {
+      "t": 8,
+      "pose": "slam2",
+      "ease": "inout"
+     },
+     {
+      "t": 11,
+      "pose": "stance"
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "start",
+     "type": "glow",
+     "color": "#ffb070",
+     "size": 0.9,
+     "duration": 11
+    },
+    {
+     "on": "start",
+     "type": "particles",
+     "bone": "hand_front",
+     "color": "#ffb070",
+     "color2": "#ece4d0",
+     "count": 60,
+     "duration": 8,
+     "size": 0.6
+    },
+    {
+     "on": "ability",
+     "type": "ring",
+     "color": "#ffb070",
+     "size": 1.1
+    },
+    {
+     "on": "ability",
+     "type": "sparks",
+     "color": "#ffb070",
+     "color2": "#ece4d0",
+     "count": 18,
+     "size": 0.9
+    },
+    {
+     "on": "hit",
+     "type": "shockwave",
+     "color": "#ffb070",
+     "size": 0.8
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "color": "#ffb070",
+     "color2": "#ffc24a",
+     "count": 30,
+     "size": 1.1
+    }
+   ],
+   "sounds": {
+    "start": "sparkle",
+    "ability": "magic-impact",
+    "hit": "whip"
+   }
+  },
+  {
+   "id": "queen",
+   "name": "Связка: ферзь",
+   "slot": "special",
+   "posture": "stand",
+   "blocks": [
+    {
+     "type": "ability",
+     "script": "abilities/guard.js",
+     "startup": 4,
+     "active": 1,
+     "recovery": 6
+    }
+   ],
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": "stance",
+      "ease": "out"
+     },
+     {
+      "t": 2,
+      "pose": "sweep_in",
+      "ease": "in"
+     },
+     {
+      "t": 4,
+      "pose": "sweep_out"
+     },
+     {
+      "t": 8,
+      "pose": "sweep_out",
+      "ease": "inout"
+     },
+     {
+      "t": 11,
+      "pose": "stance"
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "start",
+     "type": "glow",
+     "color": "#ff5a2e",
+     "size": 0.9,
+     "duration": 11
+    },
+    {
+     "on": "start",
+     "type": "particles",
+     "bone": "hand_front",
+     "color": "#ff5a2e",
+     "color2": "#ece4d0",
+     "count": 60,
+     "duration": 8,
+     "size": 0.6
+    },
+    {
+     "on": "ability",
+     "type": "ring",
+     "color": "#ff5a2e",
+     "size": 1.32
+    },
+    {
+     "on": "ability",
+     "type": "sparks",
+     "color": "#ff5a2e",
+     "color2": "#ece4d0",
+     "count": 18,
+     "size": 1.08
+    },
+    {
+     "on": "hit",
+     "type": "shockwave",
+     "color": "#ff5a2e",
+     "size": 0.96
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "color": "#ff5a2e",
+     "color2": "#ffc24a",
+     "count": 30,
+     "size": 1.32
+    }
+   ],
+   "sounds": {
+    "start": "sparkle",
+    "ability": "magic-impact",
+    "hit": "whip"
+   },
+   "line": "queen_1"
+  },
+  {
+   "id": "mate",
+   "name": "Шах и мат",
+   "slot": "super",
+   "posture": "stand",
+   "command": "236236P",
+   "blocks": [
+    {
+     "type": "ability",
+     "script": "abilities/mate.js",
+     "startup": 4,
+     "active": 1,
+     "recovery": 6
+    }
+   ],
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": "judge"
+     },
+     {
+      "t": 3,
+      "pose": "judge",
+      "ease": "in"
+     },
+     {
+      "t": 5,
+      "pose": "verdict"
+     },
+     {
+      "t": 9,
+      "pose": "verdict",
+      "ease": "inout"
+     },
+     {
+      "t": 11,
+      "pose": "stance"
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "start",
+     "type": "glow",
+     "color": "#ff5a2e",
+     "size": 1.6,
+     "duration": 11
+    },
+    {
+     "on": "start",
+     "type": "particles",
+     "bone": "hand_front",
+     "color": "#ff5a2e",
+     "color2": "#ffc24a",
+     "count": 160,
+     "duration": 11,
+     "size": 1.0
+    },
+    {
+     "on": "ability",
+     "type": "ring",
+     "color": "#ff5a2e",
+     "size": 2.2
+    },
+    {
+     "on": "ability",
+     "type": "flash",
+     "color": "#ffffff"
+    },
+    {
+     "on": "hit",
+     "type": "shockwave",
+     "color": "#ff5a2e",
+     "size": 2.4
+    },
+    {
+     "on": "hit",
+     "type": "flash",
+     "color": "#ff5a2e"
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "color": "#ff5a2e",
+     "color2": "#ffc24a",
+     "count": 120,
+     "size": 2.0
+    },
+    {
+     "on": "hit",
+     "type": "ring",
+     "color": "#ffc24a",
+     "size": 2.8
+    }
+   ],
+   "sounds": {
+    "ability": "braam",
+    "hit": "thunder"
+   },
+   "director": {
+    "title": "ШАХ И МАТ",
+    "titleColor": "#ece4d0",
+    "zoom": 1.7,
+    "angle": "low",
+    "flash": "#ff5a2e",
+    "background": "darken",
+    "slowmo": 0.45
+   }
+  }
+ ]
+}

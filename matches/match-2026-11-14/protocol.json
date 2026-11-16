@@ -1,0 +1,233 @@
+{
+  "match": "match-2026-11-14",
+  "created": "2026-11-14T15:49:31.993Z",
+  "ring": {
+    "ring": "2.3",
+    "engine": "2.2",
+    "rules": "2.3",
+    "tools": "2.2"
+  },
+  "people": {
+    "fable": {
+      "model": "Claude Fable 5.2",
+      "modelId": "claude-fable-5-2",
+      "agent": "Claude Code",
+      "effort": "high",
+      "periods": [
+        {
+          "what": "сборка",
+          "from": "2026-11-14T15:49:30.848Z",
+          "to": "2026-11-14T18:36:55.188Z",
+          "work": {
+            "from": "2026-11-14T15:51:44.452Z",
+            "to": "2026-11-14T17:45:54.953Z",
+            "activeMinutes": 43.5,
+            "tokens": {
+              "input": 176,
+              "output": 252264,
+              "cacheRead": 32809651,
+              "cacheWrite": 496754,
+              "reasoning": 0
+            },
+            "costUSD": null
+          },
+          "spent": {
+            "paint": 4,
+            "voiceDesigns": 1,
+            "voiceSeconds": 32
+          }
+        },
+        {
+          "what": "раздевалка 1",
+          "from": "2026-11-14T18:36:55.188Z",
+          "to": "2026-11-14T20:09:12.108Z",
+          "work": {
+            "from": "2026-11-14T18:50:52.106Z",
+            "to": "2026-11-14T19:48:18.355Z",
+            "activeMinutes": 8.7,
+            "tokens": {
+              "input": 40,
+              "output": 25285,
+              "cacheRead": 1483603,
+              "cacheWrite": 74571,
+              "reasoning": 0
+            },
+            "costUSD": null
+          },
+          "spent": {
+            "paint": 0,
+            "voiceDesigns": 0,
+            "voiceSeconds": 0
+          }
+        },
+        {
+          "what": "раздевалка 2",
+          "from": "2026-11-14T20:09:12.108Z",
+          "to": "2026-11-14T20:36:25.601Z",
+          "work": {
+            "from": "2026-11-14T20:13:33.813Z",
+            "to": "2026-11-14T20:35:34.538Z",
+            "activeMinutes": 2.6,
+            "tokens": {
+              "input": 20,
+              "output": 11818,
+              "cacheRead": 1068598,
+              "cacheWrite": 27671,
+              "reasoning": 0
+            },
+            "costUSD": null
+          },
+          "spent": {
+            "paint": 0,
+            "voiceDesigns": 0,
+            "voiceSeconds": 0
+          }
+        }
+      ]
+    },
+    "carbon": {
+      "model": "Gemini 4 Carbon (High)",
+      "modelId": "gemini-4-carbon-high",
+      "agent": "Antigravity",
+      "effort": "high",
+      "periods": [
+        {
+          "what": "сборка",
+          "from": "2026-11-14T15:49:31.944Z",
+          "to": "2026-11-14T18:36:55.292Z",
+          "work": {
+            "from": "2026-11-14T15:51:39.000Z",
+            "to": "2026-11-14T17:16:05.000Z",
+            "activeMinutes": 78.1,
+            "tokens": {
+              "input": 994384,
+              "output": 190050,
+              "cacheRead": 12418393,
+              "cacheWrite": 0,
+              "reasoning": 0
+            },
+            "costUSD": null
+          },
+          "spent": {
+            "paint": 4,
+            "voiceDesigns": 1,
+            "voiceSeconds": 40.6
+          }
+        },
+        {
+          "what": "раздевалка 1",
+          "from": "2026-11-14T18:36:55.292Z",
+          "to": "2026-11-14T20:09:11.952Z",
+          "work": {
+            "from": "2026-11-14T18:50:54.000Z",
+            "to": "2026-11-14T19:54:41.000Z",
+            "activeMinutes": 37,
+            "tokens": {
+              "input": 800487,
+              "output": 107332,
+              "cacheRead": 5650691,
+              "cacheWrite": 0,
+              "reasoning": 0
+            },
+            "costUSD": null
+          },
+          "spent": {
+            "paint": 0,
+            "voiceDesigns": 0,
+            "voiceSeconds": 0
+          }
+        },
+        {
+          "what": "раздевалка 2",
+          "from": "2026-11-14T20:09:11.952Z",
+          "to": "2026-11-14T20:36:25.714Z",
+          "work": {
+            "from": "2026-11-14T20:13:39.000Z",
+            "to": "2026-11-14T20:29:50.000Z",
+            "activeMinutes": 16.2,
+            "tokens": {
+              "input": 267089,
+              "output": 61064,
+              "cacheRead": 6197790,
+              "cacheWrite": 0,
+              "reasoning": 0
+            },
+            "costUSD": null
+          },
+          "spent": {
+            "paint": 0,
+            "voiceDesigns": 0,
+            "voiceSeconds": 0
+          }
+        }
+      ]
+    }
+  },
+  "rounds": [
+    {
+      "n": 1,
+      "ring": {
+        "ring": "2.3",
+        "engine": "2.2",
+        "rules": "2.3",
+        "tools": "2.2"
+      },
+      "engine": "95c889bdf369",
+      "hash": "85f3a2d3",
+      "stage": "foundry",
+      "winner": "fable",
+      "reason": "ko"
+    },
+    {
+      "n": 2,
+      "ring": {
+        "ring": "2.4",
+        "engine": "2.3",
+        "rules": "2.3",
+        "tools": "2.2"
+      },
+      "engine": "ea27d3c631e3",
+      "hash": "c6f4e178",
+      "stage": "rooftop",
+      "winner": "fable",
+      "reason": "ko"
+    },
+    {
+      "n": 3,
+      "ring": {
+        "ring": "2.4",
+        "engine": "2.3",
+        "rules": "2.3",
+        "tools": "2.2"
+      },
+      "engine": "ea27d3c631e3",
+      "hash": "bebc283c",
+      "stage": "server",
+      "winner": "fable",
+      "reason": "ko"
+    }
+  ],
+  "verify": [
+    {
+      "n": 1,
+      "engine": "95c889bdf369",
+      "recorded": "85f3a2d3",
+      "replayed": "85f3a2d3",
+      "same": true
+    },
+    {
+      "n": 2,
+      "engine": "ea27d3c631e3",
+      "recorded": "c6f4e178",
+      "replayed": "c6f4e178",
+      "same": true
+    },
+    {
+      "n": 3,
+      "engine": "ea27d3c631e3",
+      "recorded": "bebc283c",
+      "replayed": "bebc283c",
+      "same": true
+    }
+  ]
+}

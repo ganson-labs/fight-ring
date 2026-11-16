@@ -1,0 +1,9 @@
+{
+  "name": "Пробник",
+  "motto": "Тестовый боец способностей",
+  "story": "Боец для тестов ринга: способности кодом, ресурс, стойка.",
+  "colors": { "primary": "#8d9199", "secondary": "#6c7078", "accent": "#7fd4ff" },
+  "stats": { "health": 3, "power": 3, "speed": 3, "defense": 3 },
+  "stances": [{ "id": "hot", "name": "Жар" }],
+  "resources": [{ "id": "heat", "name": "Жар", "max": 100, "start": 0, "color": "#ff7a33" }]
+}

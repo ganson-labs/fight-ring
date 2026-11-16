@@ -1,0 +1,25 @@
+{
+  "description": "Ведущий турнира по боям: низкий мужской голос, мощный и торжественный, объявляет громко и с паузой, как на большой арене. Чистая студийная запись, без музыки.",
+  "text": "Раунд первый! Раунд второй! Раунд третий! Раунд четвёртый! Раунд пятый! Решающий раунд! Бой! Нокаут! Двойной нокаут! Время! Ничья! Победитель матча!",
+  "previews": [
+    {
+      "n": 1,
+      "file": "voice/design/preview-1.mp3",
+      "generated_voice_id": "APBuBCVKEMYEFdP5KTzy",
+      "seconds": 21.7888125
+    },
+    {
+      "n": 2,
+      "file": "voice/design/preview-2.mp3",
+      "generated_voice_id": "QZcZwzaI0C6okFVi6uPi",
+      "seconds": 18.758625
+    },
+    {
+      "n": 3,
+      "file": "voice/design/preview-3.mp3",
+      "generated_voice_id": "THxolLPFkBbEX8qQIiwK",
+      "seconds": 26.0468125
+    }
+  ],
+  "at": "2026-11-06T18:10:21.174Z"
+}

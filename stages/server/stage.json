@@ -1,0 +1,24 @@
+{
+  "sound": "server",
+  "name": "Серверная",
+  "sky": "#02050b",
+  "skyBottom": "#0a1626",
+  "fighterTint": "#c6d6f0",
+  "grade": {"contrast": 0.1, "saturation": 0.1, "tint": "#8fc8ff", "tintAmount": 0.08},
+  "rim": {"color": "#5fb8ff", "alpha": 0.6},
+  "reflect": 0.12,
+  "layers": [
+    { "image": "far.png", "hd": "far.hd.webp", "parallax": 0.12, "width": 3300, "groundAt": 0.6, "y": 140, "blur": 2 },
+    { "image": "mid.png", "hd": "mid.hd.webp", "parallax": 0.45, "width": 1150, "repeat": 3, "mirror": true, "groundAt": 0.94, "y": 104, "tint": "#8f9cb8", "blur": 1 },
+    { "image": "floor.png", "hd": "floor.hd.webp", "parallax": 1, "width": 2800, "height": 640, "groundAt": 0.2, "y": 0, "tint": "#8a96ac" }
+  ],
+  "ambient": [
+    { "type": "lights", "layer": "far.png", "match": { "color": "#4fb0ff", "tolerance": 0.35, "min": 0.55 }, "count": 140, "size": 7, "colors": ["#6cc4ff", "#3d8bff"], "alpha": [0.1, 0.9], "rate": 1.2 },
+    { "type": "lights", "layer": "mid.png", "match": { "color": "#3d7bff", "tolerance": 0.35, "min": 0.5 }, "count": 170, "size": 9, "colors": ["#5aa8ff", "#7fd0ff", "#3d7bff"], "alpha": [0.05, 1], "rate": 1.5, "steady": 0.4 },
+    { "type": "fog", "layer": "far.png", "uv": [-0.15, 0.48, 1.15, 0.63], "count": 12, "size": 700, "alpha": 0.16, "speed": [14, 0], "color": "#9fc0e8" },
+    { "type": "steam", "layer": "back", "area": [-300, -10, 2500, 20], "rate": 9, "life": 6, "speed": [34, 8], "both": true, "spread": 10, "size": 260, "grow": 1.6, "alpha": 0.14, "color": "#cfe2ff", "wobble": 14 },
+    { "type": "steam", "layer": "mid.png", "atUv": [[0.86, 0.36], [0.94, 0.36]], "rate": 4, "life": 4, "speed": [6, 80], "spread": 14, "size": 120, "grow": 2.6, "alpha": 0.16, "color": "#dbe9ff" },
+    { "type": "wind", "layer": "back", "shape": "dust", "area": [-500, 0, 2700, 900], "count": 50, "size": 5, "speed": [12, 8], "gust": 0.1, "alpha": 0.35, "color": "#9fd0ff" },
+    { "type": "fog", "layer": "front", "parallax": 1.15, "area": [-900, -60, 3100, 30], "count": 10, "size": 520, "alpha": 0.1, "speed": [-22, 0], "color": "#bcd4f5", "flat": 0.3 }
+  ]
+}

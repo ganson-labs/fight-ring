@@ -1,0 +1,3 @@
+// Names of the ring's sounds a fighter may use in moves.json → sounds. Written by scripts/build-sounds.mjs from the
+// catalogue (kit/arena/sounds/catalog.js); the engine keeps its own copy so its snapshot runs without the sounds.
+export const SOUND_NAMES = ["hit-light","hit-heavy","kick","kick-heavy","block","parry","grab","bodyfall","ko","super-start","super-hit","projectile","projectile-hit","teleport","teleport-magic","dash","jump","land","whoosh-light","whoosh-heavy","whip","fire","ice","electric","magic-impact","sparkle","glitch","bass-hit","impact-epic","braam","riser","heartbeat","gong","crowd","thunder","title-slam","vs-impact","vs-whoosh"];

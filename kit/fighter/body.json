@@ -1,0 +1,621 @@
+{
+  "parts": {
+    "pelvis": {
+      "image": "parts/pelvis.png",
+      "pivot": [
+        68,
+        68
+      ],
+      "tip": [
+        108,
+        68
+      ]
+    },
+    "torso": {
+      "image": "parts/torso.png",
+      "pivot": [
+        72,
+        72
+      ],
+      "tip": [
+        242,
+        72
+      ]
+    },
+    "head": {
+      "image": "parts/head.png",
+      "pivot": [
+        54,
+        54
+      ],
+      "tip": [
+        144,
+        54
+      ]
+    },
+    "upper_arm_back": {
+      "image": "parts/upper_arm_back.png",
+      "pivot": [
+        30,
+        30
+      ],
+      "tip": [
+        140,
+        30
+      ]
+    },
+    "forearm_back": {
+      "image": "parts/forearm_back.png",
+      "pivot": [
+        26,
+        26
+      ],
+      "tip": [
+        126,
+        26
+      ]
+    },
+    "hand_back": {
+      "image": "parts/hand_back.png",
+      "pivot": [
+        24,
+        24
+      ],
+      "tip": [
+        64,
+        24
+      ]
+    },
+    "thigh_back": {
+      "image": "parts/thigh_back.png",
+      "pivot": [
+        38,
+        38
+      ],
+      "tip": [
+        178,
+        38
+      ]
+    },
+    "shin_back": {
+      "image": "parts/shin_back.png",
+      "pivot": [
+        30,
+        30
+      ],
+      "tip": [
+        166,
+        30
+      ]
+    },
+    "foot_back": {
+      "image": "parts/foot_back.png",
+      "pivot": [
+        22,
+        22
+      ],
+      "tip": [
+        78,
+        22
+      ]
+    },
+    "thigh_front": {
+      "image": "parts/thigh_front.png",
+      "pivot": [
+        38,
+        38
+      ],
+      "tip": [
+        178,
+        38
+      ],
+      "z": 5.5
+    },
+    "shin_front": {
+      "image": "parts/shin_front.png",
+      "pivot": [
+        30,
+        30
+      ],
+      "tip": [
+        166,
+        30
+      ]
+    },
+    "foot_front": {
+      "image": "parts/foot_front.png",
+      "pivot": [
+        22,
+        22
+      ],
+      "tip": [
+        78,
+        22
+      ]
+    },
+    "upper_arm_front": {
+      "image": "parts/upper_arm_front.png",
+      "pivot": [
+        30,
+        30
+      ],
+      "tip": [
+        140,
+        30
+      ]
+    },
+    "forearm_front": {
+      "image": "parts/forearm_front.png",
+      "pivot": [
+        26,
+        26
+      ],
+      "tip": [
+        126,
+        26
+      ]
+    },
+    "hand_front": {
+      "image": "parts/hand_front.png",
+      "pivot": [
+        24,
+        24
+      ],
+      "tip": [
+        64,
+        24
+      ]
+    }
+  },
+  "poses": {
+    "stance": {
+      "root": [
+        0,
+        -8
+      ],
+      "bones": {
+        "torso": -8,
+        "head": 6,
+        "thigh_front": 28,
+        "shin_front": -38,
+        "foot_front": 10,
+        "thigh_back": -18,
+        "shin_back": -14,
+        "foot_back": 32,
+        "upper_arm_front": 55,
+        "forearm_front": 105,
+        "upper_arm_back": 35,
+        "forearm_back": 115
+      }
+    },
+    "stance_breath": {
+      "root": [
+        0,
+        -12
+      ],
+      "bones": {
+        "torso": -10,
+        "head": 8,
+        "thigh_front": 28,
+        "shin_front": -38,
+        "foot_front": 10,
+        "thigh_back": -18,
+        "shin_back": -14,
+        "foot_back": 32,
+        "upper_arm_front": 58,
+        "forearm_front": 100,
+        "upper_arm_back": 38,
+        "forearm_back": 110
+      }
+    },
+    "step_a": {
+      "root": [
+        0,
+        -8
+      ],
+      "bones": {
+        "torso": -10,
+        "head": 6,
+        "thigh_front": 32,
+        "shin_front": -30,
+        "foot_front": 0,
+        "thigh_back": -22,
+        "shin_back": -10,
+        "foot_back": 32,
+        "upper_arm_front": 55,
+        "forearm_front": 105,
+        "upper_arm_back": 35,
+        "forearm_back": 115
+      }
+    },
+    "step_b": {
+      "root": [
+        0,
+        -14
+      ],
+      "bones": {
+        "torso": -10,
+        "head": 6,
+        "thigh_front": -8,
+        "shin_front": -24,
+        "foot_front": 30,
+        "thigh_back": 26,
+        "shin_back": -40,
+        "foot_back": 14,
+        "upper_arm_front": 55,
+        "forearm_front": 105,
+        "upper_arm_back": 35,
+        "forearm_back": 115
+      }
+    },
+    "crouch": {
+      "root": [
+        0,
+        -72
+      ],
+      "bones": {
+        "torso": -15,
+        "head": 10,
+        "thigh_front": 80,
+        "shin_front": -120,
+        "foot_front": 40,
+        "thigh_back": 60,
+        "shin_back": -125,
+        "foot_back": 65,
+        "upper_arm_front": 55,
+        "forearm_front": 105,
+        "upper_arm_back": 35,
+        "forearm_back": 115
+      }
+    },
+    "tuck": {
+      "root": [
+        0,
+        0
+      ],
+      "bones": {
+        "torso": -10,
+        "head": 6,
+        "thigh_front": 75,
+        "shin_front": -115,
+        "foot_front": 30,
+        "thigh_back": 60,
+        "shin_back": -110,
+        "foot_back": 40,
+        "upper_arm_front": 55,
+        "forearm_front": 105,
+        "upper_arm_back": 35,
+        "forearm_back": 115
+      }
+    },
+    "block_high": {
+      "root": [
+        0,
+        -10
+      ],
+      "bones": {
+        "torso": -12,
+        "head": -4,
+        "thigh_front": 28,
+        "shin_front": -38,
+        "foot_front": 10,
+        "thigh_back": -18,
+        "shin_back": -14,
+        "foot_back": 32,
+        "upper_arm_front": 100,
+        "forearm_front": 80,
+        "upper_arm_back": 85,
+        "forearm_back": 92
+      }
+    },
+    "block_low": {
+      "root": [
+        0,
+        -72
+      ],
+      "bones": {
+        "torso": -18,
+        "head": 6,
+        "thigh_front": 80,
+        "shin_front": -120,
+        "foot_front": 40,
+        "thigh_back": 60,
+        "shin_back": -125,
+        "foot_back": 65,
+        "upper_arm_front": 70,
+        "forearm_front": 70,
+        "upper_arm_back": 60,
+        "forearm_back": 80
+      }
+    },
+    "hurt": {
+      "root": [
+        -6,
+        -10
+      ],
+      "bones": {
+        "torso": 22,
+        "head": 22,
+        "thigh_front": 28,
+        "shin_front": -38,
+        "foot_front": 10,
+        "thigh_back": -18,
+        "shin_back": -14,
+        "foot_back": 32,
+        "upper_arm_front": 25,
+        "forearm_front": 40,
+        "upper_arm_back": 10,
+        "forearm_back": 50
+      }
+    },
+    "fall": {
+      "root": [
+        -20,
+        -60
+      ],
+      "bones": {
+        "pelvis": 45,
+        "torso": 15,
+        "head": 10,
+        "thigh_front": 40,
+        "shin_front": -30,
+        "thigh_back": 20,
+        "shin_back": -20,
+        "upper_arm_front": 40,
+        "forearm_front": 20,
+        "upper_arm_back": 60,
+        "forearm_back": 20
+      }
+    },
+    "lying": {
+      "root": [
+        -20,
+        -126
+      ],
+      "bones": {
+        "pelvis": 90,
+        "torso": 0,
+        "head": 5,
+        "thigh_front": 8,
+        "shin_front": -6,
+        "foot_front": 60,
+        "thigh_back": 0,
+        "shin_back": -4,
+        "foot_back": 70,
+        "upper_arm_front": 40,
+        "forearm_front": 10,
+        "upper_arm_back": 20,
+        "forearm_back": 10
+      }
+    },
+    "punch_ready": {
+      "root": [
+        0,
+        -10
+      ],
+      "bones": {
+        "torso": -4,
+        "head": 6,
+        "thigh_front": 28,
+        "shin_front": -38,
+        "foot_front": 10,
+        "thigh_back": -18,
+        "shin_back": -14,
+        "foot_back": 32,
+        "upper_arm_front": 45,
+        "forearm_front": 115,
+        "upper_arm_back": 35,
+        "forearm_back": 115
+      }
+    },
+    "punch": {
+      "root": [
+        10,
+        -12
+      ],
+      "bones": {
+        "torso": -16,
+        "head": 8,
+        "thigh_front": 28,
+        "shin_front": -38,
+        "foot_front": 10,
+        "thigh_back": -26,
+        "shin_back": -14,
+        "foot_back": 32,
+        "upper_arm_front": 103,
+        "forearm_front": 0,
+        "upper_arm_back": 15,
+        "forearm_back": 120
+      }
+    },
+    "punch_back": {
+      "root": [
+        12,
+        -12
+      ],
+      "bones": {
+        "torso": -18,
+        "head": 8,
+        "thigh_front": 28,
+        "shin_front": -38,
+        "foot_front": 10,
+        "thigh_back": -26,
+        "shin_back": -14,
+        "foot_back": 32,
+        "upper_arm_front": 50,
+        "forearm_front": 110,
+        "upper_arm_back": 103,
+        "forearm_back": 0
+      }
+    },
+    "windup": {
+      "root": [
+        -8,
+        -16
+      ],
+      "bones": {
+        "torso": 14,
+        "head": 0,
+        "thigh_front": 28,
+        "shin_front": -38,
+        "foot_front": 10,
+        "thigh_back": -18,
+        "shin_back": -14,
+        "foot_back": 32,
+        "upper_arm_front": -20,
+        "forearm_front": 90,
+        "upper_arm_back": -30,
+        "forearm_back": 100
+      }
+    }
+  },
+  "anims": {
+    "idle": {
+      "loop": true,
+      "length": 60,
+      "keys": [
+        {
+          "t": 0,
+          "pose": "stance",
+          "ease": "inout"
+        },
+        {
+          "t": 30,
+          "pose": "stance_breath",
+          "ease": "inout"
+        }
+      ]
+    },
+    "walk_forward": {
+      "loop": true,
+      "length": 36,
+      "keys": [
+        {
+          "t": 0,
+          "pose": "step_a"
+        },
+        {
+          "t": 18,
+          "pose": "step_b"
+        }
+      ]
+    },
+    "walk_back": {
+      "loop": true,
+      "length": 40,
+      "keys": [
+        {
+          "t": 0,
+          "pose": "step_b"
+        },
+        {
+          "t": 20,
+          "pose": "step_a"
+        }
+      ]
+    },
+    "crouch": {
+      "loop": true,
+      "length": 1,
+      "keys": [
+        {
+          "t": 0,
+          "pose": "crouch"
+        }
+      ]
+    },
+    "jump": {
+      "keys": [
+        {
+          "t": 0,
+          "pose": "crouch",
+          "ease": "out"
+        },
+        {
+          "t": 8,
+          "pose": "tuck"
+        },
+        {
+          "t": 32,
+          "pose": "tuck"
+        },
+        {
+          "t": 40,
+          "pose": "stance"
+        }
+      ]
+    },
+    "block_high": {
+      "keys": [
+        {
+          "t": 0,
+          "pose": "block_high"
+        }
+      ]
+    },
+    "block_low": {
+      "keys": [
+        {
+          "t": 0,
+          "pose": "block_low"
+        }
+      ]
+    },
+    "hit": {
+      "keys": [
+        {
+          "t": 0,
+          "pose": "stance"
+        },
+        {
+          "t": 3,
+          "pose": "hurt",
+          "ease": "out"
+        },
+        {
+          "t": 16,
+          "pose": "stance"
+        }
+      ]
+    },
+    "knockdown": {
+      "keys": [
+        {
+          "t": 0,
+          "pose": "fall",
+          "ease": "in"
+        },
+        {
+          "t": 10,
+          "pose": "lying"
+        }
+      ]
+    },
+    "getup": {
+      "keys": [
+        {
+          "t": 0,
+          "pose": "lying"
+        },
+        {
+          "t": 12,
+          "pose": "crouch"
+        },
+        {
+          "t": 20,
+          "pose": "stance"
+        }
+      ]
+    },
+    "victory": {
+      "loop": true,
+      "length": 60,
+      "keys": [
+        {
+          "t": 0,
+          "pose": "stance"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Ринг моделей — карточка</title>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="game.css">
+  <link rel="stylesheet" href="screens.css">
+  <script type="importmap">{ "imports": { "pixi.js": "/kit/arena/vendor/pixi.mjs", "pixi-filters": "/kit/arena/vendor/pixi-filters.mjs" } }</script>
+  <style>html, body { margin: 0; overflow: hidden; background: #07080c; } #card { position: fixed; inset: 0; }</style>
+</head>
+<body class="cardpage">
+  <div id="card"></div>
+  <script type="module">
+    // A screen of the reel: /viewer/card.html?match=<id>&kind=round|locker&round=N&cid=<id>&aspect=16:9|9:16&bg=<url>
+    // (the round result or the locker room of viewer/game/screens.js). With &rec=1 the screen stands still and the
+    // judge steps it: window.cardSeek(t), window.cardDur. A caption over the reel: ?kind=caption&text=…&kicker=…
+    // &color=%23hex&aspect=… (a transparent page).
+    import { captionCard } from './game/stats.js';
+    const q = new URLSearchParams(location.search);
+    const aspect = q.get('aspect') || '16:9';
+    const el = document.getElementById('card');
+    if (q.get('kind') === 'caption') {
+      document.documentElement.classList.add('cappage');
+      document.body.className = 'cappage';
+      await document.fonts.load('700 italic 60px Oswald').catch(() => {});
+      el.innerHTML = captionCard({ text: q.get('text'), kicker: q.get('kicker'), color: q.get('color') }, aspect);
+      // a long line shrinks to the frame instead of leaving it
+      const t = el.querySelector('.slab');
+      const max = innerWidth * (aspect === '9:16' ? 0.86 : 0.7);
+      for (let f = parseFloat(getComputedStyle(t).fontSize); t.scrollWidth > max && f > 30; f -= 2) t.style.fontSize = `${f}px`;
+      window.cardReady = true;
+    } else {
+      const { resultFor, lockerFor } = await import('./game/screens.js');
+      const { fighterAssets } = await import('./game/fight.js');
+      const data = await (await fetch('/api/game', { cache: 'no-store' })).json();
+      const m = data.matches.find((x) => x.id === q.get('match'));
+      const n = Number(q.get('round') || 1);
+      await Promise.all(['700 italic 40px Oswald', '500 20px Oswald', '400 italic 20px Oswald'].map((f) => document.fonts.load(f).catch(() => {})));
+      const opts = { assetsOf: fighterAssets, bg: q.get('bg') || null };
+      // the background picture is in before the first frame
+      if (opts.bg) await new Promise((res) => Object.assign(new Image(), { onload: res, onerror: () => res((opts.bg = null)), src: opts.bg }));
+      const scr = q.get('kind') === 'locker' ? await lockerFor(data, m, n, q.get('cid'), opts) : await resultFor(data, m, n, opts);
+      el.appendChild(scr.root);
+      await scr.ready();
+      if (q.get('rec')) {
+        scr.seek(0);
+        window.cardSeek = (t) => scr.seek(t);
+        window.cardDur = scr.dur;
+      } else scr.play();
+      window.cardReady = true;
+    }
+  </script>
+</body>
+</html>

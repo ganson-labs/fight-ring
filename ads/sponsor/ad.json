@@ -1,0 +1,32 @@
+{
+  "sponsor": "Пример рекламной заготовки: подставь свой бренд, картинки положи рядом (logo.png, billboard.png)",
+  "enabled": false,
+  "costPlate": {
+    "enabled": false,
+    "title": "Счёт боя",
+    "currency": "$",
+    "rows": [
+      { "label": "Картинки бойцов", "amount": 0 },
+      { "label": "Голос бойцов", "amount": 0 },
+      { "label": "Подписки моделей", "amount": 0, "fixed": true }
+    ],
+    "footer": "здесь подпись спонсора"
+  },
+  "cardFlip": {
+    "enabled": false,
+    "label": "Спонсор",
+    "kind": "virtual",
+    "number": "••••  ••••  ••••  0000",
+    "holder": "",
+    "colors": ["#1b2a4a", "#3a5a8a"],
+    "image": "logo.png",
+    "seconds": 4.5
+  },
+  "billboard": {
+    "enabled": true,
+    "label": "ТВОЯ РЕКЛАМА",
+    "sub": "ads/sponsor/ad.json",
+    "image": "billboard.png",
+    "glow": "#4fc3c9"
+  }
+}

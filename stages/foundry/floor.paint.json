@@ -1,0 +1,9 @@
+{
+  "description": "Foundry floor of scorched iron plates for a 2D fighting game stage, seen from a low side camera: a wide floor strip in gentle perspective, worn dark riveted steel plates with soot and scattered slag, warm orange light from molten metal reflecting on the metal, faint glowing cracks, painted serious realistic style, the top edge of the image is the far edge of the floor against darkness, the floor fills the image, no text",
+  "aspect": "landscape",
+  "transparent": false,
+  "refs": [],
+  "at": "2026-11-06T17:43:58.610Z",
+  "seconds": 163,
+  "edited": "top 24 px dark strip cut off, 60 px alpha fade on the new top edge so the floor melts into the far layer (ffmpeg crop+geq)"
+}

@@ -1,0 +1,165 @@
+{
+  "id": "match-2026-11-14",
+  "created": "2026-11-14T15:49:31.993Z",
+  "ring": {
+    "ring": "2.3",
+    "engine": "2.2",
+    "rules": "2.3",
+    "tools": "2.2"
+  },
+  "red": "fable",
+  "blue": "carbon",
+  "models": {
+    "fable": "Claude Fable 5.2",
+    "carbon": "Gemini 4 Carbon (High)"
+  },
+  "colors": {
+    "fable": "#e8825a",
+    "carbon": "#4fc3c9"
+  },
+  "stages": [
+    "foundry",
+    "rooftop",
+    "server"
+  ],
+  "firstTo": 3,
+  "maxRounds": 7,
+  "lockerMinutes": 20,
+  "rounds": [
+    {
+      "n": 1,
+      "ring": {
+        "ring": "2.3",
+        "engine": "2.2",
+        "rules": "2.3",
+        "tools": "2.2"
+      },
+      "engine": "95c889bdf369",
+      "left": "fable",
+      "right": "carbon",
+      "stage": "foundry",
+      "winner": "fable",
+      "reason": "ko",
+      "ticks": 1168,
+      "hp": [
+        13440,
+        0
+      ],
+      "maxHp": [
+        13440,
+        13440
+      ],
+      "snapshot": {
+        "fable": {
+          "git": {
+            "head": "2c364d5",
+            "dirty": true
+          },
+          "at": "2026-11-14T18:36:55.188Z",
+          "name": "Цугцванг"
+        },
+        "carbon": {
+          "git": {
+            "head": "63501d9",
+            "dirty": true
+          },
+          "at": "2026-11-14T18:36:55.292Z",
+          "name": "КАЙРОС"
+        }
+      },
+      "hash": "85f3a2d3"
+    },
+    {
+      "n": 2,
+      "ring": {
+        "ring": "2.4",
+        "engine": "2.3",
+        "rules": "2.3",
+        "tools": "2.2"
+      },
+      "engine": "ea27d3c631e3",
+      "left": "carbon",
+      "right": "fable",
+      "stage": "rooftop",
+      "winner": "fable",
+      "reason": "ko",
+      "ticks": 2503,
+      "hp": [
+        0,
+        9873
+      ],
+      "maxHp": [
+        13440,
+        13440
+      ],
+      "snapshot": {
+        "carbon": {
+          "git": {
+            "head": "63501d9",
+            "dirty": true
+          },
+          "at": "2026-11-14T20:09:11.952Z",
+          "name": "КАЙРОС"
+        },
+        "fable": {
+          "git": {
+            "head": "2c364d5",
+            "dirty": true
+          },
+          "at": "2026-11-14T20:09:12.108Z",
+          "name": "Цугцванг"
+        }
+      },
+      "hash": "c6f4e178"
+    },
+    {
+      "n": 3,
+      "ring": {
+        "ring": "2.4",
+        "engine": "2.3",
+        "rules": "2.3",
+        "tools": "2.2"
+      },
+      "engine": "ea27d3c631e3",
+      "left": "fable",
+      "right": "carbon",
+      "stage": "server",
+      "winner": "fable",
+      "reason": "ko",
+      "ticks": 3502,
+      "hp": [
+        5154,
+        0
+      ],
+      "maxHp": [
+        13440,
+        13440
+      ],
+      "snapshot": {
+        "fable": {
+          "git": {
+            "head": "2c364d5",
+            "dirty": true
+          },
+          "at": "2026-11-14T20:36:25.601Z",
+          "name": "Цугцванг"
+        },
+        "carbon": {
+          "git": {
+            "head": "63501d9",
+            "dirty": true
+          },
+          "at": "2026-11-14T20:36:25.714Z",
+          "name": "КАЙРОС"
+        }
+      },
+      "hash": "bebc283c"
+    }
+  ],
+  "score": {
+    "fable": 3,
+    "carbon": 0
+  },
+  "over": true,
+  "winner": "fable"
+}
