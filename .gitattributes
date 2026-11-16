@@ -4,3 +4,6 @@
 *.webp binary
 *.mp3 binary
 *.ogg binary
+
+# match snapshots stay byte for byte: the judge hashes the engine and the fighters it kept
+matches/** -text
