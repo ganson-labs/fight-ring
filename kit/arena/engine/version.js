@@ -3,6 +3,6 @@
 //   engine — anything that changes how a fight plays out (the simulation, the constructor's numbers, abilities);
 //   rules  — what a fighter may write (ARENA.md, the checker: new fields, limits);
 //   tools  — the workshop (preview, paint, parts, voice, sounds) and the show; a fight does not change.
-export const RING_VERSION = { ring: '2.5', engine: '2.4', rules: '2.4', tools: '2.3' };
+export const RING_VERSION = { ring: '2.6', engine: '2.5', rules: '2.5', tools: '2.3' };
 
 export const ringVersionText = (v = RING_VERSION) => `ринг ${v.ring} (движок ${v.engine}, правила ${v.rules}, инструменты ${v.tools})`;

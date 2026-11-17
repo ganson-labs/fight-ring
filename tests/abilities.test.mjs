@@ -352,7 +352,7 @@ test('одна цель стоит не больше 90 тиков за раун
 
 // ---------- ring 2.5: pressure, simultaneous decisions, unblockable protection ----------
 
-// The loop of 17.11.2026: hits every 6 ticks until the series is one short of the limit, the last one for 1 damage, then
+// The loop of 17.11.2026: hits every 6 ticks until the series is one short of the limit, then
 // wait until the series ends and start again at full damage.
 // A cloud that lives on after the cast, like the one of that fight.
 const looper = {
@@ -361,7 +361,7 @@ const looper = {
     const op = v.opponent;
     if (op.invulnerable || op.combo >= 4) return;
     const rel = (op.x - o.x) * o.facing;
-    a.hit({ box: [rel - 45, op.y - o.y + 40, rel + 45, op.y - o.y + 200], damage: op.combo >= 3 ? 1 : 80, zone: 'mid' });
+    a.hit({ box: [rel - 45, op.y - o.y + 40, rel + 45, op.y - o.y + 200], damage: 1, zone: 'mid' }); // 1 damage: the price ceiling stays out of the way, the stun is the same
   } }),
 };
 
@@ -424,4 +424,28 @@ test('после блока удар в другую зону 7 тиков то�
   for (let i = 0; i < 60; i++) ev.push(...E.stepFight(fight, fight.freeze || fight.hitstop ? null : [i === 0 ? { attack: 'mix' } : {}, { guard: 'high' }]));
   const res = ev.filter((e) => (e.type === 'block' || e.type === 'hit') && e.move === 'mix').map((e) => `${e.type}:${e.zone ?? ''}`);
   assert.deepEqual(res.map((r) => r.split(':')[0]), ['block', 'block', 'hit'], res.join(' '));
+});
+
+// ---------- ring 2.6: the price ceiling ----------
+
+test('потолок цены: сила выше 550 стоит те же 24 очка, но в бою каст делает только оплаченную долю', () => {
+  const p = E.abilityPrice({ damage: 4074, control: 1068, buff: 990, shove: 0, objectTicks: 1374 }, 'special');
+  assert.equal(p.cost, 24);
+  assert.equal(p.top, 550);
+  assert.ok(Math.abs(p.scale - 550 / p.power) < 1e-9);
+  assert.equal(E.abilityPrice({ damage: 265, control: 0, buff: 0, shove: 0, objectTicks: 0 }, 'super').scale, 1);
+  // a cloud that hits every 6 ticks for its whole life: far above the ceiling
+  const cloud = { start: (api) => api.spawn({ x: 140, y: 400, w: 60, h: 60, life: 350, tick: (a, o) => {
+    const op = a.view().opponent;
+    if (op.invulnerable) return;
+    const rel = (op.x - o.x) * o.facing;
+    a.hit({ box: [rel - 45, op.y - o.y + 40, rel + 45, op.y - o.y + 200], damage: 80, zone: 'mid' });
+  } }) };
+  const { def } = withAbilities({ cloud });
+  const ab = def.movesById.cloud.ability;
+  assert.ok(ab.scale < 1, `сила ${ab.power} должна быть выше потолка`);
+  const { ev } = cast(def, 'cloud', { ticks: 420 });
+  const dealt = ev.filter((e) => e.type === 'hit' && e.move === 'cloud').reduce((s, e) => s + e.damage, 0);
+  const cap = ab.measured.damage * ab.scale * E.ABILITY.capMul + E.ABILITY.capAdd.damage;
+  assert.ok(dealt > 0 && dealt <= cap, `урон каста ${dealt}, оплачено ${Math.round(cap)} из замера ${ab.measured.damage}`);
 });

@@ -166,8 +166,13 @@ export function abilityPrice(m, slot) {
   const cd = ABILITY_PRICE.cooldown;
   const c = ABILITY_PRICE.cost;
   const cooldown = slot === 'super' ? 0 : Math.min(cd.max, Math.max(cd.min, Math.round(cd.base + power * cd.perPower)));
-  const cost = Math.min(c.max, c.base + Math.ceil(power / (slot === 'super' ? c.perPowerSuper : c.perPower)));
-  return { power, cooldown, cost };
+  const per = slot === 'super' ? c.perPowerSuper : c.perPower;
+  const cost = Math.min(c.max, c.base + Math.ceil(power / per));
+  // the price stops at c.max, so does the power it pays for: above it a cast does only its share of the measurement
+  // (found 17.11.2026: an ability of power 6446 cost the same 24 points as one of 550)
+  const top = (c.max - c.base) * per;
+  const scale = power > top ? top / power : 1;
+  return { power, cooldown, cost, top, scale };
 }
 
 // What the ability code can call. Printed by `arena blocks`; the rules in detail are in ARENA.md.

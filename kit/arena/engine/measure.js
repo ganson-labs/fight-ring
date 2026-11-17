@@ -179,13 +179,15 @@ export function prepareAbilities(def, modules, { verify = false, clock = null } 
     move.ability.power = Math.round(price.power * 100) / 100;
     move.ability.cooldown = price.cooldown;
     move.ability.cost = price.cost;
+    move.ability.scale = price.scale;
+    if (price.scale < 1) warnings.push(`${move.id}: сила ${Math.round(price.power)} больше потолка цены ${price.top}: в бою каст делает не больше ×${price.scale.toFixed(3)} замеренного`);
     const blk = move.blocks.find((b) => b.type === 'ability');
     if (blk) blk.measuredCost = price.cost;
     move.cost += price.cost - before;
     const avg = m.ms.n ? m.ms.sum / m.ms.n : 0;
     if (clock && avg > ABILITY.hookMsAvg) errors.push(`${move.id}: хуки способности в среднем ${avg.toFixed(2)} мс за вызов, предел ${ABILITY.hookMsAvg} мс`);
     if (clock && m.ms.max > ABILITY.hookMsMax) warnings.push(`${move.id}: самый долгий вызов хука ${m.ms.max.toFixed(1)} мс (ориентир до ${ABILITY.hookMsMax} мс)`);
-    report.push({ id: move.id, slot: move.slot, script: move.ability.script, measured: m.best, where: m.where, runs: m.runs, power: move.ability.power, cooldown: price.cooldown, cost: price.cost, cuts: m.cuts, images: m.images, ms: { avg, max: m.ms.max, calls: m.ms.n } });
+    report.push({ id: move.id, slot: move.slot, script: move.ability.script, measured: m.best, where: m.where, runs: m.runs, power: move.ability.power, cooldown: price.cooldown, cost: price.cost, top: price.top, scale: price.scale, cuts: m.cuts, images: m.images, ms: { avg, max: m.ms.max, calls: m.ms.n } });
   }
   def.abilityImages = [...new Set(report.flatMap((r) => r.images))];
   const budgetUsed = def.moves.reduce((s, m) => s + m.cost, 0);

@@ -89,6 +89,7 @@ function printAbilities(list) {
     console.log(`    сила = ${f1(m.damage)}·${w.damage} + ${f1(m.control)}·${w.control} + ${f1(m.buff)}·${w.buff} + ${f1(m.shove)}·${w.shove} + ${f1(m.objectTicks)}·${w.objectTicks} = ${f1(a.power)}`);
     if (a.slot === 'super') console.log(`    суперприём: перезарядки нет (нужна шкала), стоимость ${c.base} + ⌈${f1(a.power)}/${c.perPowerSuper}⌉ = ${a.cost} очк.`);
     else console.log(`    перезарядка ${cd.base} + ${f1(a.power)}·${cd.perPower} = ${a.cooldown} тиков (${(a.cooldown / TICK_RATE).toFixed(1)} с, рамки ${cd.min}…${cd.max}), стоимость ${c.base} + ⌈${f1(a.power)}/${c.perPower}⌉ = ${a.cost} очк.`);
+    if (a.scale < 1) console.log(`    потолок цены оплачивает силу ${a.top}: в бою каст делает не больше ×${a.scale.toFixed(3)} замеренного (урон, контроль, усиление и сдвиг)`);
     console.log(`    хуки: ${a.ms.calls} вызовов, в среднем ${a.ms.avg.toFixed(3)} мс, самый долгий ${a.ms.max.toFixed(2)} мс`);
     const cuts = Object.entries(a.cuts);
     if (cuts.length) {

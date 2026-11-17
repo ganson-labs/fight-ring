@@ -738,7 +738,7 @@ export function abilityPhase(fight, events, ring) {
           ended: false,
           lastHit: -99,
           used: { damage: 0, control: 0, buff: 0, shove: 0, objectTicks: 0 },
-          cap: fight.measuring || !d.ability.measured ? null : capOf(d.ability.measured),
+          cap: fight.measuring || !d.ability.measured ? null : capOf(d.ability.measured, d.ability.scale ?? 1),
           fresh: true,
         };
         fight.casts.push(c);
@@ -772,13 +772,14 @@ export function abilityPhase(fight, events, ring) {
   }
 }
 
-function capOf(m) {
+// k: the share of the measurement the price pays for (abilityPrice → scale, 1 below the price ceiling)
+function capOf(m, k = 1) {
   const a = L.capAdd;
   return {
-    damage: m.damage * L.capMul + a.damage,
-    control: m.control * L.capMul + a.control,
-    buff: m.buff * L.capMul + a.buff,
-    shove: m.shove * L.capMul + a.shove,
+    damage: m.damage * k * L.capMul + a.damage,
+    control: m.control * k * L.capMul + a.control,
+    buff: m.buff * k * L.capMul + a.buff,
+    shove: m.shove * k * L.capMul + a.shove,
   };
 }
 
