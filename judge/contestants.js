@@ -316,14 +316,16 @@ function walk(dir, out = []) {
   return out;
 }
 
+// Claude Code keeps a contestant's sessions in ~/.claude/projects/<its folder as a slug>
+function claudeProjectDirs(c) {
+  const slug = win(c.root).replace(/[^A-Za-z0-9]/g, '-');
+  const base = join(homedir(), '.claude', 'projects');
+  return existsSync(base) ? readdirSync(base).filter((d) => d.toLowerCase() === slug.toLowerCase()).map((d) => join(base, d)) : [];
+}
+
 export function transcriptFiles(id) {
   const c = getContestant(id);
-  if (c.agent === 'claude') {
-    const slug = win(c.root).replace(/[^A-Za-z0-9]/g, '-');
-    const base = join(homedir(), '.claude', 'projects');
-    const dirs = existsSync(base) ? readdirSync(base).filter((d) => d.toLowerCase() === slug.toLowerCase()) : [];
-    return dirs.flatMap((d) => walk(join(base, d)));
-  }
+  if (c.agent === 'claude') return claudeProjectDirs(c).flatMap((d) => walk(d));
   if (c.agent === 'gemini') return geminiTranscripts(id);
   return walk(join(codexHome(id), 'sessions'));
 }
@@ -335,27 +337,42 @@ export function geminiTranscripts(id) {
   return readdirSync(brain).map((d) => join(brain, d, '.system_generated', 'logs', 'transcript_full.jsonl')).filter((f) => existsSync(f));
 }
 
+// Every spelling of a path in a journal: native, with forward slashes, JSON-escaped; matched case-insensitively
+// (Windows paths are).
+function pathVariants(p) {
+  const a = resolve(p);
+  return [...new Set([a, a.split(sep).join('/'), a.split(sep).join('\\\\')].map((x) => x.toLowerCase()))];
+}
+
+// One journal line against the needles. `own` — spellings of the agent's own session folder: Claude Code saves a long
+// tool output there (…/.claude/projects/<the contestant's folder>/<session>/tool-results) and the agent reads it back,
+// which is its own work, not the operator's ~/.claude (flagged as such twice on 17.11.2026).
+export function auditLine(line, needles, own = []) {
+  let text = line.toLowerCase();
+  for (const o of own) text = text.split(o).join('');
+  const out = [];
+  for (const { what, n } of needles) {
+    const k = text.indexOf(n);
+    if (k >= 0) out.push({ what, text: text.slice(Math.max(0, k - 80), k + n.length + 80) });
+  }
+  return out;
+}
+
 export function audit(id) {
   const me = getContestant(id);
   const needles = [];
-  const variants = (p) => {
-    const a = resolve(p);
-    return [a, a.split(sep).join('/'), a.toLowerCase(), a.split(sep).join('/').toLowerCase(), a.split(sep).join('\\\\')];
-  };
-  needles.push(...variants(RING).map((n) => ({ what: 'папка ринга', n })));
-  for (const [other, c] of Object.entries(registry())) if (other !== id) needles.push(...variants(c.root).map((n) => ({ what: `участник «${other}»`, n })));
+  const add = (what, p) => needles.push(...pathVariants(p).map((n) => ({ what, n })));
+  add('папка ринга', RING);
+  for (const [other, c] of Object.entries(registry())) if (other !== id) add(`участник «${other}»`, c.root);
   needles.push({ what: 'корзина', n: '.trash-' });
   // the operator's own skills, settings and memory: never in a contestant's context
-  for (const d of ['.agents', '.claude', '.codex', '.gemini']) needles.push(...variants(join(homedir(), d)).map((n) => ({ what: `~/${d} оператора`, n })));
+  for (const d of ['.agents', '.claude', '.codex', '.gemini']) add(`~/${d} оператора`, join(homedir(), d));
+  const own = me.agent === 'claude' ? claudeProjectDirs(me).flatMap(pathVariants) : [];
   const files = transcriptFiles(id);
   const hits = [];
   for (const f of files) {
-    const lines = readFileSync(f, 'utf8').split('\n');
-    lines.forEach((line, i) => {
-      for (const { what, n } of needles) {
-        const k = line.indexOf(n);
-        if (k >= 0) hits.push({ file: f, line: i + 1, what, text: line.slice(Math.max(0, k - 80), k + n.length + 80) });
-      }
+    readFileSync(f, 'utf8').split('\n').forEach((line, i) => {
+      for (const h of auditLine(line, needles, own)) hits.push({ file: f, line: i + 1, ...h });
     });
   }
   return { id, root: me.root, files, hits };

@@ -162,3 +162,13 @@ test('ролик раунда снимается на движке снимка 
   assert.deepEqual(f['/f/arena/engine/'], f['/arena/engine/']);
   assert.deepEqual(snapshotEngine(rd, 'нет-такого'), {});
 });
+
+test('аудит: свои сохранённые выводы сессии Claude Code не нарушение, чужая папка и ~/.claude оператора — нарушение, регистр не важен', async () => {
+  const { auditLine } = await import('../judge/contestants.js');
+  const needles = [{ what: '~/.claude оператора', n: 'c:\\users\\op\\.claude' }, { what: 'участник «b»', n: 'c:/ring-contest-b' }];
+  const own = ['c:\\users\\op\\.claude\\projects\\c--ring-contest-a'];
+  const mine = '{"file_path":"C:\\Users\\Op\\.claude\\projects\\C--ring-contest-a\\abc\\tool-results\\x.txt"}';
+  assert.deepEqual(auditLine(mine, needles, own), []);
+  assert.equal(auditLine('{"file_path":"C:\\Users\\Op\\.claude\\skills\\x.md"}', needles, own)[0].what, '~/.claude оператора');
+  assert.equal(auditLine('cat C:/Ring-Contest-B/fighter/brain.js', needles, own)[0].what, 'участник «b»');
+});
