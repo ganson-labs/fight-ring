@@ -552,6 +552,11 @@ export class Scene {
           break;
         case 'comboLimit':
           break;
+        case 'breakFree':
+          this.ring(e.x, e.y, { color: 0xffffff, size: 2.2, life: 0.4 });
+          this.burst(e.x, e.y, { count: 28, color: 0xffffff, color2: 0x9fd8ff, speed: 1100, size: 1.1, seed: fight.tick });
+          this.popup(e.side, 'ВЫРВАЛСЯ', 0xffffff);
+          break;
         case 'move':
           for (const fx of this.moveFx(e.side, e.move)) if (fx.on === 'start') this.spawnFx(fx, e.side, fight);
           break;

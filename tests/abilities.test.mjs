@@ -349,3 +349,79 @@ test('одна цель стоит не больше 90 тиков за раун
   assert.ok(stopped > 0 && stopped <= L.stopRound, `stop всего ${stopped}`);
   assert.equal(fight.f[1].stopUsed, stopped);
 });
+
+// ---------- ring 2.5: pressure, simultaneous decisions, unblockable protection ----------
+
+// The loop of 17.11.2026: hits every 6 ticks until the series is one short of the limit, the last one for 1 damage, then
+// wait until the series ends and start again at full damage.
+// A cloud that lives on after the cast, like the one of that fight.
+const looper = {
+  start: (api) => api.spawn({ x: 140, y: 400, w: 60, h: 60, life: 350, tick: (a, o) => {
+    const v = a.view();
+    const op = v.opponent;
+    if (op.invulnerable || op.combo >= 4) return;
+    const rel = (op.x - o.x) * o.facing;
+    a.hit({ box: [rel - 45, op.y - o.y + 40, rel + 45, op.y - o.y + 200], damage: op.combo >= 3 ? 1 : 80, zone: 'mid' });
+  } }),
+};
+
+test('давление: петля из серий по 4 удара не держит бойца в хитстане дольше предела, потом он вырывается неуязвимым', () => {
+  const { def } = withAbilities({ loop: looper });
+  const fight = E.createFight({ fighters: [def, dummyDef()] });
+  fight.f[0].x = E.STAGE.width / 2 - 70;
+  fight.f[1].x = E.STAGE.width / 2 + 70;
+  let held = 0;
+  let free = 0;
+  let worst = 0;
+  let last = -1;
+  const breaks = [];
+  for (let i = 0; i < 340; i++) {
+    const ev = E.stepFight(fight, fight.freeze || fight.hitstop ? null : [i === 0 ? { attack: 'loop' } : {}, {}]);
+    const V = fight.f[1];
+    if (ev.some((e) => e.type === 'breakFree' && e.side === 1)) breaks.push({ i, invuln: V.invuln, state: V.state });
+    if (fight.tick === last) continue; // hit-stop: time stands
+    last = fight.tick;
+    if (['hitstun', 'juggle', 'dizzy'].includes(V.state) && V.invuln === 0) {
+      held++;
+      free = 0;
+    } else if (++free >= E.PRESSURE_BREATHER) held = 0;
+    worst = Math.max(worst, held);
+  }
+  assert.ok(breaks.length >= 1, 'боец вырвался хотя бы раз');
+  assert.ok(worst <= E.PRESSURE_MAX, `подряд в хитстане без передышки ${worst} тиков`);
+  for (const b of breaks) {
+    assert.equal(b.state, 'neutral');
+    assert.ok(b.invuln >= E.BREAK_FREE_INVULN - 1, `после рывка неуязвим ${b.invuln}`);
+  }
+});
+
+test('способность видит соперника таким, каким его видели мозги в начале тика, а не его выбор на этом тике', () => {
+  const seen = [];
+  const { def } = withAbilities({ watch: { tick: (api) => seen.push([api.tick, api.view().opponent.guard]) } });
+  const fight = E.createFight({ fighters: [def, dummyDef()] });
+  const guardFrom = 20;
+  for (let i = 0; i < 40; i++) E.stepFight(fight, fight.freeze || fight.hitstop ? null : [i === 0 ? { attack: 'watch' } : {}, i >= guardFrom ? { guard: 'high' } : {}]);
+  const first = seen.find(([, g]) => g === 'high');
+  assert.ok(first, 'блок соперника виден');
+  // the dummy raised the block on the tick of step guardFrom; the ability sees it one tick later, as the brains do
+  const raisedOn = seen.find(([t]) => t >= first[0] - 1);
+  assert.equal(raisedOn[1], null, 'в тик, когда соперник поднял блок, способность его ещё не видит');
+});
+
+test('после блока удар в другую зону 7 тиков тоже блокируется (каждый блок продлевает), позже — проходит', () => {
+  const plan = { 1: 'mid', 7: 'low', 16: 'low' }; // every blocked hit renews the window: the last one comes 9 ticks after
+  const tick = (a, o) => {
+    o.data.n++;
+    const z = plan[o.data.n];
+    const op = a.view().opponent;
+    const rel = (op.x - o.x) * o.facing;
+    if (z) a.hit({ box: [rel - 45, op.y - o.y + 40, rel + 45, op.y - o.y + 200], damage: 30, zone: z });
+  };
+  const { def } = withAbilities({ mix: { start: (api) => api.spawn({ x: 140, y: 400, w: 60, h: 60, life: 60, data: { n: 0 }, tick }) } });
+  const fight = E.createFight({ fighters: [def, dummyDef()] });
+  fight.f[0].x = fight.f[1].x - 140;
+  const ev = [];
+  for (let i = 0; i < 60; i++) ev.push(...E.stepFight(fight, fight.freeze || fight.hitstop ? null : [i === 0 ? { attack: 'mix' } : {}, { guard: 'high' }]));
+  const res = ev.filter((e) => (e.type === 'block' || e.type === 'hit') && e.move === 'mix').map((e) => `${e.type}:${e.zone ?? ''}`);
+  assert.deepEqual(res.map((r) => r.split(':')[0]), ['block', 'block', 'hit'], res.join(' '));
+});

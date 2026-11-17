@@ -37,6 +37,16 @@ export const COMBO_DECAY = 0.8; // every next hit of a combo deals ×0.8 of the 
 export const COMBO_LIMIT = 5; // after the 5th hit of a combo the defender is invulnerable
 export const COMBO_INVULN_TICKS = 30; // …through the rest of the stun and half a second after it
 export const COMBO_GRACE_TICKS = 4; // a hit within this many ticks after the stun ends still continues the series
+// Pressure (undizzy in Skullgirls, burst in Guilty Gear): a fighter held in hitstun, a juggle or dizzy gains a tick of
+// pressure per tick; PRESSURE_BREATHER ticks in a row out of it clear the pressure. At PRESSURE_MAX he breaks free:
+// the stun ends, he is invulnerable for BREAK_FREE_INVULN ticks. No loop keeps a fighter helpless (found 17.11.2026:
+// four hits, a 4-tick gap that ended the series, again, for half a minute).
+export const PRESSURE_MAX = 120;
+export const PRESSURE_BREATHER = 30;
+export const BREAK_FREE_INVULN = 60;
+// After a blocked hit a held block stops every zone this long (unblockable protection of Skullgirls): two sources
+// hitting high and low on the same moment are hard to block, not impossible.
+export const GUARD_ANY_TICKS = 7;
 export const METER_MAX = 300; // three bars of 100; a super needs all three
 export const METER_BAR = 100;
 export const STUN_MAX = 3000;

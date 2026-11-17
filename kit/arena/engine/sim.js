@@ -42,6 +42,9 @@ function newFighter(side, def) {
     invuln: 0,
     comboClear: 0,
     combo: 0,
+    pressure: 0,
+    breather: 0,
+    guardAny: 0,
     comboWall: false,
     dizzyPending: false,
     sayCooldown: 0,
@@ -147,6 +150,29 @@ function canAct(F) {
   return F.state === 'neutral';
 }
 
+// Pressure: a tick held in hitstun, a juggle or dizzy (and hittable) adds one, PRESSURE_BREATHER ticks in a row out of
+// it clear it; at PRESSURE_MAX a fighter on the ground breaks free (a juggle ends in an invulnerable knockdown anyway).
+function pressureTick(F, events) {
+  if (['hitstun', 'juggle', 'dizzy'].includes(F.state) && !hasNoHurtbox(F)) {
+    F.breather = 0;
+    F.pressure++;
+    if (F.pressure >= C.PRESSURE_MAX && F.state !== 'juggle' && F.hp > 0) breakFree(F, events);
+    return;
+  }
+  if (++F.breather >= C.PRESSURE_BREATHER) F.pressure = 0;
+}
+
+function breakFree(F, events) {
+  F.pressure = 0;
+  F.combo = 0;
+  F.comboClear = 0;
+  F.stun = 0;
+  F.dizzyPending = false;
+  toNeutral(F);
+  F.invuln = Math.max(F.invuln, C.BREAK_FREE_INVULN);
+  events.push({ type: 'breakFree', side: F.side, x: F.x, y: F.y + 150 });
+}
+
 function currentSegment(F) {
   if (F.state !== 'move' || !F.move) return null;
   const t = F.move.t;
@@ -198,6 +224,7 @@ const overlap = (a, b) => a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[
 function blocks(V, zone) {
   if (airborne(V)) return false;
   if (!(V.state === 'neutral' || V.state === 'blockstun')) return false;
+  if (V.guard && V.guardAny > 0) return true; // right after a blocked hit a held block stops every zone
   if (V.guard === 'high') return zone !== 'low';
   if (V.guard === 'low') return zone === 'mid' || zone === 'low';
   return false;
@@ -430,6 +457,7 @@ function advanceMove(fight, F, O, events) {
 function advance(fight, F, O, events) {
   F.st++;
   if (F.invuln > 0) F.invuln--;
+  if (F.guardAny > 0) F.guardAny--;
   if (F.comboClear > 0 && --F.comboClear === 0) F.combo = 0;
   if (F.sayCooldown > 0) F.sayCooldown--;
   const back = () => {
@@ -623,6 +651,7 @@ function connect(fight, A, V, src, events, out) {
   if (blocks(V, src.zone)) {
     out.result = 'block';
     setState(V, 'blockstun', 10 + Math.floor(base / 10));
+    V.guardAny = C.GUARD_ANY_TICKS;
     V.posture = V.guard === 'low' ? 'crouch' : 'stand';
     V.vx = A.facing * (src.push === 'heavy' ? 7 : 4.5);
     A.tally.blocked++;
@@ -767,6 +796,12 @@ export function stepFight(fight, rawActions) {
   if (!finished) fight.timer--;
   const acts = finished ? [IDLE_ACTION, IDLE_ACTION] : [sanitizeAction(rawActions?.[0]), sanitizeAction(rawActions?.[1])];
   const [A, B] = fight.f;
+  // what the brains saw on this tick: abilities see the opponent the same way, not the choice he makes on this tick
+  // (both sides decide at once, as in any fighting game: a hit cannot pick the zone the block just left open)
+  if (fight.hasAbilities) {
+    fight.seen = fight.f.map((F) => fighterView(fight, F));
+    fight.seenTick = fight.tick;
+  }
 
   if (!finished) {
     for (const F of fight.f) if (F.state === 'grabbed' && F.techRequest) {
@@ -890,6 +925,7 @@ export function stepFight(fight, rawActions) {
 
     // abilities: passive hooks, new casts, running casts, objects, effects
     abilityPhase(fight, events, RING);
+    for (const F of fight.f) pressureTick(F, events);
 
     if (fight.over && fight.endReason === 'ko' && A.hp <= 0 && B.hp <= 0 && fight.tick === fight.endTick) {
       fight.winner = null;
@@ -910,7 +946,7 @@ export function stepFight(fight, rawActions) {
 }
 
 // Internals the ability runtime (ability.js) works through, so ability hits and moves follow the common rules.
-const RING = { connect, hurtboxes, overlap, setState, applyDamage, endFight, brainView: (fight, side) => brainView(fight, side) };
+const RING = { connect, hurtboxes, overlap, setState, applyDamage, endFight, brainView: (fight, side) => abilityView(fight, side) };
 
 // ---------- what the brains see ----------
 
@@ -972,6 +1008,8 @@ function fighterView(fight, F) {
     guard: F.guard,
     invulnerable: hasNoHurtbox(F),
     combo: F.combo,
+    pressure: F.pressure,
+    pressureMax: C.PRESSURE_MAX,
     projectileOut: !!F.projectile,
     move,
     lastLine: F.lastLine,
@@ -1000,6 +1038,17 @@ export function brainView(fight, side) {
   };
 }
 
+// What api.view() gives an ability: the brain's view with the opponent as the brains saw him at the start of the tick.
+export function abilityView(fight, side) {
+  const v = brainView(fight, side);
+  const seen = fight.seenTick === fight.tick ? fight.seen?.[1 - side] : null;
+  if (seen) {
+    v.opponent = seen;
+    v.distance = Math.abs(seen.x - v.me.x);
+  }
+  return v;
+}
+
 // For the renderer and tests: boxes of the current tick.
 export function debugBoxes(fight) {
   return fight.f.map((F) => {
@@ -1024,7 +1073,7 @@ export function fightHash(fight) {
   mix(fight.hitstop);
   mix(fight.freeze);
   for (const F of fight.f) {
-    for (const k of ['x', 'y', 'vx', 'vy', 'facing', 'hp', 'meter', 'stun', 'state', 'st', 'posture', 'combo', 'invuln']) mix(F[k]);
+    for (const k of ['x', 'y', 'vx', 'vy', 'facing', 'hp', 'meter', 'stun', 'state', 'st', 'posture', 'combo', 'invuln', 'pressure', 'guardAny']) mix(F[k]);
     mix(F.move ? `${F.move.def.id}:${F.move.t}:${F.move.held}` : '-');
   }
   for (const p of fight.projectiles) for (const k of ['x', 'y', 'done', 'life']) mix(p[k]);
