@@ -1,0 +1,32 @@
+{
+  "description": "A refined male baritone, the voice of an elegant android orchestra conductor, speaking Russian. Around forty, velvety and resonant, calm and precise, with crisp theatrical diction and quiet, ironic confidence, like a maestro addressing his orchestra from the podium. Measured tempo, deliberate pauses, every word placed on the beat. A faint, clean synthetic shimmer in the timbre hints that he is an artificial being, but the voice stays warm, human and charismatic. Never shouts except at the climax, where it rises into a powerful, commanding call. Studio-quality, close microphone, no background noise.",
+  "language": "ru",
+  "lines": [
+    { "id": "intro_1", "kind": "intro", "text": "Тишина в зале. Начинаем." },
+    { "id": "intro_2", "kind": "intro", "text": "Партитура готова. Твой выход." },
+    { "id": "intro_3", "kind": "intro", "text": "[calm] Первый такт — за тобой." },
+    { "id": "taunt_1", "kind": "taunt", "text": "Фальшивишь." },
+    { "id": "taunt_2", "kind": "taunt", "text": "Не спеши. Темп задаю я." },
+    { "id": "taunt_3", "kind": "taunt", "text": "Ещё раз. С первой цифры." },
+    { "id": "taunt_4", "kind": "taunt", "text": "[chuckles] Какая предсказуемая мелодия." },
+    { "id": "super_1", "kind": "super", "text": "[commanding] Тутти! Финал!" },
+    { "id": "super_2", "kind": "super", "text": "Весь оркестр — фортиссимо!" },
+    { "id": "hit_1", "kind": "hit", "text": "В такт." },
+    { "id": "hit_2", "kind": "hit", "text": "Акцент." },
+    { "id": "hit_3", "kind": "hit", "text": "Точно по нотам." },
+    { "id": "hit_4", "kind": "hit", "text": "Браво." },
+    { "id": "hurt_1", "kind": "hurt", "text": "Диссонанс…" },
+    { "id": "hurt_2", "kind": "hurt", "text": "[sharp exhale] Сбился такт." },
+    { "id": "victory_1", "kind": "victory", "text": "Финал. Аплодисменты." },
+    { "id": "victory_2", "kind": "victory", "text": "Занавес. Бисов не будет." },
+    { "id": "defeat_1", "kind": "defeat", "text": "Партитура… не дописана." },
+    { "id": "defeat_2", "kind": "defeat", "text": "[quietly] Тишина… тоже музыка." },
+    { "id": "read_1", "kind": "other", "text": "Я слышу твой ритм." },
+    { "id": "read_2", "kind": "other", "text": "Я знаю твою следующую ноту." },
+    { "id": "low_hp", "kind": "other", "text": "Кода ещё не сыграна." },
+    { "id": "lead", "kind": "other", "text": "Осталось несколько тактов." },
+    { "id": "move_blink", "kind": "other", "text": "Пауза." },
+    { "id": "move_ram", "kind": "other", "text": "Фортиссимо!" },
+    { "id": "move_cyclone", "kind": "other", "text": "Рондо!" }
+  ]
+}
