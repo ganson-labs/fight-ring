@@ -39,9 +39,9 @@
     "title-slam": { "kind": "sfx", "what": "удар названия: металл, искры, жар", "from": ["gen:ring-title-slam"], "gain": 1 },
     "vs-impact": { "kind": "sfx", "what": "удар экрана VS", "from": ["pack:impact-cinematic"], "gain": 0.9 },
     "vs-whoosh": { "kind": "sfx", "what": "пролёт половин экрана VS", "from": ["pack:whoosh-epic"], "gain": 0.6 },
-    "menu-move": { "kind": "ui", "what": "меню: перемещение", "from": ["pack:ui-bleep"], "gain": 0.35 },
-    "menu-select": { "kind": "ui", "what": "меню: выбор", "from": ["pack:ui-confirm"], "gain": 0.5 },
-    "menu-back": { "kind": "ui", "what": "меню: назад", "from": ["pack:ui-slide"], "gain": 0.45 },
+    "menu-move": { "kind": "ui", "what": "меню: перемещение, мягкий деревянный щелчок", "from": ["gen:ring-menu-move", "gen:ring-menu-move-2"], "gain": 0.5 },
+    "menu-select": { "kind": "ui", "what": "меню: выбор, низкий удар с взмахом", "from": ["gen:ring-menu-select"], "gain": 0.6 },
+    "menu-back": { "kind": "ui", "what": "меню: назад, глухой взмах", "from": ["gen:ring-menu-back"], "gain": 0.5 },
     "amb-rooftop": { "kind": "ambience", "what": "фон крыши: ливень над городом", "from": ["gen:ring-amb-rooftop"], "gain": 0.5, "loop": true },
     "amb-server": { "kind": "ambience", "what": "фон серверной: гул и вентиляторы", "from": ["gen:ring-amb-server"], "gain": 0.5, "loop": true },
     "amb-foundry": { "kind": "ambience", "what": "фон литейного цеха: машины и треск металла", "from": ["gen:ring-amb-foundry"], "gain": 0.5, "loop": true },
@@ -49,6 +49,7 @@
     "music-rooftop": { "kind": "music", "what": "музыка крыши: синты и тайко", "from": ["gen:ring-music-rooftop"], "gain": 0.55, "loop": true },
     "music-server": { "kind": "music", "what": "музыка серверной: холодная электроника", "from": ["gen:ring-music-server"], "gain": 0.55, "loop": true },
     "music-foundry": { "kind": "music", "what": "музыка литейного цеха: металл и тяжёлые гитары", "from": ["gen:ring-music-foundry"], "gain": 0.55, "loop": true },
+    "music-menu": { "kind": "music", "what": "музыка меню: тайко, синт-бас и гитарный рифф", "from": ["gen:ring-music-menu"], "gain": 0.5, "loop": true },
     "music-temple": { "kind": "music", "what": "музыка храма: сякухати и тайко", "from": ["gen:ring-music-temple"], "gain": 0.55, "loop": true }
   }
 }

@@ -34,6 +34,17 @@ function audio() {
     s.set(c.sound, c.volume, c.menuVolume);
     s.unlock();
     s.preload(MENU);
+    // the menu music goes on from the place the last page left it
+    let at = 0;
+    try {
+      at = Number(sessionStorage.getItem('ring.music')) || 0;
+    } catch {}
+    s.bed({ music: 'music-menu' }, 1.2, at);
+    addEventListener('pagehide', () => {
+      try {
+        sessionStorage.setItem('ring.music', String(s.bedTime('music')));
+      } catch {}
+    });
     sfx = s;
     try {
       sessionStorage.setItem('ring.heard', '1');

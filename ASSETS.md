@@ -16,11 +16,11 @@
 
 ## Звуки
 
-Звуки ринга лежат в `kit/arena/sounds/`. Полная таблица с источником и лицензией каждого файла находится в [kit/arena/sounds/README.md](kit/arena/sounds/README.md), список исходников для сборки находится в `scripts/sounds.sources.json`. Всего файлов 55.
+Звуки ринга лежат в `kit/arena/sounds/`. Полная таблица с источником и лицензией каждого файла находится в [kit/arena/sounds/README.md](kit/arena/sounds/README.md), список исходников для сборки находится в `scripts/sounds.sources.json`. Всего файлов 57.
 
-34 файла сгенерированы для ринга в ElevenLabs (Sound Effects и Music) на платном тарифе, который разрешает коммерческое использование. К ним относятся вся музыка сцен (`music-*.ogg`), весь фон сцен (`amb-*.ogg`) и большая часть ударов.
+39 файлов сгенерированы для ринга в ElevenLabs (Sound Effects и Music) на платном тарифе, который разрешает коммерческое использование. К ним относятся вся музыка сцен и меню (`music-*.ogg`), звуки меню (`menu-*.ogg`), весь фон сцен (`amb-*.ogg`) и большая часть ударов.
 
-21 файл собран из записей сторонних библиотек. Эти файлы не принадлежат авторам проекта и не переходят под лицензию MIT. Условия всех трёх библиотек разрешают использовать звук внутри игры или ролика без указания автора, но запрещают продавать или раздавать сами звуки отдельно от произведения. Открытый репозиторий, где звуки лежат отдельными файлами, близок к такой раздаче, поэтому владельцу репозитория стоит решить, оставлять ли эти файлы.
+18 файлов собрано из записей сторонних библиотек. Эти файлы не принадлежат авторам проекта и не переходят под лицензию MIT. Условия всех трёх библиотек разрешают использовать звук внутри игры или ролика без указания автора, но запрещают продавать или раздавать сами звуки отдельно от произведения. Открытый репозиторий, где звуки лежат отдельными файлами, близок к такой раздаче, поэтому владельцу репозитория стоит решить, оставлять ли эти файлы.
 
 Из Pixabay (Pixabay Content License) взято 12 файлов:
 
@@ -37,22 +37,19 @@
 - `braam.ogg`
 - `riser.ogg`
 
-Из наборов Sonniss #GameAudioGDC (Sonniss GameAudioGDC Bundle License) взято 8 файлов:
+Из наборов Sonniss #GameAudioGDC (Sonniss GameAudioGDC Bundle License) взято 5 файлов:
 
 - `whoosh-heavy-2.ogg`
 - `impact-epic.ogg`
 - `crowd-2.ogg`
 - `vs-impact.ogg`
 - `vs-whoosh.ogg`
-- `menu-move.ogg`
-- `menu-select.ogg`
-- `menu-back.ogg`
 
 Из Mixkit (Mixkit Sound Effects Free License) взят 1 файл:
 
 - `heartbeat.ogg`
 
-От этих файлов зависят имена звуков в каталоге `kit/arena/sounds/catalog.js`. Целиком на сторонних записях стоят имена `teleport-magic`, `whoosh-light`, `whip`, `magic-impact`, `sparkle`, `glitch`, `bass-hit`, `impact-epic`, `braam`, `riser`, `heartbeat`, `vs-impact`, `vs-whoosh`, `menu-move`, `menu-select` и `menu-back`. У имён `hit-light`, `hit-heavy`, `whoosh-heavy` и `crowd` сторонний только один из вариантов, остальные сгенерированы.
+От этих файлов зависят имена звуков в каталоге `kit/arena/sounds/catalog.js`. Целиком на сторонних записях стоят имена `teleport-magic`, `whoosh-light`, `whip`, `magic-impact`, `sparkle`, `glitch`, `bass-hit`, `impact-epic`, `braam`, `riser`, `heartbeat`, `vs-impact`, `vs-whoosh` и. У имён `hit-light`, `hit-heavy`, `whoosh-heavy` и `crowd` сторонний только один из вариантов, остальные сгенерированы.
 
 Бойцы сезона `2026-11-gpt-6-2` называют в своих приёмах имена `hit-light`, `hit-heavy`, `whoosh-light`, `whoosh-heavy`, `whip`, `teleport-magic`, `magic-impact`, `sparkle`, `impact-epic`, `riser`, `bass-hit`, `glitch` и `braam`. Имена `vs-impact`, `vs-whoosh` и `menu-*` использует сама игра. Поэтому сторонний звук нельзя просто удалить: его нужно заменить другим файлом под тем же именем. На исход боя звук не влияет, запись боя воспроизводится одинаково с любым файлом.
 

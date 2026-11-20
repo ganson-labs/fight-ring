@@ -314,27 +314,28 @@ export const SOUNDS = {
   },
   "menu-move": {
     "kind": "ui",
-    "what": "меню: перемещение",
+    "what": "меню: перемещение, мягкий деревянный щелчок",
     "files": [
-      "menu-move.ogg"
-    ],
-    "gain": 0.35
-  },
-  "menu-select": {
-    "kind": "ui",
-    "what": "меню: выбор",
-    "files": [
-      "menu-select.ogg"
+      "menu-move-1.ogg",
+      "menu-move-2.ogg"
     ],
     "gain": 0.5
   },
+  "menu-select": {
+    "kind": "ui",
+    "what": "меню: выбор, низкий удар с взмахом",
+    "files": [
+      "menu-select.ogg"
+    ],
+    "gain": 0.6
+  },
   "menu-back": {
     "kind": "ui",
-    "what": "меню: назад",
+    "what": "меню: назад, глухой взмах",
     "files": [
       "menu-back.ogg"
     ],
-    "gain": 0.45
+    "gain": 0.5
   },
   "amb-rooftop": {
     "kind": "ambience",
@@ -397,6 +398,15 @@ export const SOUNDS = {
       "music-foundry.ogg"
     ],
     "gain": 0.55,
+    "loop": true
+  },
+  "music-menu": {
+    "kind": "music",
+    "what": "музыка меню: тайко, синт-бас и гитарный рифф",
+    "files": [
+      "music-menu.ogg"
+    ],
+    "gain": 0.5,
     "loop": true
   },
   "music-temple": {
