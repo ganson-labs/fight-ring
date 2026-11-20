@@ -1163,6 +1163,29 @@ async function boot() {
   })();
   // a link straight into a screen skips the title: the menu background starts now (the title starts its own)
   if (q.get('screen') || q.get('match')) startMenuBackdrop();
+  // A link from the site opens a round or a screen at once, past the title — and the browser gives a page its
+  // sound only after a press on it. The published game asks for that press first, like the title does.
+  if (data.static && (q.get('screen') || q.get('match')) && navigator.userActivation && !navigator.userActivation.hasBeenActive) {
+    await new Promise((res) => {
+      const gate = document.createElement('div');
+      gate.id = 'gate';
+      gate.innerHTML = '<div class="press">Нажми любую клавишу</div>';
+      document.body.appendChild(gate);
+      const go = () => {
+        removeEventListener('keydown', go, true);
+        removeEventListener('pointerdown', go, true);
+        gate.remove();
+        res();
+      };
+      addEventListener('keydown', go, true);
+      addEventListener('pointerdown', go, true);
+    });
+  }
+  if (q.get('screen') || q.get('match')) {
+    menu.unlock();
+    sfx.unlock();
+    sfx.preload();
+  }
   // shots of the roster are made while the title is on: menus open with their pictures ready
   (async () => {
     for (const f of contestants().slice(-2)) await figureShot(await fighterAssets(topVersion(f).url), { w: 680, h: 900, crop: 'knees' }).catch(() => {});
