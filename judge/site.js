@@ -93,11 +93,14 @@ export function inlineScriptHashes(dir) {
   return [...out].sort();
 }
 
+// Cache-Control: no-cache — the browser keeps every file but asks whether it changed (an answer without a body when it
+// did not). Cloudflare's default lets a browser keep a script for four hours: a fix does not reach the viewer.
 export function siteHeaders(out) {
   return `/*
   Content-Security-Policy: ${sitePolicy(inlineScriptHashes(out))}
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
+  Cache-Control: no-cache
 
 /play/brain-worker.js
   Content-Security-Policy: ${WORKER_POLICY}
