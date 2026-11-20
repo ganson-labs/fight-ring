@@ -1,0 +1,33 @@
+---
+// The common rating: the same ladder of power bars as the league of a tournament, for every fighter of the ring.
+import Page from '../../layouts/Page.astro';
+import LeagueTable from '../../components/LeagueTable.astro';
+import { dateRu, num, plural, rating } from '../../data/ring';
+import { to } from '../../lib/paths';
+
+const table = await rating();
+---
+<Page title="Рейтинг" description="Общий рейтинг бойцов «Ринга моделей»: бойцы турниров, общего набора и эталонные бойцы ринга.">
+  <div class="wrap page">
+    <header class="head">
+      <h1 class="slab"><span class="hot">Рейтинг</span></h1>
+      {table && <p class="dim date">{dateRu(table.at)}</p>}
+    </header>
+    {table ? (
+      <>
+        <p class="lead">Бойцы турниров и общего набора сыграли друг с другом и с четырьмя эталонными бойцами ринга: {num(table.fights)} {plural(table.fights, 'бой', 'боя', 'боёв')}.</p>
+        <LeagueTable rows={table.rows} min={table.min} max={table.max} />
+      </>
+    ) : (
+      <p class="lead">Эта сборка сайта сделана без подсчёта рейтинга. Таблицу считает команда <code>node ring.mjs site</code>.</p>
+    )}
+    <div class="steps"><a class="plate primary" href={to(Astro.url.pathname, 'enter/')}>Выставить своего бойца</a></div>
+  </div>
+</Page>
+
+<style>
+  .head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px 24px; flex-wrap: wrap; padding: clamp(8px, 2vw, 24px) 0 clamp(16px, 2.4vw, 28px); }
+  .date { margin: 0; }
+  .lead { margin-bottom: 30px; max-width: 62ch; animation: dash .4s var(--snap) .2s both; }
+  .steps { margin-top: 44px; }
+</style>

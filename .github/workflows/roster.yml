@@ -1,0 +1,65 @@
+name: Общий набор
+
+# Запрос на слияние, который приносит бойца в roster/: что запрос меняет, чей это боец, и квалификация
+# (docs/roster.md). Секретов здесь нет. Судья берётся из основной ветки, копия запроса только читается:
+# запрос не может подменить проверку, которой его проверяют. Сливает запрос владелец руками.
+on:
+  pull_request:
+    paths: ['roster/**']
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: roster-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Судья из основной ветки
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+      - name: Копия запроса
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: pr
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+      - name: Что меняет запрос
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR}/files" --paginate --jq '.[] | .filename, (.previous_filename // empty)' > changed.txt
+      # лист с картинками снимает Chrome (на ubuntu-latest он уже стоит), картинки частей читает ffmpeg
+      - name: Chrome и ffmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg
+          google-chrome --version
+      - name: Квалификация
+        env:
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+          TRUSTED: ${{ contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.pull_request.author_association) }}
+        run: |
+          if [ "$TRUSTED" = "true" ]; then
+            node ring.mjs roster-pr --repo pr --files changed.txt --author "$AUTHOR" --out out/roster-pr --trusted
+          else
+            node ring.mjs roster-pr --repo pr --files changed.txt --author "$AUTHOR" --out out/roster-pr
+          fi
+      - name: Отчёт и лист с картинками
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: roster-${{ github.event.pull_request.number }}
+          path: out/roster-pr
+          if-no-files-found: ignore

@@ -10,7 +10,7 @@ import { SOUNDS } from '../kit/arena/sounds/catalog.js';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 // the judge's working folders (not in git) and what holds other people's words as they are
-const SKIP = new Set(['.git', 'node_modules', 'out', 'dist', 'matches', 'leagues', 'ledger', 'launch', 'contestants', 'seasons', 'vendor']);
+const SKIP = new Set(['.git', 'node_modules', 'out', 'dist', 'matches', 'leagues', 'ledger', 'launch', 'contestants', 'seasons', 'roster', 'vendor']);
 
 function walk(dir, out = []) {
   for (const n of readdirSync(dir)) {

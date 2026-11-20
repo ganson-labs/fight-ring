@@ -14,7 +14,10 @@ import { SEASONS, liveData } from './gamedata.js';
 import { RING_VERSION } from '../kit/arena/engine/version.js';
 
 // what a model left beside its fighter while building it: drafts, renders of its own checks, raw generations
-const DRAFTS = [/^work$/, /^out$/, /^parts[\\/]raw$/, /^\./, /\.paint\.json$/];
+export const DRAFTS = [/^work$/, /^out$/, /^parts[\\/]raw$/, /^\./, /\.paint\.json$/];
+
+// a filter for cpSync: everything of a fighter folder but the drafts
+export const notDraft = (dir) => (src) => !DRAFTS.some((re) => re.test(relative(dir, src)) || re.test(basename(src)));
 
 export function publishSeason(season, { matches, title = null, log = console.log } = {}) {
   if (!/^[a-z0-9][a-z0-9-]*$/.test(season || '')) throw new Error('имя сезона: латиница, цифры и дефис');
@@ -37,7 +40,7 @@ export function publishSeason(season, { matches, title = null, log = console.log
       const rounds = v.rounds.filter((r) => matches.includes(r.match));
       if (!rounds.length) continue;
       const to = join(out, 'fighters', f.cid, `v${versions.length + 1}`);
-      cpSync(v.dir, to, { recursive: true, filter: (src) => !DRAFTS.some((re) => re.test(relative(v.dir, src)) || re.test(basename(src))) });
+      cpSync(v.dir, to, { recursive: true, filter: notDraft(v.dir) });
       const { dir, ...rest } = v;
       versions.push({ ...rest, v: versions.length + 1, label: `v${versions.length + 1}`, rounds, url: url('fighters', f.cid, `v${versions.length + 1}`), current: undefined });
     }

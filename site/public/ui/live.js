@@ -222,7 +222,12 @@ async function moveStage(root) {
     on?.classList.remove('on');
     on = row;
     row.classList.add('on');
-    view.play(m);
+    // on a phone the ring is closed until the first move (the page's styles open it on .playing); the move
+    // starts on the next frame, when the ring has its size
+    if (!root.classList.contains('playing')) {
+      root.classList.add('playing');
+      requestAnimationFrame(() => requestAnimationFrame(() => on === row && view.play(m)));
+    } else view.play(m);
   };
   let hover = 0;
   for (const row of rows) {

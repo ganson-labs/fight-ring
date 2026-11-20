@@ -10,10 +10,13 @@ import { rigDir, stageBackdrop } from '../../lib/rig';
 
 export async function getStaticPaths() {
   const all = await seasons();
-  return (await allFighters()).map((fighter) => ({ params: { id: fighter.id }, props: { fighter, season: all.find((s) => s.id === fighter.season) } }));
+  return (await allFighters()).map((fighter) => ({ params: { id: fighter.id }, props: { fighter, all } }));
 }
-interface Props { fighter: Fighter; season: Season }
-const { fighter: f, season } = Astro.props;
+interface Props { fighter: Fighter; all: Season[] }
+const { fighter: f, all } = Astro.props;
+const seasonOf = (id: string) => all.find((s) => s.id === id) as Season;
+// a fighter of the roster is one version; a list of one item with nothing in it says nothing
+const history = f.versions.length > 1 || f.versions.some((v) => v.rounds.length > 0 || v.note);
 const path = Astro.url.pathname;
 
 const STATS: [StatKey, string][] = [['health', 'Здоровье'], ['power', 'Сила'], ['speed', 'Скорость'], ['defense', 'Защита']];
@@ -35,7 +38,7 @@ const agent = f.agent ? [agentName(f.agent.tool), f.agent.model, f.agent.effort 
         <dl class="facts">
           <div><dt>Модель</dt><dd class="model">{f.model}</dd></div>
           {agent && <div><dt>Агент</dt><dd>{agent}</dd></div>}
-          {f.author && <div><dt>Автор</dt><dd>{f.author}</dd></div>}
+          {f.author && <div><dt>Автор</dt><dd>{f.authorUrl ? <a href={f.authorUrl}>{f.author}</a> : f.author}</dd></div>}
         </dl>
         {f.stats && (
           <dl class="stats" data-rise>
@@ -104,11 +107,11 @@ const agent = f.agent ? [agentName(f.agent.tool), f.agent.model, f.agent.effort 
     {f.matches.length > 0 && (
       <section id="bouts">
         <h2 class="slab">Бои</h2>
-        <div class="bouts">{f.matches.map((m) => <MatchCard season={season} match={m} />)}</div>
+        <div class="bouts">{f.matches.map((m) => <MatchCard season={seasonOf(m.season)} match={m} />)}</div>
       </section>
     )}
 
-    <section>
+    {history && <section>
       <h2 class="slab">Версии</h2>
       <ol class="versions">
         {f.versions.map((v) => (
@@ -132,7 +135,7 @@ const agent = f.agent ? [agentName(f.agent.tool), f.agent.model, f.agent.effort 
           </li>
         ))}
       </ol>
-    </section>
+    </section>}
   </div>
 </Page>
 
@@ -209,8 +212,10 @@ const agent = f.agent ? [agentName(f.agent.tool), f.agent.model, f.agent.effort 
     .about { margin-top: -34px; position: relative; }
     .cols { grid-template-columns: 1fr; }
     .moves { grid-template-columns: 1fr; gap: 14px; }
-    /* the ring stays in the window while the list of moves scrolls under it */
-    .ring { top: 0; z-index: 3; height: 40vh; min-height: 250px; margin: 0 calc(var(--gutter) * -1); clip-path: none; border-bottom: 3px solid var(--c); background-color: #07080c; }
+    /* the fighter already stands in the head of the page, so the ring is not shown twice: it comes up from the
+       bottom edge when a move is pressed and stays there while the list scrolls */
+    .ring { order: 2; top: auto; bottom: 0; z-index: 3; display: none; height: 38vh; min-height: 240px; margin: 0 calc(var(--gutter) * -1); clip-path: none; border-top: 3px solid var(--c); background-color: #07080c; }
+    .movelist:global(.playing) .ring { display: block; animation: rise .28s var(--snap) both; }
     .move:hover, .move.on, .move:focus-visible { transform: translateX(4px); }
     .move-name { font-size: 18px; }
     /* a long command goes under the name */

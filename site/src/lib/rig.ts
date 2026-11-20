@@ -8,11 +8,12 @@ import { join } from 'node:path';
 import { RING } from '../data/ring';
 import type { Fighter } from '../data/ring';
 
-const files = import.meta.glob<{ default: ImageMetadata }>('../../../seasons/*/fighters/*/v*/{parts,art}/*.{png,jpg,jpeg,webp}');
+const files = import.meta.glob<{ default: ImageMetadata }>(['../../../seasons/*/fighters/*/v*/{parts,art}/*.{png,jpg,jpeg,webp}', '../../../roster/*/fighter/{parts,art}/*.{png,jpg,jpeg,webp}']);
 const stages = import.meta.glob<{ default: ImageMetadata }>('../../../stages/*/far.hd.webp');
 
-/** The folder a fighter is drawn from, relative to the site root, with a trailing slash: its latest version. */
-export const rigDir = (f: Fighter): string | null => f.versions.at(-1)?.dir ?? null;
+/** The folder a fighter is drawn from, relative to the site root, with a trailing slash: the latest version of a
+ *  season's fighter, the one folder of a roster's fighter. */
+export const rigDir = (f: Fighter): string | null => (f.origin === 'roster' ? `roster/${f.id}/fighter/` : f.versions.at(-1)?.dir ?? null);
 
 function pictures(value: unknown, out: Set<string>): void {
   if (typeof value === 'string') {

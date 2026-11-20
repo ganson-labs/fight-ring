@@ -24,6 +24,7 @@ jobs:
         run: npm test
       - name: Сайт собирается
         run: |
-          node ring.mjs site dist
+          node ring.mjs site dist --no-rating
           test -f dist/index.html
           test -f dist/api/game.json
+          test -f dist/_headers

@@ -7,6 +7,7 @@ import { createHash } from 'node:crypto';
 import { isAbsolute, join, relative, sep } from 'node:path';
 import { RING, registry } from './contestants.js';
 import { MATCHES, diffFighters, roundOrder } from './match.js';
+import { ROSTER, readRoster } from './roster.js';
 
 const readJSON = (f, fb = null) => {
   try {
@@ -113,20 +114,53 @@ export function listMatchesRaw() {
     .sort((a, b) => String(a.created).localeCompare(String(b.created)));
 }
 
-// The published seasons (seasons/<id>/game.json, written by judge/publish.js): tournaments that are over, kept in
-// the repository in the same shape as the answer of this module. Their addresses are already under the ring's root.
+// The published seasons (seasons/<id>/game.json, written by judge/publish.js and judge/cup.js): tournaments that are
+// over, kept in the repository in the same shape as the answer of this module. Their addresses are already under the
+// ring's root. A fighter that fought in two seasons (a cup takes fighters as they are) is one fighter here: a version
+// with the same hash gets the rounds of both, another one becomes the next version.
 export const SEASONS = join(RING, 'seasons');
 export function publishedData() {
   const out = { fighters: [], matches: [], seasons: [] };
   if (!existsSync(SEASONS)) return out;
+  const byId = new Map();
   for (const id of readdirSync(SEASONS).sort()) {
     const d = readJSON(join(SEASONS, id, 'game.json'));
     if (!d) continue;
     out.seasons.push({ id, ...d.season });
-    out.fighters.push(...d.fighters.map((f) => ({ ...f, season: id })));
-    out.matches.push(...d.matches.map((m) => ({ ...m, season: id })));
+    const renumber = {};
+    for (const f of d.fighters) {
+      const have = byId.get(f.id);
+      if (!have) {
+        const first = { ...f, season: id, versions: f.versions.map((v) => ({ ...v, rounds: [...v.rounds] })) };
+        byId.set(f.id, first);
+        out.fighters.push(first);
+        continue;
+      }
+      renumber[f.cid] = {};
+      for (const v of f.versions) {
+        let to = have.versions.find((x) => x.hash && x.hash === v.hash);
+        if (to) to.rounds.push(...v.rounds);
+        else {
+          to = { ...v, v: have.versions.length + 1, label: `v${have.versions.length + 1}`, changes: null };
+          have.versions.push(to);
+          Object.assign(have, { name: v.name || have.name, colors: v.colors || have.colors });
+        }
+        renumber[f.cid][v.v] = to.v;
+      }
+    }
+    out.matches.push(...d.matches.map((m) => ({ ...m, season: id, rounds: m.rounds.map((r) => ({ ...r, versions: Object.fromEntries(Object.entries(r.versions || {}).map(([cid, v]) => [cid, renumber[cid]?.[v] ?? v])) })) })));
   }
   return out;
+}
+
+// The fighters of the shared roster (roster/<id>/, docs/roster.md) as the game shows them: one version, the folder
+// as it lies, with the author, the model and the agent from entry.json.
+export function rosterFighters(root = ROSTER) {
+  return readRoster(root).map((r) => {
+    const colors = r.card.colors || null;
+    const about = { model: r.entry.model, author: r.entry.author?.name || r.entry.author?.github || null, authorGithub: r.entry.author?.github || null, agent: r.entry.agent || null, agentModel: null, effort: r.entry.effort || null };
+    return { id: `c/${r.id}`, cid: r.id, roster: true, ...about, color: colors?.accent || '#ffc94a', colors, name: r.card.name || r.id, versions: [{ hash: folderHash(r.fighter), url: `/roster/${r.id}/fighter/`, rounds: [], note: null, at: r.entry.date || null, v: 1, label: 'v1', name: r.card.name || r.id, colors, abilities: [], changes: null, current: true }] };
+  });
 }
 
 // The stages of the ring.
@@ -142,15 +176,31 @@ export function stageList() {
   return out;
 }
 
-// Everything the game shows: the judge's own work (liveData) first, then the published seasons; a contestant or a
-// match that is still on the judge's disk is not repeated from its published copy. live: false — the published only.
-export function gameData({ live = true } = {}) {
+// Everything the game shows: the judge's own work (liveData) first, then the published seasons and the shared roster;
+// a contestant or a match that is still on the judge's disk is not repeated from its published copy. live: false —
+// the published only. roster: the roster's folder (null — without it).
+export function gameData({ live = true, roster = ROSTER } = {}) {
   const pub = publishedData();
   const own = live ? liveData() : { fighters: trainingPartners(), matches: [] };
   const ids = new Set(own.fighters.map((f) => f.id));
   const mids = new Set(own.matches.map((m) => m.id));
+  const shared = [];
+  for (const r of roster ? rosterFighters(roster) : []) {
+    if (ids.has(r.id)) continue;
+    // a roster fighter that fought in a cup: the cup keeps its copy, the roster says who made it and what it is now
+    const have = pub.fighters.find((f) => f.id === r.id);
+    if (!have) {
+      shared.push(r);
+      continue;
+    }
+    const now = r.versions[0];
+    const same = have.versions.find((v) => v.hash === now.hash);
+    if (same) same.current = true;
+    else have.versions.push({ ...now, v: have.versions.length + 1, label: `v${have.versions.length + 1}` });
+    Object.assign(have, { roster: true, model: r.model, author: r.author, authorGithub: r.authorGithub, agent: r.agent, effort: r.effort, name: r.name, colors: r.colors, color: have.color || r.color });
+  }
   return {
-    fighters: [...own.fighters.filter((f) => f.cid), ...pub.fighters.filter((f) => !ids.has(f.id)), ...own.fighters.filter((f) => !f.cid)],
+    fighters: [...own.fighters.filter((f) => f.cid), ...pub.fighters.filter((f) => !ids.has(f.id)), ...shared, ...own.fighters.filter((f) => !f.cid)],
     matches: [...own.matches, ...pub.matches.filter((m) => !mids.has(m.id))],
     seasons: pub.seasons,
     stages: stageList(),

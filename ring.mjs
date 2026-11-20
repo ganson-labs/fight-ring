@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // Ring judge: contestants, their clean launch, matches and the locker room between rounds. Run from the ring folder.
+import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { createContestant, registry, getContestant, writeLaunchScript, launchCommand, prepareCodexHome, prepareGeminiHome, setClaudeAccount, audit, RING } from './judge/contestants.js';
@@ -24,8 +25,27 @@ const HELP = `Ринг моделей — судья. Запуск из папк
 
 Сезон и сайт
   publish <сезон> --matches a,b,c [--title "…"]   законченный турнир в репозиторий: seasons/<сезон>/ (бойцы по версиям, записи раундов)
-  site [папка] [--no-pages]         сайт обычными файлами (по умолчанию dist/): страницы (site/, Astro) в корне, игра в play/,
-                                    рядом набор, сцены и опубликованные сезоны; --no-pages — одна игра, без npm
+  site [папка] [--no-pages] [--no-rating]
+                                    сайт обычными файлами (по умолчанию dist/): страницы (site/, Astro) в корне, игра в play/,
+                                    рядом набор, сцены, сезоны и общий набор; перед сборкой считается общий рейтинг;
+                                    --no-pages — одна игра, без npm; --no-rating — без подсчёта рейтинга
+
+Общий набор и кубок
+  submit <папка бойца> --model "Название модели" --agent claude|codex|gemini|… [--effort high] [--name "Имя автора"] [--login логин] [--dry]
+  submit <id участника> [--name "Имя автора"] [--login логин] [--dry]
+                                    отправить бойца в общий набор: запись в out/submit/<id>/, квалификация, запрос на слияние
+                                    через gh; у участника этого ринга модель и агент берутся из реестра;
+                                    --dry — всё до первого обращения к сети (с ним логин берётся из --login)
+  qualify <roster/<id>> [--out папка] [--no-league] [--no-sheet]
+                                    квалификация бойца общего набора: заявка, состав папки, правила, полнота, код, сила →
+                                    out/qualify/<id>/ (qualify.json, report.md, sheet.png)
+  roster-pr --repo <папка запроса> --files <список изменённых файлов> --author <логин> [--trusted] [--out папка]
+                                    робот запроса на слияние: что запрос меняет, чей боец, и квалификация
+                                    (вместо --files: --base <коммит> --head <коммит>, список берётся из git)
+  rating [--draws 8]                общий рейтинг: бойцы сезонов, общего набора и эталоны → out/rating.json
+  cup <сезон> --ids a,b,c,… [--title "…"] [--order]
+                                    кубок на вылет между готовыми бойцами (общий набор и сезоны), без агентов и раздевалок:
+                                    посев по рейтингу (--order — в порядке списка), матч до двух побед → seasons/<сезон>/
 
 Матч
   league run <name> --ids a,b,c [--seeds 3] [--jobs N]   все со всеми: 5 стартов × 2 стороны × зёрна, таблица, рейтинг, тиры → leagues/<name>/
@@ -63,6 +83,9 @@ const HELP = `Ринг моделей — судья. Запуск из папк
                                     и слова моделей, цифры CSV, мысли бойцов (SRT); --studio — материалами в ролик программы монтажа автора
   match locker <match> [--round N]  раздевалка раунда заново из его папки (её делает пульт турнира после ролика)`;
 
+const NO_EVAL = '--disallow-code-generation-from-strings';
+const FOREIGN = ['submit', 'qualify', 'roster-pr', 'rating', 'cup', 'site'];
+
 function parse(argv) {
   const o = { _: [] };
   for (let i = 0; i < argv.length; i++) {
@@ -91,6 +114,12 @@ async function main() {
   const o = parse(process.argv.slice(2));
   const [cmd, sub, arg] = o._;
   if (!cmd || cmd === 'help' || o.help) return console.log(HELP);
+  // These commands run brains written by strangers. The process is started again with code from strings switched
+  // off: a brain that reaches Function through a property name put together on the run gets an error, not a function.
+  if (FOREIGN.includes(cmd) && !process.execArgv.includes(NO_EVAL)) {
+    const r = spawnSync(process.execPath, [NO_EVAL, ...process.execArgv, ...process.argv.slice(1)], { stdio: 'inherit' });
+    process.exit(r.status ?? 1);
+  }
   if (cmd === 'new') {
     const id = sub;
     const r = createContestant(id, { model: o.model, agent: o.agent, color: o.color, root: o.root, agentModel: o['agent-model'], effort: o.effort });
@@ -185,6 +214,36 @@ async function main() {
     }
     throw new Error('bench run <имя> --ids a,b,ref:shkval,dir:<папка> [--draws 8] [--jobs N] | bench show <имя> | bench invariants <имя> [--every N] | bench ablate <имя> [--draws 1]');
   }
+  if (cmd === 'submit') {
+    if (!sub) throw new Error('node ring.mjs submit <папка бойца> --model "…" --agent claude|codex|gemini|… [--effort …] [--name "…"] [--login …] [--dry]');
+    const str = (v) => (typeof v === 'string' ? v : null);
+    // a contestant of this ring by its id: the fighter is in its folder, the model and the agent are in the registry
+    const own = !existsSync(resolve(sub)) ? registry()[sub] : null;
+    const r = await (await import('./judge/submit.js')).submit(own ? join(own.root, 'fighter') : sub, { model: str(o.model) || own?.model || null, agent: str(o.agent) || own?.agent || null, effort: str(o.effort) || own?.effort || null, name: str(o.name), login: str(o.login), dry: !!o.dry, league: !o['no-league'], sheet: !o['no-sheet'], ...(str(o.repo) ? { repo: o.repo } : {}) });
+    if (!r.qualified && !o['no-league']) process.exitCode = 1;
+    return;
+  }
+  if (cmd === 'qualify') {
+    if (!sub) throw new Error('node ring.mjs qualify roster/<id> [--out папка] [--no-league] [--no-sheet]');
+    const r = await (await import('./judge/qualify.js')).qualify(sub, { out: typeof o.out === 'string' ? o.out : null, league: !o['no-league'], sheet: !o['no-sheet'], ...(o.draws ? { draws: Number(o.draws) } : {}), ...(o.jobs ? { jobs: Number(o.jobs) } : {}) });
+    if (!r.passed) process.exitCode = 1;
+    return;
+  }
+  if (cmd === 'roster-pr') {
+    const files = typeof o.files === 'string' ? readFileSync(o.files, 'utf8').split(/\r?\n/).filter(Boolean) : null;
+    const r = await (await import('./judge/robot.js')).checkPullRequest({ repo: o.repo, base: o.base, head: o.head, files, author: o.author, trusted: !!o.trusted, out: typeof o.out === 'string' ? o.out : null });
+    if (!r.ok) process.exitCode = 1;
+    return;
+  }
+  if (cmd === 'rating') {
+    await (await import('./judge/rating.js')).commonRating({ ...(o.draws ? { draws: Number(o.draws) } : {}), ...(o.jobs ? { jobs: Number(o.jobs) } : {}) });
+    return;
+  }
+  if (cmd === 'cup') {
+    if (!sub || typeof o.ids !== 'string') throw new Error('node ring.mjs cup <сезон> --ids a,b,c,… [--title "…"] [--order]');
+    await (await import('./judge/cup.js')).runCup(sub, { ids: o.ids.split(',').map((x) => x.trim()).filter(Boolean), title: typeof o.title === 'string' ? o.title : null, order: !!o.order, ...(o.jobs ? { jobs: Number(o.jobs) } : {}) });
+    return;
+  }
   if (cmd === 'publish') {
     if (!sub || !o.matches) throw new Error('node ring.mjs publish <сезон> --matches a,b,c [--title "…"]');
     const { publishSeason } = await import('./judge/publish.js');
@@ -192,7 +251,7 @@ async function main() {
   }
   if (cmd === 'site') {
     const { buildSite } = await import('./judge/site.js');
-    return void buildSite(resolve(sub || 'dist'), { pages: !process.argv.includes('--no-pages') });
+    return void (await buildSite(resolve(sub || 'dist'), { pages: !process.argv.includes('--no-pages'), rating: !process.argv.includes('--no-rating') }));
   }
   if (cmd === 'match') {
     if (sub === 'new') {

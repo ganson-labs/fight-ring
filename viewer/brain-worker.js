@@ -1,6 +1,9 @@
 // Runs one fighter's brain in isolation. The brain never sees the engine, the other brain or the page.
+// On the site this file is served with a policy of its own (judge/site.js → _headers): no address to talk to, no
+// code from a string, no workers of its own. An action is a handful of short fields: a longer answer is not passed on.
 let brain = null;
-const describe = (err) => String((err && err.stack) || err);
+const ACTION_MAX = 4000;
+const describe = (err) => String((err && err.stack) || err).slice(0, 2000);
 
 self.onmessage = async ({ data: m }) => {
   if (m.type === 'load') {
@@ -24,7 +27,8 @@ self.onmessage = async ({ data: m }) => {
   let action = null;
   if (m.type === 'tick') {
     try {
-      action = value && typeof value === 'object' ? JSON.parse(JSON.stringify(value)) : null;
+      const text = value && typeof value === 'object' ? JSON.stringify(value) : null;
+      action = text && text.length <= ACTION_MAX ? JSON.parse(text) : null;
     } catch {
       action = null;
     }

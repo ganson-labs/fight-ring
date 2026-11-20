@@ -1,4 +1,5 @@
-// The one place the site reads the ring from: published seasons (../seasons/<id>/) and the kit's move set.
+// The one place the site reads the ring from: published seasons (../seasons/<id>/), the shared roster
+// (../roster/<id>/), the common rating the build has just played, and the kit's move set.
 // Everything on the pages comes from these files at build time; a missing file means a missing section, never
 // a made-up number.
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
@@ -42,6 +43,19 @@ interface RawFighter {
   author?: string;
   training?: boolean;
 }
+interface RawEntry {
+  id: string;
+  author?: { github?: string; name?: string };
+  model?: string;
+  agent?: string;
+  effort?: string | null;
+  date?: string;
+}
+interface RawRating {
+  at: string;
+  fights: number;
+  rows: { id: string; origin: 'ref' | 'season' | 'roster'; name: string; model: string | null; author: string | null; rating: number; range: [number, number]; fights: number; share: number; kos: number }[];
+}
 interface RawRound {
   n: number;
   num: number;
@@ -69,7 +83,7 @@ interface RawMatch {
   stats?: { rounds?: { n: number; result?: { seconds?: number } }[] } | null;
 }
 interface RawGame {
-  season: { title: string; published: string; ring?: Record<string, string> };
+  season: { title: string; published: string; ring?: Record<string, string>; cup?: boolean };
   fighters: RawFighter[];
   matches: RawMatch[];
 }
@@ -119,10 +133,14 @@ export interface Version {
   abilities: { name: string; about: string | null }[];
 }
 
-/** A fighter's card. The same shape serves the fighters of a season and, later, the fighters of the community. */
+/** A fighter's card. The same shape serves the fighters of a season and the fighters of the shared roster. */
 export interface Fighter {
   /** the address of the fighter on the site: fighters/<id>/ */
   id: string;
+  /** where the fighter came from: a tournament of models or the shared roster */
+  origin: 'season' | 'roster';
+  /** a fighter that fought in several seasons has one page: this is the card that page is made of */
+  home: boolean;
   /** the id the game knows the fighter by (play/?screen=play&vs=…) */
   gameId: string;
   season: string;
@@ -133,6 +151,8 @@ export interface Fighter {
   agent: { tool: string; model: string | null; effort: string | null } | null;
   /** the person who entered the fighter; the fighters of the first season have none */
   author: string | null;
+  /** the author's page on GitHub */
+  authorUrl: string | null;
   color: string;
   colors: RawColors;
   motto: string | null;
@@ -157,10 +177,11 @@ export interface Round {
   stage: string;
 }
 
-export type MatchKind = 'final' | 'semi' | 'show' | 'other';
+export type MatchKind = 'early' | 'final' | 'semi' | 'show' | 'other';
 
 export interface Match {
   id: string;
+  season: string;
   kind: MatchKind;
   title: string;
   sides: [string, string];
@@ -174,6 +195,10 @@ export interface LeagueRow {
   isReference: boolean;
   name: string;
   model: string;
+  /** the author of a roster fighter */
+  author?: string | null;
+  /** the fighter's page on the site, when it has one */
+  page?: string | null;
   color: string | null;
   rating: number;
   range: [number, number];
@@ -195,6 +220,8 @@ export interface Season {
   id: string;
   title: string;
   published: string;
+  /** a knockout between fighters that were already made: no locker rooms, no league of its own */
+  cup: boolean;
   fighters: Fighter[];
   matches: Match[];
   final: Match | null;
@@ -253,6 +280,8 @@ export function noteHtml(text: string): string {
 }
 
 function matchKind(id: string): { kind: MatchKind; title: string } {
+  const early = id.match(/(quarter|r16)-(\d+)$/);
+  if (early) return { kind: 'early', title: early[1] === 'quarter' ? `Четвертьфинал ${early[2]}` : `1/8 финала, матч ${early[2]}` };
   const semi = id.match(/semi-?(\d+)?/);
   if (/final/.test(id) && !semi) return { kind: 'final', title: 'Финал' };
   if (semi) return { kind: 'semi', title: semi[1] ? `Полуфинал ${semi[1]}` : 'Полуфинал' };
@@ -283,6 +312,7 @@ async function readSeason(id: string): Promise<Season | null> {
     const seconds = new Map((m.stats?.rounds ?? []).map((r) => [r.n, r.result?.seconds ?? null]));
     return {
       id: m.id,
+      season: id,
       ...matchKind(m.id),
       sides: [m.red, m.blue],
       score: [m.score[m.red] ?? 0, m.score[m.blue] ?? 0],
@@ -290,7 +320,7 @@ async function readSeason(id: string): Promise<Season | null> {
       rounds: m.rounds.map((r) => ({ n: r.n, num: r.num, rerun: r.rerun, winner: r.winner || null, reason: r.reason, seconds: seconds.get(r.n) ?? null, stage: r.stage })),
     };
   });
-  const order: Record<MatchKind, number> = { semi: 0, final: 1, show: 2, other: 3 };
+  const order: Record<MatchKind, number> = { early: -1, semi: 0, final: 1, show: 2, other: 3 };
   matches.sort((a, b) => order[a.kind] - order[b.kind] || a.id.localeCompare(b.id));
   const matchById = new Map(matches.map((m) => [m.id, m]));
 
@@ -306,12 +336,15 @@ async function readSeason(id: string): Promise<Season | null> {
     const stats = card?.stats;
     fighters.push({
       id: f.cid,
+      origin: 'season',
+      home: true,
       gameId: f.id,
       season: id,
       name: card?.name ?? f.name,
       model: f.model,
       agent: f.agent ? { tool: f.agent, model: f.agentModel ?? null, effort: f.effort ?? null } : null,
       author: f.author ?? null,
+      authorUrl: null,
       color: f.color,
       colors: f.colors,
       motto: card?.motto ?? null,
@@ -351,6 +384,7 @@ async function readSeason(id: string): Promise<Season | null> {
     id,
     title: game.season.title,
     published: game.season.published,
+    cup: !!game.season.cup,
     fighters,
     matches,
     final: matches.find((m) => m.kind === 'final') ?? null,
@@ -368,14 +402,81 @@ export function seasons(): Promise<Season[]> {
     const ids = existsSync(root) ? readdirSync(root, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name) : [];
     const all = (await Promise.all(ids.map(readSeason))).filter((s): s is Season => s !== null);
     all.sort((a, b) => b.published.localeCompare(a.published) || b.id.localeCompare(a.id));
-    const seen = new Set<string>();
-    for (const s of all) for (const f of s.fighters) {
-      if (seen.has(f.id)) throw new Error(`боец ${f.id} встречается в двух сезонах: адрес fighters/${f.id}/ должен быть один`);
-      seen.add(f.id);
+    // A fighter that fought in several seasons (a cup takes fighters as they are) has one page, fighters/<id>/:
+    // the card of its first season, with the matches of all of them.
+    const first = new Map<string, Fighter>();
+    for (const s of [...all].reverse()) for (const f of s.fighters) {
+      const have = first.get(f.id);
+      if (!have) {
+        first.set(f.id, f);
+        continue;
+      }
+      f.home = false;
+      have.matches = [...have.matches, ...f.matches];
     }
     return all;
   })();
   return cache;
+}
+
+let rosterCache: Promise<Fighter[]> | null = null;
+
+/** The fighters of the shared roster (../roster/<id>/): entry.json says who sent the fighter and which model made it. */
+export function roster(): Promise<Fighter[]> {
+  rosterCache ??= (async () => {
+    const root = join(RING, 'roster');
+    const ids = existsSync(root) ? readdirSync(root, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name).sort() : [];
+    const set = await kit();
+    const played = (await seasons()).flatMap((s) => s.fighters);
+    const out: Fighter[] = [];
+    for (const id of ids) {
+      const dir = join(root, id, 'fighter');
+      const entry = readJSON<RawEntry>(join(root, id, 'entry.json'));
+      const card = readJSON<RawCard & { colors?: RawColors }>(join(dir, 'fighter.json'));
+      if (!entry || !card) continue;
+      const rawMoves = readJSON<{ moves: { id: string; name?: string; command?: string }[] }>(join(dir, 'moves.json'))?.moves ?? [];
+      const portrait = card.portrait ? join(dir, card.portrait) : null;
+      const colors = card.colors ?? { primary: '#3a3e4c', secondary: '#22252e', accent: '#ffc94a' };
+      // the cups the fighter fought in keep their own copy of it: its matches belong on this page
+      const cups = played.filter((f) => f.id === id);
+      for (const f of cups) f.home = false;
+      const login = entry.author?.github ?? null;
+      out.push({
+        id,
+        origin: 'roster',
+        home: true,
+        gameId: `c/${id}`,
+        season: '',
+        name: card.name,
+        model: entry.model ?? '',
+        agent: entry.agent ? { tool: entry.agent, model: null, effort: entry.effort ?? null } : null,
+        author: entry.author?.name ?? login,
+        authorUrl: login ? `https://github.com/${login}` : null,
+        color: colors.accent,
+        colors,
+        motto: card.motto ?? null,
+        story: card.story ?? null,
+        portraitFile: portrait && existsSync(portrait) ? portrait : null,
+        stats: card.stats ? { health: card.stats.health ?? 3, power: card.stats.power ?? 3, speed: card.stats.speed ?? 3, defense: card.stats.defense ?? 3 } : null,
+        moves: rawMoves.map((m) => ({ id: m.id, name: m.name ?? set.get(m.id)?.name ?? m.id, command: m.command ?? null, slot: set.get(m.id)?.slot ?? null, kitName: set.get(m.id)?.name ?? null })),
+        versions: [],
+        matches: [...new Map(cups.flatMap((f) => f.matches).map((m) => [m.id, m])).values()],
+      });
+    }
+    return out;
+  })();
+  return rosterCache;
+}
+
+/** The common rating the build played before the pages (judge/rating.js); null when the build skipped it. */
+export async function rating(): Promise<{ at: string; fights: number; rows: LeagueRow[]; min: number; max: number } | null> {
+  const file = process.env.RING_RATING;
+  const raw = file ? readJSON<RawRating>(file) : null;
+  if (!raw?.rows.length) return null;
+  const pages = new Map((await allFighters()).map((f) => [f.id, f]));
+  const rows: LeagueRow[] = raw.rows.map((r) => ({ id: r.id, isReference: r.origin === 'ref', name: r.name, model: r.model ?? '', author: r.author, page: r.origin !== 'ref' && pages.has(r.id) ? `fighters/${r.id}/` : null, color: pages.get(r.id)?.color ?? null, rating: r.rating, range: r.range, share: r.share, kos: r.kos, fights: r.fights }));
+  rows.sort((a, b) => b.rating - a.rating);
+  return { at: raw.at, fights: raw.fights, rows, min: Math.min(...rows.map((r) => r.range[0])), max: Math.max(...rows.map((r) => r.range[1])) };
 }
 
 export async function latestSeason(): Promise<Season> {
@@ -384,8 +485,10 @@ export async function latestSeason(): Promise<Season> {
   return first;
 }
 
+/** Every fighter that has a page: the fighters of the roster, then the fighters of the seasons. */
 export async function allFighters(): Promise<Fighter[]> {
-  return (await seasons()).flatMap((s) => s.fighters);
+  const shared = await roster();
+  return [...shared, ...(await seasons()).flatMap((s) => s.fighters).filter((f) => f.home)];
 }
 
 export function fighterIn(season: Season, id: string): Fighter | null {
@@ -421,4 +524,5 @@ export const num = (n: number) => new Intl.NumberFormat('ru-RU').format(n);
 export const dateRu = (iso: string) => new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(iso));
 
 const TOOLS: Record<string, string> = { claude: 'Claude Code', codex: 'Codex', gemini: 'Antigravity' };
+export const ROSTER_TITLE = 'Общий набор';
 export const agentName = (tool: string) => TOOLS[tool] ?? tool;

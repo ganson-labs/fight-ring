@@ -1,25 +1,56 @@
 name: Сайт
 
 # Собирает сайт (страницы и игру) и выкладывает его на Cloudflare Pages: https://ring.ganson.io
+# Сборка и выкладка разделены: при сборке считается общий рейтинг, то есть исполняются мозги бойцов общего набора,
+# поэтому у сборки нет секретов. Выкладка получает готовую папку и только отправляет её.
 on:
   push:
     branches: [main]
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 concurrency:
   group: site
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 24
+      # сыгранные пары общего рейтинга: новая сборка играет только пары с новыми бойцами
+      - name: Запас сыгранных пар
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: leagues/.pairs
+          key: pairs-${{ github.run_id }}
+          restore-keys: pairs-
       - run: node ring.mjs site dist
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: site
+          path: dist
+          retention-days: 3
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: site
+          path: dist
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
       - name: Выкладка
         run: npx --yes wrangler@4 pages deploy dist --project-name ring-models --branch main
         env:

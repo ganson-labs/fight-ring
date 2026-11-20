@@ -67,7 +67,8 @@ export function conditions(leagueSeed, draws) {
 
 // ---------- the pool of workers ----------
 
-export async function playAll(list, { jobs = Math.max(1, cpus().length - 2), log = console.log, label = 'боёв' } = {}) {
+// worker: options of the worker threads (judge/rating.js starts them with the ruleset of ring 4 and its own flags)
+export async function playAll(list, { jobs = Math.max(1, cpus().length - 2), log = console.log, label = 'боёв', worker = {} } = {}) {
   const results = [];
   const errors = [];
   const t0 = Date.now();
@@ -85,7 +86,7 @@ export async function playAll(list, { jobs = Math.max(1, cpus().length - 2), log
       w.postMessage(queue[next++]);
     };
     for (let i = 0; i < Math.min(jobs, queue.length); i++) {
-      const w = new Worker(new URL('./bench-worker.js', import.meta.url));
+      const w = new Worker(new URL('./bench-worker.js', import.meta.url), worker);
       busy++;
       w.on('message', (m) => {
         if (m.ok) results.push(m.result);

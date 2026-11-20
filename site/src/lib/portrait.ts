@@ -1,11 +1,11 @@
-// Portraits of fighters, resized for the page. The originals are the fighters' own files in ../seasons (up to
+// Portraits of fighters, resized for the page. The originals are the fighters' own files in ../seasons and ../roster (up to
 // 2.7 MB each); the page gets WebP of the width it shows. The kit names the file art/portrait.png.
 import { getImage } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import { relative } from 'node:path';
 import { RING } from '../data/ring';
 
-const files = import.meta.glob<{ default: ImageMetadata }>('../../../seasons/*/fighters/*/v*/art/portrait.{png,jpg,jpeg,webp}');
+const files = import.meta.glob<{ default: ImageMetadata }>(['../../../seasons/*/fighters/*/v*/art/portrait.{png,jpg,jpeg,webp}', '../../../roster/*/fighter/art/portrait.{png,jpg,jpeg,webp}']);
 
 export interface Portrait { src: string; set: { url: string; descriptor: string }[]; width: number; height: number }
 
@@ -14,7 +14,7 @@ export async function portrait(file: string | null, width: number): Promise<Port
   if (!file) return null;
   const key = `../../../${relative(RING, file).split('\\').join('/')}`;
   const load = files[key];
-  // a portrait under another name goes out as it is: seasons/ lies in the site root
+  // a portrait under another name goes out as it is: seasons/ and roster/ lie in the site root
   if (!load) {
     const src = relative(RING, file).split('\\').join('/');
     return { src, set: [{ url: src, descriptor: `${width}w` }], width, height: width };

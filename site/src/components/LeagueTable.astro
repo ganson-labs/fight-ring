@@ -1,0 +1,86 @@
+---
+// A league as a ladder: every fighter is a rung with a power bar. The bar ends at the fighter's rating, the
+// lighter stretch around its end is the band the rating lies in. Serves the league of a season and the common
+// rating; a fighter with a page of its own gets its portrait and a link.
+import type { LeagueRow } from '../data/ring';
+import { allFighters, num, plural } from '../data/ring';
+import { to } from '../lib/paths';
+import Portrait from './Portrait.astro';
+
+interface Props { rows: LeagueRow[]; min: number; max: number }
+const { rows, min, max } = Astro.props;
+const path = Astro.url.pathname;
+const cards = new Map((await allFighters()).map((f) => [f.id, f]));
+// the bars start a little before the weakest fighter, so its bar is still a bar
+const lo = min - (max - min) * 0.12;
+const span = max - lo || 1;
+const pct = (v: number) => ((v - lo) / span) * 100;
+---
+<ol class="ladder">
+  {rows.map((r, i) => {
+    const f = r.isReference ? null : cards.get(r.id) ?? null;
+    const page = r.page ?? (f ? `fighters/${f.id}/` : null);
+    return (
+      <li class:list={['rung', { ref: r.isReference }]} data-rise style={`--c:${r.color ?? f?.color ?? 'var(--mute)'};--i:${Math.min(i, 8)}`}>
+        <span class="rank slab">{i + 1}</span>
+        <span class="face">{f && <Portrait fighter={f} width={56} alt="" />}</span>
+        <span class="rung-who">
+          {page ? <a class="rung-name slab" href={to(path, page)}>{r.name}</a> : <b class="rung-name slab">{r.name}</b>}
+          <span class="rung-model">{r.isReference ? 'Эталонный боец ринга' : r.model}</span>
+          {r.author && <span class="rung-author">{r.author}</span>}
+        </span>
+        <span class="rung-bar" aria-hidden="true">
+          <span class="power" style={`width:${pct(r.rating).toFixed(2)}%`}></span>
+          <span class="band" style={`left:${pct(r.range[0]).toFixed(2)}%;width:${(pct(r.range[1]) - pct(r.range[0])).toFixed(2)}%`}></span>
+        </span>
+        <span class="rung-rating"><b class="slab" data-count={r.rating}>{num(r.rating)}</b><span class="range">{num(r.range[0])}–{num(r.range[1])}</span></span>
+        <span class="rung-stat"><b>{Math.round(r.share * 100)}&nbsp;%</b> очков</span>
+        <span class="rung-stat"><b>{num(r.kos)}</b> {plural(r.kos, 'нокаут', 'нокаута', 'нокаутов')}</span>
+      </li>
+    );
+  })}
+</ol>
+
+<style>
+  .ladder { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .rung { display: grid; grid-template-columns: 2.2ch 52px minmax(150px, 1.1fr) minmax(0, 2.2fr) 7.4ch 8.5ch 11ch; gap: 4px 18px; align-items: center; padding: 10px 22px 10px 14px; background: linear-gradient(90deg, color-mix(in srgb, var(--c) 20%, var(--panel)) 0%, var(--panel) 46%); clip-path: polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%); font-variant-numeric: tabular-nums; }
+  .rank { font-size: 34px; text-align: center; color: color-mix(in srgb, var(--c) 70%, #fff); }
+  .rung:first-child .rank { background: var(--hot); -webkit-background-clip: text; background-clip: text; color: transparent; font-size: 44px; }
+  .face { width: 52px; }
+  .face :global(.frame) { padding: 2px; clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%); }
+  .face :global(img) { clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%); }
+  .rung-who { display: flex; flex-direction: column; min-width: 0; }
+  .rung-name { font-size: 21px; line-height: 1.1; text-decoration: none; overflow-wrap: anywhere; }
+  a.rung-name:hover { color: var(--gold); }
+  .rung-model { font-size: 14px; font-weight: 500; color: color-mix(in srgb, var(--c) 62%, #fff); }
+  .rung-author { font-size: 13.5px; line-height: 1.3; color: var(--dim); }
+  .rung-bar { position: relative; height: 26px; background: rgba(255, 255, 255, .05); transform: skewX(-24deg); overflow: hidden; }
+  .power { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, color-mix(in srgb, var(--c) 45%, #000), var(--c)); box-shadow: 0 0 18px color-mix(in srgb, var(--c) 60%, transparent); transform-origin: left; }
+  .power::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 4px; background: #fff; }
+  /* the interval the rating lies in: a lighter stretch around the end of the bar */
+  .band { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .5) 0 2px, rgba(255, 255, 255, .14) 2px 6px); border-inline: 2px solid rgba(255, 255, 255, .85); }
+  .rung-rating { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1; }
+  .rung-rating b { font-size: 30px; }
+  .range { font-size: 13px; color: var(--dim); white-space: nowrap; }
+  .rung-stat { display: flex; flex-direction: column; font-size: 13px; line-height: 1.2; color: var(--dim); }
+  .rung-stat b { font: 600 17px/1.2 var(--text); color: var(--ink); }
+  .rung.ref { background: var(--panel); }
+  .rung.ref .rung-name { color: var(--dim); }
+  .rung.ref .rank { color: var(--mute); }
+  @keyframes grow { from { transform: scaleX(0); } }
+  @keyframes fade { from { opacity: 0; } }
+  :global(html.js) .rung.in .power { animation: grow .7s cubic-bezier(.2, .8, .2, 1) calc(var(--i) * 70ms + .15s) both; }
+  :global(html.js) .rung.in .band { animation: fade .3s linear calc(var(--i) * 70ms + .8s) both; }
+
+  @media (max-width: 880px) {
+    .rung { grid-template-columns: 2ch 44px minmax(0, 1fr) auto; gap: 8px 12px; padding: 12px 20px 12px 12px; }
+    .face { width: 44px; }
+    .rank { font-size: 28px; }
+    .rung-name { font-size: 18px; }
+    .rung-rating b { font-size: 26px; }
+    .rung-rating { grid-row: 1; grid-column: 4; }
+    .rung-bar { grid-row: 2; grid-column: 1 / -1; height: 18px; }
+    .rung-stat { grid-row: 3; grid-column: 1 / span 3; flex-direction: row; align-items: baseline; gap: 6px; padding-left: 6px; }
+    .rung-stat:last-child { grid-column: 4; justify-content: flex-end; white-space: nowrap; }
+  }
+</style>

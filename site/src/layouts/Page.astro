@@ -13,6 +13,7 @@ const path = Astro.url.pathname;
 const nav = [
   { href: 'tournament/', text: 'Турнир' },
   { href: 'fighters/', text: 'Бойцы' },
+  { href: 'rating/', text: 'Рейтинг' },
   { href: PLAY, text: 'Играть' },
   { href: 'enter/', text: 'Свой боец' },
 ];
@@ -35,13 +36,16 @@ const imports = JSON.stringify({ imports: { 'pixi.js': `${r}kit/arena/vendor/pix
     <script is:inline>
       // before the first paint: the pages may hide what comes in with a hit, and the sound switch shows its state
       document.documentElement.classList.add('js');
+      // the script that brings those blocks in did not load: nothing stays hidden (an onerror attribute would be
+      // an inline script, which the site's Content-Security-Policy does not let run)
+      addEventListener('error', function (e) { if (e.target && /ui\/arcade\.js/.test(e.target.src || '')) document.documentElement.classList.remove('js'); }, true);
       try { document.documentElement.dataset.audio = JSON.parse(localStorage.getItem('ring.settings') || '{}').sound === false ? 'off' : 'on'; } catch (e) {}
     </script>
     <script is:inline type="importmap" set:html={imports}></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=Oswald:wght@500;700&display=swap" rel="stylesheet" />
-    <script is:inline type="module" src={`${r}ui/arcade.js`} onerror="document.documentElement.classList.remove('js')"></script>
+    <script is:inline type="module" src={`${r}ui/arcade.js`}></script>
     <script is:inline type="module" src={`${r}ui/live.js`}></script>
   </head>
   <body>

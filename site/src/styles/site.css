@@ -96,11 +96,12 @@ html:not(.js) .sound { display: none; }
 /* a live fighter (ui/live.js): the figure drawn from its skeleton on a canvas over the portrait. The portrait is what
    the page shows before the figure is ready and all it shows when the figure cannot be drawn. */
 .fig { position: absolute; inset: 0; display: block; overflow: hidden; }
-.fig canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; transition: opacity .35s; }
-.fig .frame { position: absolute; inset: 0; padding: 0; clip-path: none; background: none; transition: opacity .35s; }
+.fig canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; transform: translateY(3%); transform-origin: 50% 100%; transition: opacity .7s ease-out, transform .7s cubic-bezier(.2, .8, .2, 1); }
+.fig .frame { position: absolute; inset: 0; padding: 0; clip-path: none; background: none; transition: opacity .7s ease-in, filter .7s ease-in, transform .7s ease-in; }
 .fig .frame img { width: 100%; height: 100%; aspect-ratio: auto; clip-path: none; background: none; object-fit: contain; object-position: 50% 100%; -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 96%); mask-image: linear-gradient(180deg, #000 55%, transparent 96%); }
-.fig.live canvas { opacity: 1; }
-.fig.live .frame { opacity: 0; }
+/* the portrait gives way to the figure: it blurs and sinks back while the figure steps forward out of it */
+.fig.live canvas { opacity: 1; transform: none; }
+.fig.live .frame { opacity: 0; filter: blur(14px); transform: scale(1.06); }
 
 /* a tile of the fighter select: the portrait in a slanted frame of the contestant's colour, the name and the model
    under it; the tile under the pointer gets the game's gold cursor */
@@ -194,7 +195,9 @@ html.js [data-rise].in .gauge i.on { transform-origin: left; animation: fill .3s
   .top { padding-top: 14px; padding-bottom: 10px; gap: 10px 12px; }
   .logo { font-size: 22px; }
   .nav { order: 3; width: 100%; justify-content: space-between; gap: 4px 0; }
-  .nav a { padding: 8px 9px; font-size: 15px; letter-spacing: .04em; }
+  /* five sections in one row of a 360 px screen */
+  .nav a { padding: 8px 7px; font-size: clamp(13px, 3.7vw, 15px); letter-spacing: .03em; white-space: nowrap; }
+  .nav a::before { clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); }
   h2.slab { margin-top: 64px; }
   section > h2.slab { padding-left: 18px; }
   .steps { flex-direction: column; align-items: stretch; }

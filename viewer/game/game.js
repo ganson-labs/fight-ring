@@ -102,7 +102,7 @@ const POSTURE = { stand: 'стоя', crouch: 'присев', air: 'в прыжк
 const KIND = { intro: 'представление', taunt: 'дразнилка', super: 'супер', hit: 'удар', hurt: 'боль', victory: 'победа', defeat: 'поражение', other: 'другое' };
 
 function versionWhen(f, v) {
-  if (!v.rounds.length) return f.training ? 'набор' : 'в папке сейчас';
+  if (!v.rounds.length) return f.training ? 'набор' : f.roster ? 'общий набор' : 'в папке сейчас';
   const r = v.rounds[0];
   const lockers = r.round - 1;
   return lockers === 0 ? 'до первого раунда' : `после раздевалки ${lockers}`;
@@ -311,16 +311,20 @@ const SCREENS = {
   },
 
   roster(_, backIn) {
-    const list = contestants();
+    const list = contestants().filter((f) => !f.roster);
+    // fighters sent by people outside a tournament (roster/): each says who made it
+    const shared = contestants().filter((f) => f.roster);
     const train = data.fighters.filter((f) => f.training);
     const tile = (f) => {
       const c = colorsOf(f);
       const v = topVersion(f);
-      return `<button class="tile" data-nav data-id="${esc(f.id)}" style="${cssColors(c)}"><img alt="" data-shot="${esc(v.url)}"><span class="ver">${f.versions.length > 1 ? `${f.versions.length} версии` : 'v1'}</span><div class="meta"><span class="model">${esc(f.model)}</span><div class="name slab">${esc(v.name)}</div></div></button>`;
+      return `<button class="tile" data-nav data-id="${esc(f.id)}" style="${cssColors(c)}"><img alt="" data-shot="${esc(v.url)}"><span class="ver">${f.versions.length > 1 ? `${f.versions.length} версии` : 'v1'}</span><div class="meta"><span class="model">${esc(f.model)}</span><div class="name slab">${esc(v.name)}</div>${f.author ? `<span class="by">${esc(f.author)}</span>` : ''}</div></button>`;
     };
     const el = mount(`
       <div class="head"><div class="left"><span class="kicker">Ростер</span><h1 class="title slab">Бойцы</h1></div></div>
-      ${list.length ? `<div class="grid">${list.map(tile).join('')}</div>` : '<div class="empty">Бойцов пока нет: их создают участники</div>'}
+      ${list.length || shared.length ? '' : '<div class="empty">Бойцов пока нет: их создают участники</div>'}
+      ${list.length ? `<div class="grid">${list.map(tile).join('')}</div>` : ''}
+      ${shared.length ? `<div class="label section">Общий набор</div><div class="grid">${shared.map(tile).join('')}</div>` : ''}
       ${train.length ? `<div class="label section">Спарринг</div><div class="grid small">${train.map(tile).join('')}</div>` : ''}`, { id: 'roster', backIn });
     el.querySelectorAll('.tile').forEach((b) => (b.onclick = () => go('card', { id: b.dataset.id })));
     fillShots(el);
@@ -338,7 +342,7 @@ const SCREENS = {
       <div class="layout" style="${cssColors(c)}">
         <div class="stage"><div class="anim"><button class="btn" data-nav data-anim="intro">Представление</button><button class="btn" data-nav data-anim="victory">Победа</button><button class="btn" data-nav data-reveal>Собрать заново</button></div></div>
         <div class="info">
-          <span class="plate">${esc(f.model)}</span>
+          <span class="plate">${esc(f.model)}</span>${f.author ? `<span class="by">Автор: ${esc(f.author)}</span>` : ''}
           <h1 class="name slab" data-fit>${esc(ver.name)}</h1>
           <div class="motto" data-motto></div>
           ${f.versions.length > 1 || !f.training ? `<div class="versions">${f.versions.map((x) => `<button class="vchip ${x.v === ver.v ? 'on' : ''}" data-nav data-v="${x.v}" ${x.v === ver.v ? 'data-autofocus' : ''}><span class="v">${x.label}</span><span class="when">${esc(versionWhen(f, x))}</span></button>`).join('')}</div>` : ''}
@@ -719,7 +723,7 @@ function openPicker(kind, side) {
     <div class="grid">${all.map((f) => {
       const c = colorsOf(f);
       const v = topVersion(f);
-      return `<button class="tile ${f.id === p[side].id ? 'sel' : ''}" data-nav data-id="${esc(f.id)}" style="${cssColors(c)}"><img alt="" data-shot="${esc(v.url)}"><div class="meta"><span class="model">${esc(f.model)}</span><div class="name slab">${esc(v.name)}</div></div></button>`;
+      return `<button class="tile ${f.id === p[side].id ? 'sel' : ''}" data-nav data-id="${esc(f.id)}" style="${cssColors(c)}"><img alt="" data-shot="${esc(v.url)}"><div class="meta"><span class="model">${esc(f.model)}</span><div class="name slab">${esc(v.name)}</div>${f.author ? `<span class="by">${esc(f.author)}</span>` : ''}</div></button>`;
     }).join('')}</div>`;
   overlay.replaceChildren(m);
   overlay.dataset.closable = '1';

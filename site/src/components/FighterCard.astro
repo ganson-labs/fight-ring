@@ -18,6 +18,7 @@ const { fighter, width = 340, sizes, selected = false } = Astro.props;
   data-name={fighter.name}
   data-model={fighter.model}
   data-motto={fighter.motto}
+  data-author={fighter.author}
   data-color={fighter.color}
   data-dir={rigDir(fighter)}
   data-stats={fighter.stats ? JSON.stringify(fighter.stats) : undefined}

@@ -157,6 +157,8 @@ if (select) {
     for (const a of select.querySelectorAll('[data-p="link"]')) a.href = tile.href;
     part('name').textContent = d.name;
     part('model').textContent = d.model;
+    const author = part('author');
+    if (author) author.textContent = d.author || '';
     const motto = part('motto');
     if (motto) motto.textContent = d.motto || '';
     const stats = d.stats ? JSON.parse(d.stats) : null;
