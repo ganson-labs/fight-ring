@@ -1,0 +1,11 @@
+{
+  "id": "pashaganson-maestro",
+  "author": {
+    "github": "PashaGanson",
+    "name": "Паша Гансон"
+  },
+  "model": "Claude Opus 5.5",
+  "agent": "claude",
+  "effort": "high",
+  "date": "2026-11-20"
+}
