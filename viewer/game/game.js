@@ -217,6 +217,7 @@ window.addEventListener('resize', () => {
 
 // still: the same screen drawn again (a changed setting): it does not come in a second time
 function mount(html, { id, cls = '', backIn = false, focus = null, still = false } = {}) {
+  document.getElementById('boot')?.remove();
   cardView?.destroy();
   cardView = null;
   const el = document.createElement('section');
@@ -1042,6 +1043,7 @@ function closeOverlay(sound = true) {
 // ---------- fights ----------
 
 function showOverlay(html, { closable = false, focus = null } = {}) {
+  document.getElementById('boot')?.remove();
   const box = document.createElement('div');
   box.innerHTML = html;
   overlay.replaceChildren(...box.childNodes);
@@ -1237,8 +1239,11 @@ function afterMenu(title, sub, buttons) {
   el.querySelectorAll('[data-i]').forEach((b) => (b.onclick = () => buttons[Number(b.dataset.i)][1]()));
 }
 
-async function roundShow(m, r, { intro = true } = {}) {
+// loaded: called when the fighters, the stage and the record have arrived and the show is about to start —
+// until then «Загружаю раунд» stays on the screen (on a phone's network that is several seconds, not a blink)
+async function roundShow(m, r, { intro = true, loaded = null } = {}) {
   const [assets, stage, replay] = await Promise.all([Promise.all(r.dirs.map(fighterAssets)), stageAssets(stageById(r.stage)?.dir, { hd: settings.quality !== 'medium' }), fetch(r.replay, { cache: 'no-store' }).then((x) => x.json())]);
+  loaded?.();
   return fightView.show({
     assets, urls: r.dirs, names: [m.models[r.left], m.models[r.right]], stage, steps: expand(replay.steps), seed: replay.seed, intro,
     show: { round: r.num, rerun: r.rerun, wins: r.wins, firstTo: m.firstTo, final: r.final, result: false }, totalTicks: replay.result?.ticks || 1,
@@ -1252,9 +1257,8 @@ async function watchRound(m, n) {
   fighting.restart = () => watchRound(m, n);
   busy('Загружаю раунд');
   try {
-    const p = roundShow(m, r);
-    overlay.replaceChildren();
     nav.enabled = false;
+    const p = roundShow(m, r, { loaded: () => overlay.replaceChildren() });
     const res = await p;
     if (res.stopped || !fighting) return;
     const next = m.rounds.find((x) => x.n === n + 1);
@@ -1284,9 +1288,8 @@ async function watchMatch(m) {
         if (fighting !== token || token.abort) return;
       }
       busy('Загружаю раунд');
-      const p = roundShow(m, r, { intro: i === 0 || changed.length > 0 });
-      overlay.replaceChildren();
       nav.enabled = false;
+      const p = roundShow(m, r, { intro: i === 0 || changed.length > 0, loaded: () => overlay.replaceChildren() });
       const res = await p;
       if (res.stopped || fighting !== token) return;
       const last = i === m.rounds.length - 1;
@@ -1502,6 +1505,7 @@ async function boot() {
       await new Promise((res) => {
         const gate = document.createElement('div');
         gate.id = 'gate';
+        document.getElementById('boot')?.remove();
         gate.innerHTML = `<div class="press">${PRESS}</div>`;
         document.body.appendChild(gate);
         // «click» is the end of a touch (sfx.js GESTURES); the press itself turns the sound on in the listener above

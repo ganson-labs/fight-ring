@@ -484,3 +484,7 @@ body.touch #frame:not([hidden]) ~ .fs-btn { display: none; }
 /* no keys to name; a phone on its side is low, the fight select scrolls there */
 body.touch .legend { display: none; }
 body.touch #versus { overflow-y: auto; }
+
+/* what the page shows while the game itself is still on its way (a phone's network: several seconds) */
+#boot { position: fixed; inset: 0; z-index: 40; justify-content: center; background: var(--bg); pointer-events: none; }
+#boot .slab { font-size: clamp(30px, 6vw, 64px); }
