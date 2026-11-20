@@ -17,17 +17,22 @@ const kit = () => (kitP ??= (async () => {
   return { PIXI, litFigure: figure.litFigure, FigureView: figure.FigureView, loadFighterAssets: assets.loadFighterAssets, solvePose: engine.solvePose, sampleAnim: engine.sampleAnim };
 })());
 
-let rigsP = null;
-const rigs = () => (rigsP ??= fetch(`${ROOT}ui/rigs.json`).then((r) => (r.ok ? r.json() : {})).catch(() => ({})));
+// the lighter copies of a fighter's pictures: one small file a fighter (ui/rig/<id>.json), asked for with its figure
+const rigFiles = new Map();
+function rig(dir) {
+  const id = dir.match(/^(?:seasons\/[^/]+\/fighters|roster)\/([^/]+)\//)?.[1];
+  if (!id) return Promise.resolve({});
+  if (!rigFiles.has(id)) rigFiles.set(id, fetch(`${ROOT}ui/rig/${id}.json`).then((r) => (r.ok ? r.json() : {})).catch(() => ({})));
+  return rigFiles.get(id).then((map) => map[dir] || {});
+}
 
 const fighters = new Map();
 /** The fighter of a folder (relative to the site root), loaded once for every figure of the page. */
 export function fighter(dir) {
   if (!fighters.has(dir)) {
     fighters.set(dir, (async () => {
-      const [k, map] = await Promise.all([kit(), rigs()]);
-      const light = map[dir] || {};
-      return k.loadFighterAssets(ROOT + dir, { src: (img) => ROOT + (light[img] || dir + img), portrait: false });
+      const [k, light] = await Promise.all([kit(), rig(dir)]);
+      return k.loadFighterAssets(ROOT + dir, { src: (img) => ROOT + (light[img] || dir + img), portrait: false, pixels: false });
     })());
   }
   return fighters.get(dir);

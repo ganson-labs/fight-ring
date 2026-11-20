@@ -63,7 +63,7 @@ export class Intro {
     const app = this.app;
     app.stage.removeChildren();
     this.scene?.ambient?.destroy?.();
-    const scene = new Scene(app, { width: 1920, height: 1080, hud: false, calm: true });
+    const scene = new Scene(app, { width: 1920, height: 1080, hud: false, calm: true, fast: true });
     scene.setStage(this.stages[s.stage] || null);
     // the cast stands in the shot as silhouettes against the stage's light; without contestants nobody does
     const cast = s.cast && this.cast.length ? this.cast : [];

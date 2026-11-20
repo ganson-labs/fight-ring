@@ -21,7 +21,7 @@ const pct = (v: number) => ((v - lo) / span) * 100;
     const f = r.isReference ? null : cards.get(r.id) ?? null;
     const page = r.page ?? (f ? `fighters/${f.id}/` : null);
     return (
-      <li class:list={['rung', { ref: r.isReference }]} data-rise style={`--c:${r.color ?? f?.color ?? 'var(--mute)'};--i:${Math.min(i, 8)}`}>
+      <li class:list={['rung', { ref: r.isReference }]} data-rise data-item data-name={r.name} data-model={r.isReference ? '' : r.model} data-author={r.author ?? undefined} style={`--c:${r.color ?? f?.color ?? 'var(--mute)'};--i:${Math.min(i, 8)}`}>
         <span class="rank slab">{i + 1}</span>
         <span class="face">{f && <Portrait fighter={f} width={56} alt="" />}</span>
         <span class="rung-who">

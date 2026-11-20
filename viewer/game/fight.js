@@ -2,7 +2,7 @@
 // and a live fight of a player against a brain. All go through the same broadcast as the judge's clips.
 import * as PIXI from 'pixi.js';
 import * as E from '../../kit/arena/engine/index.js';
-import { loadFighterAssets, loadStage } from '../../kit/arena/render/assets.js';
+import { loadFighterAssets, unloadFighterAssets, loadStage } from '../../kit/arena/render/assets.js';
 import { Scene } from '../../kit/arena/render/scene.js';
 import { Broadcast } from '../../kit/arena/render/broadcast.js';
 import { loadAds, attachBillboard } from '../../kit/arena/render/ads.js';
@@ -11,14 +11,72 @@ import { at } from '../data.js';
 import { Controls } from './input.js';
 import { stageBeds } from '../../kit/arena/render/sound.js';
 
+// The game never draws a card's portrait and never reads the pictures' pixels: both stay out.
+const LOAD = { portrait: false, pixels: false };
+// The published site keeps lighter copies of every fighter's pictures (WebP, a tenth of the PNG: ui/rig/<id>.json,
+// site/src/lib/rig.ts). light(url) → { picture: address } for a fighter's folder, or nothing.
+let light = null;
+export const useLightPictures = (fn) => (light = fn);
+async function load(url) {
+  const map = light ? await light(url).catch(() => null) : null;
+  return loadFighterAssets(url, map ? { ...LOAD, src: (img) => map[img] || `${url}${img}` } : LOAD);
+}
 const assetCache = new Map();
+const passing = new Map(); // url → { p, n, keep }: fighters loaded for one still picture
 export function fighterAssets(url) {
-  if (!assetCache.has(url)) assetCache.set(url, loadFighterAssets(url).catch((e) => {
-    assetCache.delete(url);
-    throw e;
-  }));
+  if (!assetCache.has(url)) {
+    const t = passing.get(url);
+    if (t) t.keep = true; // the game wants this fighter for more than a picture: it stays
+    const seen = recent.get(url);
+    recent.delete(url);
+    assetCache.set(url, (seen || (t ? t.p : load(url))).catch((e) => {
+      assetCache.delete(url);
+      throw e;
+    }));
+  }
   return assetCache.get(url);
 }
+
+// A fighter for one still picture: loaded, handed to use() and let go again, so a grid of 300 fighters holds the
+// textures of the few being drawn and not of all of them. A fighter the game already holds is used as it is.
+export async function withFighter(url, use) {
+  if (assetCache.has(url)) return use(await assetCache.get(url));
+  if (recent.has(url)) return use(await previewAssets(url));
+  let t = passing.get(url);
+  if (!t) passing.set(url, (t = { p: load(url), n: 0, keep: false }));
+  t.n++;
+  try {
+    return await use(await t.p);
+  } finally {
+    if (--t.n === 0) {
+      passing.delete(url);
+      if (!t.keep) t.p.then(unloadFighterAssets, () => {});
+    }
+  }
+}
+
+// A fighter under the cursor of a select screen: shown alive while the cursor is on it. The last few stay loaded
+// (the cursor comes back), older ones are let go unless the game took them for a fight or a card.
+const recent = new Map(); // url → promise, the oldest first
+export function previewAssets(url) {
+  if (assetCache.has(url)) return assetCache.get(url);
+  let p = recent.get(url);
+  recent.delete(url);
+  if (!p) {
+    const t = passing.get(url);
+    if (t) t.keep = true;
+    p = t ? t.p : load(url);
+    p.catch(() => recent.get(url) === p && recent.delete(url));
+  }
+  recent.set(url, p);
+  for (const [u, old] of recent) {
+    if (recent.size <= 6) break;
+    recent.delete(u);
+    if (!assetCache.has(u)) old.then(unloadFighterAssets, () => {});
+  }
+  return p;
+}
+export const heldFighters = () => assetCache.size + recent.size;
 
 const stageCache = new Map();
 export function stageAssets(dir, { hd = true } = {}) {
@@ -117,7 +175,8 @@ export class FightView {
     const dpr = Math.min(window.devicePixelRatio || 1, high ? 2 : 1);
     // at most 4K worth of pixels on the high setting, 1080p on the medium one
     // never below the frame's own pixels (filters cut the picture below 1), at most 4K on the high setting
-    const res = Math.max(1, Math.min(s * dpr, high ? 3840 / Math.max(this.W, this.H) : 1));
+    // this.ease: the share of those pixels this machine keeps up with (see show())
+    const res = Math.max(1, Math.min(s * dpr, high ? 3840 / Math.max(this.W, this.H) : 1) * (this.ease || 1));
     if (Math.abs((this.app.renderer.resolution || 1) - res) > 0.01) this.app.renderer.resize(this.W, this.H, res);
     c.style.width = `${cssW}px`;
     c.style.height = `${cssH}px`;
@@ -148,7 +207,7 @@ export class FightView {
     cancelAnimationFrame(this.raf);
     this.bc?.destroy();
     app.stage.removeChildren();
-    const scene = new Scene(app, { width: W, height: H, vertical, names: o.names, quality: this.settings().quality || 'high' });
+    const scene = new Scene(app, { width: W, height: H, vertical, names: o.names, quality: this.settings().quality || 'high', fast: true });
     scene.setStage(o.stage);
     const ads = this.settings().ads ? await loadAds(at('ads/demo/'), { force: true }).catch(() => null) : null;
     if (ads) attachBillboard(scene, ads);
@@ -168,11 +227,25 @@ export class FightView {
     this.sfx.bed(stageBeds(o.stage));
     this.scene = scene;
     this.paused = false;
+    // A screen of high density asks for up to 4K of pixels a frame, more than a laptop's video card draws in time.
+    // The fight watches its own frames: when they keep coming late, it gives up a fifth of the pixels, down to the
+    // frame's own 1080p, and keeps that for the rest of the session.
+    let gap = 16.7;
+    let seen = 0;
     return new Promise((resolve) => {
       let last = performance.now();
       const loop = (now) => {
         if (id !== this.run) return resolve({ stopped: true });
         const dt = Math.min(0.05, (now - last) / 1000);
+        gap += (Math.min(100, now - last) - gap) * 0.05;
+        if (++seen > 90 && !this.paused) {
+          seen = 0;
+          if (gap > 21 && app.renderer.resolution > 1.01) {
+            this.ease = (this.ease || 1) * 0.8;
+            this.fit();
+            gap = 16.7;
+          }
+        }
         last = now;
         if (!this.paused) {
           o.onFrame?.(dt, bc, fight);

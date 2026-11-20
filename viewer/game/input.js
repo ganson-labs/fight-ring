@@ -20,7 +20,8 @@ export class Nav {
     document.addEventListener('mouseover', (e) => {
       if (!this.enabled) return;
       const el = e.target.closest?.('[data-nav]');
-      if (el && this.root?.contains(el) && el !== this.cur) this.focus(el, { sound: true, scroll: false });
+      // a text field takes the keyboard only when it is pressed, not when the pointer crosses it
+      if (el && this.root?.contains(el) && el !== this.cur && !(el instanceof HTMLInputElement)) this.focus(el, { sound: true, scroll: false });
     });
     document.addEventListener('click', (e) => {
       const el = e.target.closest?.('[data-nav]');
@@ -71,7 +72,8 @@ export class Nav {
       if (along <= 4) continue;
       const across = dx ? Math.abs(ddy) : Math.abs(ddx);
       // overlap along the other axis is preferred: rows and columns stay rows and columns
-      const overlap = dx ? Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 0 : Math.min(a.right, b.right) - Math.max(a.left, b.left) > 0;
+      // (a real overlap: the cursor's tile is drawn a little larger and would touch the row above by a pixel)
+      const overlap = dx ? Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > Math.min(a.height, b.height) * 0.25 : Math.min(a.right, b.right) - Math.max(a.left, b.left) > Math.min(a.width, b.width) * 0.25;
       const score = along + across * (overlap ? 0.3 : 2.5);
       if (score < bestScore) {
         bestScore = score;
@@ -83,6 +85,30 @@ export class Nav {
 
   press() {
     if (this.cur) this.cur.click();
+  }
+
+  // A jump over a long grid (PageUp / PageDown, LB / RB): a window of the scrolling box the cursor is in ([data-page])
+  // up or down in the same column; to: 'first' | 'last' — Home and End.
+  page(dir, to = null) {
+    const box = this.cur?.closest('[data-page]') || this.root?.querySelector('[data-page]');
+    if (!box) return;
+    const list = this.items().filter((el) => box.contains(el));
+    if (!list.length) return;
+    if (to || !box.contains(this.cur)) return this.focus(to === 'last' ? list[list.length - 1] : list[0]);
+    const a = this.cur.getBoundingClientRect();
+    const x = a.left + a.width / 2;
+    const y = a.top + a.height / 2 + dir * Math.max(a.height, box.clientHeight - a.height);
+    let best = null;
+    let score = Infinity;
+    for (const el of list) {
+      const b = el.getBoundingClientRect();
+      const s = Math.abs(b.top + b.height / 2 - y) * 3 + Math.abs(b.left + b.width / 2 - x);
+      if (s < score) {
+        score = s;
+        best = el;
+      }
+    }
+    if (best && best !== this.cur) this.focus(best);
   }
 
   // a direction: left/right on an adjustable element changes its value instead of moving
@@ -102,6 +128,28 @@ export class Nav {
     }
     if (!this.enabled) return;
     const k = e.key;
+    // a text field: letters, Backspace and the caret keys are its own; up and down leave it, Enter goes to what it
+    // found, Esc empties it first and goes back second
+    if (e.target instanceof HTMLInputElement) {
+      if (k === 'Escape' && e.target.value) {
+        e.preventDefault();
+        e.target.value = '';
+        e.target.dispatchEvent(new Event('input', { bubbles: true }));
+      } else if (k === 'Escape') {
+        e.preventDefault();
+        this.onBack();
+      } else if (k === 'ArrowDown' || k === 'Enter' || k === 'ArrowUp') {
+        e.preventDefault();
+        document.body.classList.add('kbd');
+        this.move(0, k === 'ArrowUp' ? -1 : 1);
+      }
+      return;
+    }
+    if (k === 'PageDown' || k === 'PageUp' || k === 'Home' || k === 'End') {
+      e.preventDefault();
+      document.body.classList.add('kbd');
+      return this.page(k === 'PageDown' ? 1 : -1, k === 'Home' ? 'first' : k === 'End' ? 'last' : null);
+    }
     const map = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] };
     if (map[k] && this.cur?.dataset.adjust !== undefined && map[k][0]) {
       e.preventDefault();
@@ -151,6 +199,8 @@ export class Pads {
     } else if (this.nav.enabled) {
       if (edge(0) || edge(9)) this.nav.press();
       if (edge(1)) this.nav.onBack();
+      if (edge(4)) this.nav.page(-1);
+      if (edge(5)) this.nav.page(1);
       const ax = p.axes[0] || 0;
       const ay = p.axes[1] || 0;
       const dir = down[12] || ay < -0.6 ? 'u' : down[13] || ay > 0.6 ? 'd' : down[14] || ax < -0.6 ? 'l' : down[15] || ax > 0.6 ? 'r' : null;

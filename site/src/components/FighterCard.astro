@@ -7,13 +7,18 @@ import { to } from '../lib/paths';
 import { rigDir } from '../lib/rig';
 import Portrait from './Portrait.astro';
 
-interface Props { fighter: Fighter; width?: number; sizes?: string; selected?: boolean }
-const { fighter, width = 340, sizes, selected = false } = Astro.props;
+// rating: the fighter's place in the common rating, when the build has it (the finder sorts by it).
+// plain: one of hundreds of tiles — no name for the transition between pages (a browser snapshots every named element).
+interface Props { fighter: Fighter; width?: number; sizes?: string; selected?: boolean; rating?: number | null; plain?: boolean }
+const { fighter, width = 340, sizes, selected = false, rating = null, plain = false } = Astro.props;
 ---
 <a
   class:list={['tile', { on: selected }]}
   href={to(Astro.url.pathname, `fighters/${fighter.id}/`)}
-  style={`--c:${fighter.color};view-transition-name:f-${fighter.id.replace(/[^a-z0-9_-]/gi, '_')}`}
+  style={`--c:${fighter.color}${plain ? '' : `;view-transition-name:f-${fighter.id.replace(/[^a-z0-9_-]/gi, '_')}`}`}
+  data-item
+  data-rating={rating ?? undefined}
+  data-added={fighter.added ?? undefined}
   data-pick
   data-name={fighter.name}
   data-model={fighter.model}

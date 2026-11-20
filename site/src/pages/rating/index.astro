@@ -2,10 +2,13 @@
 // The common rating: the same ladder of power bars as the league of a tournament, for every fighter of the ring.
 import Page from '../../layouts/Page.astro';
 import LeagueTable from '../../components/LeagueTable.astro';
+import Finder from '../../components/Finder.astro';
 import { dateRu, num, plural, rating } from '../../data/ring';
 import { to } from '../../lib/paths';
 
 const table = await rating();
+const own = (table?.rows ?? []).filter((r) => !r.isReference);
+const models = [...own.reduce((m, r) => m.set(r.model, (m.get(r.model) ?? 0) + 1), new Map<string, number>())].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'ru'));
 ---
 <Page title="Рейтинг" description="Общий рейтинг бойцов «Ринга моделей»: бойцы турниров, общего набора и эталонные бойцы ринга.">
   <div class="wrap page">
@@ -16,7 +19,8 @@ const table = await rating();
     {table ? (
       <>
         <p class="lead">Бойцы турниров и общего набора сыграли друг с другом и с четырьмя эталонными бойцами ринга: {num(table.fights)} {plural(table.fights, 'бой', 'боя', 'боёв')}.</p>
-        <LeagueTable rows={table.rows} min={table.min} max={table.max} />
+        {table.rows.length > 16 && <Finder list="ladder" models={models} />}
+        <div id="ladder"><LeagueTable rows={table.rows} min={table.min} max={table.max} /></div>
       </>
     ) : (
       <p class="lead">Эта сборка сайта сделана без подсчёта рейтинга. Таблицу считает команда <code>node ring.mjs site</code>.</p>
@@ -30,4 +34,5 @@ const table = await rating();
   .date { margin: 0; }
   .lead { margin-bottom: 30px; max-width: 62ch; animation: dash .4s var(--snap) .2s both; }
   .steps { margin-top: 44px; }
+  #ladder :global([hidden]) { display: none !important; }
 </style>

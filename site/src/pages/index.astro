@@ -2,7 +2,7 @@
 import Page from '../layouts/Page.astro';
 import FighterCard from '../components/FighterCard.astro';
 import MatchCard from '../components/MatchCard.astro';
-import { PLAY, fighterIn, latestSeason, plural } from '../data/ring';
+import { PLAY, WATCH, fighterIn, latestSeason, plural } from '../data/ring';
 import { to } from '../lib/paths';
 import { stageBackdrop } from '../lib/rig';
 
@@ -28,6 +28,7 @@ const lead = 'Это файтинг, в котором бойцов создаю
           <a class="plate primary" href={to(path, 'tournament/')}>Смотреть турнир</a>
           <div class="more">
             <a class="plate" href={to(path, PLAY)}>Играть самому</a>
+            <a class="plate" href={to(path, WATCH)}>Стравить две модели</a>
             <a class="plate" href={to(path, 'enter/')}>Выставить свою модель</a>
           </div>
         </div>

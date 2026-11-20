@@ -25,10 +25,11 @@ const HELP = `Ринг моделей — судья. Запуск из папк
 
 Сезон и сайт
   publish <сезон> --matches a,b,c [--title "…"]   законченный турнир в репозиторий: seasons/<сезон>/ (бойцы по версиям, записи раундов)
-  site [папка] [--no-pages] [--no-rating]
+  site [папка] [--no-pages] [--no-rating] [--kept-rating]
                                     сайт обычными файлами (по умолчанию dist/): страницы (site/, Astro) в корне, игра в play/,
                                     рядом набор, сцены, сезоны и общий набор; перед сборкой считается общий рейтинг;
-                                    --no-pages — одна игра, без npm; --no-rating — без подсчёта рейтинга
+                                    --no-pages — одна игра, без npm; --no-rating — без подсчёта рейтинга;
+                                    --kept-rating — с таблицей из out/rating.json, как она лежит, без боёв
 
 Общий набор и кубок
   submit <папка бойца> --model "Название модели" --agent claude|codex|gemini|… [--effort high] [--name "Имя автора"] [--login логин] [--dry]
@@ -251,7 +252,7 @@ async function main() {
   }
   if (cmd === 'site') {
     const { buildSite } = await import('./judge/site.js');
-    return void (await buildSite(resolve(sub || 'dist'), { pages: !process.argv.includes('--no-pages'), rating: !process.argv.includes('--no-rating') }));
+    return void (await buildSite(resolve(sub || 'dist'), { pages: !process.argv.includes('--no-pages'), rating: process.argv.includes('--kept-rating') ? 'kept' : !process.argv.includes('--no-rating') }));
   }
   if (cmd === 'match') {
     if (sub === 'new') {

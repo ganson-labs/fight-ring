@@ -33,7 +33,8 @@ export function litFigure(assets, { rim = 7, aura = 24, flip = 1, accent = null,
   rimRig.root.filters = [flatFilter(accent), new PIXI.BlurFilter({ strength: 2.5, quality: 2 })];
   const auraBox = new PIXI.Container();
   auraBox.addChild(auraRig.root);
-  auraBox.filters = [flatFilter(accent), new PIXI.BlurFilter({ strength: aura, quality: 3 })];
+  // the aura is a wide soft glow: blurred on a quarter of the pixels it looks the same and costs a fraction
+  auraBox.filters = [flatFilter(accent), new PIXI.BlurFilter({ strength: aura, quality: 3, resolution: 0.5 })];
   auraBox.alpha = 0.55;
   auraBox.blendMode = 'add';
   root.addChild(auraBox, rimRig.root, main.root);
@@ -70,7 +71,7 @@ const idlePose = (def, tick = 0) => solvePose(sampleAnim(def.anims.idle, tick));
 // ---------- still shots ----------
 
 let shotApp = null;
-let liveApp = null;
+const liveApps = new Map(); // slot → app: one long-lived app for every place a live figure stands in
 let demoApp = null;
 async function shooter() {
   if (shotApp) return shotApp;
@@ -85,11 +86,14 @@ const shotCache = new Map();
 // The picture is drawn at the screen's real pixels (devicePixelRatio and a window larger than 1080p, at most twice
 // the design size: larger textures fail on phones), so a tile never stretches it.
 export const shotScale = () => Math.min(2, Math.max(1, (window.devicePixelRatio || 1) * Math.max(1, Math.min(window.innerWidth / 1920, window.innerHeight / 1080))));
+const shotKey = (key, w, h, crop) => `${key}|${Math.round(w * shotScale())}x${Math.round(h * shotScale())}|${crop}`;
+// the still that is already drawn (url: the fighter's folder), or null: a tile asks before it loads the fighter
+export const shotCached = (url, { w = 360, h = 480, crop = 'waist' } = {}) => shotCache.get(shotKey(url, w, h, crop)) || null;
 export async function figureShot(assets, { w = 360, h = 480, crop = 'waist', key = assets.base } = {}) {
+  const ck = shotKey(key, w, h, crop);
   const S = shotScale();
   w = Math.round(w * S);
   h = Math.round(h * S);
-  const ck = `${key}|${w}x${h}|${crop}`;
   if (shotCache.has(ck)) return shotCache.get(ck);
   const app = await shooter();
   const fig = litFigure(assets, { rim: 6 * (h / 480), aura: 18 * (h / 480) });
@@ -166,10 +170,16 @@ export function revealDuration(short) {
 // ---------- the live figure of the fighter card ----------
 
 export class FigureView {
-  // dummy: () => Promise of the sparring dummy's assets, the target a move is shown on
-  constructor(el, { dummy = null } = {}) {
+  // dummy: () => Promise of the sparring dummy's assets, the target a move is shown on.
+  // slot: the place on the screen (two corners of the fight select are two slots); flip: -1 looks to the left;
+  // fit: how much of the box the figure takes ('card' — the whole body with air around, 'corner' — as tall as fits).
+  constructor(el, { dummy = null, slot = 'card', flip = 1, fit = 'card' } = {}) {
     this.el = el;
     this.dummy = dummy;
+    this.slot = slot;
+    this.flip = flip;
+    this.fitMode = fit;
+    this.paused = false;
     this.demoRun = null;
     this.demoSeq = 0;
     this.app = null;
@@ -184,12 +194,12 @@ export class FigureView {
 
   async init() {
     // one long-lived app for every card: destroying a PIXI app breaks the others (shared GPU resources)
-    if (!liveApp) {
-      liveApp = new PIXI.Application();
-      await liveApp.init({ width: 8, height: 8, backgroundAlpha: 0, antialias: true, preference: 'webgl', autoStart: false, resolution: Math.min(2, window.devicePixelRatio || 1) });
+    if (!liveApps.has(this.slot)) {
+      const made = new PIXI.Application();
+      liveApps.set(this.slot, made.init({ width: 8, height: 8, backgroundAlpha: 0, antialias: true, preference: 'webgl', autoStart: false, resolution: Math.min(2, window.devicePixelRatio || 1) }).then(() => made));
     }
+    const app = await liveApps.get(this.slot);
     if (!this.alive) return;
-    const app = liveApp;
     this.app = app;
     this.el.appendChild(app.canvas);
     const fit = () => {
@@ -204,6 +214,9 @@ export class FigureView {
       if (!this.alive) return;
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
+      this.raf = requestAnimationFrame(loop);
+      // nothing is drawn while the figure is covered by another screen or its box is out of the page
+      if (this.paused || !this.el.isConnected) return;
       try {
         if (this.demoRun) this.demoFrame(dt);
         else {
@@ -214,7 +227,6 @@ export class FigureView {
         console.error('[фигура]', e);
         this.stopDemo();
       }
-      this.raf = requestAnimationFrame(loop);
     };
     this.raf = requestAnimationFrame(loop);
   }
@@ -225,7 +237,7 @@ export class FigureView {
     this.assets = assets;
     if (!this.app) return;
     this.app.stage.removeChildren().forEach((c) => c.destroy({ children: true }));
-    this.fig = litFigure(assets, { rim: 7, aura: 26 });
+    this.fig = litFigure(assets, { rim: 7, aura: 26, flip: this.flip });
     this.app.stage.addChild(this.fig.root);
     this.bodyBounds = this.fig.bounds(idlePose(assets.def, 0));
     this.cur = null;
@@ -264,14 +276,16 @@ export class FigureView {
       }
       pose = sampleAnim(def.anims.idle, this.t);
     }
-    const W = this.app.renderer.width / this.app.renderer.resolution;
-    const H = this.app.renderer.height / this.app.renderer.resolution;
+    // the box in CSS pixels (the renderer's own width is already that: dividing it by the pixel density once more
+    // drew the figure at half its size in a corner of the box on every screen of high density)
+    const W = this.app.renderer.screen.width;
+    const H = this.app.renderer.screen.height;
     const b = this.bodyBounds;
     // feet slightly below the frame edge on a phone, whole body on a desktop
-    const s = Math.min((H * 0.9) / b.height, (W * 0.8) / b.width);
-    this.fig.scale(s);
+    const s = this.fitMode === 'corner' ? Math.min((H * 0.94) / b.height, (W * 1.25) / b.width) : Math.min((H * 0.9) / b.height, (W * 0.8) / b.width);
+    this.fig.scale(s, this.flip);
     this.fig.apply(solvePose(pose));
-    const cx = (b.x + b.width / 2) * s;
+    const cx = (b.x + b.width / 2) * s * this.flip;
     this.fig.place(W / 2 - cx, H * 0.97 - (b.y + b.height) * s);
     if (this.rv) this.revealFrame(dt);
   }
@@ -475,7 +489,7 @@ export class FigureView {
     const res = Math.min(2, Math.max(1, (r.width * Math.min(2, window.devicePixelRatio || 1)) / w)); // below 1 the filters cut the frame
     if (demoApp.renderer.width !== Math.round(w * res) || demoApp.renderer.height !== Math.round(h * res)) demoApp.renderer.resize(w, h, res);
     demoApp.stage.removeChildren().forEach((c) => c.destroy({ children: true }));
-    const scene = new Scene(demoApp, { width: w, height: h, vertical, hud: false });
+    const scene = new Scene(demoApp, { width: w, height: h, vertical, hud: false, fast: true });
     // the card's own background stays: no sky, floor or vignette of the training room
     scene.sky.visible = false;
     scene.bg.visible = false;

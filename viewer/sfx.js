@@ -11,6 +11,7 @@ export class Sfx {
     this.on = true;
     this.volume = 1;
     this.menuVolume = 1;
+    this.musicVolume = 1;
     this.buffers = new Map(); // file → Promise<AudioBuffer>
     this.beds = {}; // kind → { name, src, gain }
     this.lines = new Map();
@@ -53,12 +54,14 @@ export class Sfx {
     if (!this.master) return;
     this.master.gain.value = this.on ? this.volume : 0;
     this.bus.ui.gain.value = this.menuVolume;
+    this.bus.music.gain.value = MIX.music * this.musicVolume;
   }
 
-  set(on, volume, menuVolume = this.menuVolume) {
+  set(on, volume, menuVolume = this.menuVolume, musicVolume = this.musicVolume) {
     this.on = on;
     this.volume = volume;
     this.menuVolume = menuVolume;
+    this.musicVolume = musicVolume;
     this.apply();
   }
 
@@ -82,8 +85,9 @@ export class Sfx {
     for (const n of names) for (const f of SOUNDS[n]?.files || []) this.buffer(f);
   }
 
-  // one sound of the catalogue; delay in seconds
-  play(name, gain = 1, variant = 0, delay = 0) {
+  // one sound of the catalogue; delay in seconds; from: seconds into the sound to start at (a press that was cut
+  // by a change of pages is finished on the next page)
+  play(name, gain = 1, variant = 0, delay = 0, from = 0) {
     if (!this.on || !this.ctx) return;
     const s = SOUNDS[name];
     if (!s) return;
@@ -96,7 +100,7 @@ export class Sfx {
       const g = this.ctx.createGain();
       g.gain.value = gain * (s.gain ?? 1);
       src.connect(g).connect(s.kind === 'ui' ? this.bus.ui : this.bus.sfx);
-      src.start(Math.max(when, this.ctx.currentTime));
+      if (from < buf.duration) src.start(Math.max(when, this.ctx.currentTime), Math.max(0, from));
     });
   }
 
@@ -147,8 +151,8 @@ export class Sfx {
       src.start(t);
       const m = this.bus.music.gain;
       m.cancelScheduledValues(t);
-      m.setTargetAtTime(MIX.music * MIX.duck, t, 0.06);
-      m.setTargetAtTime(MIX.music, t + buf.duration, 0.3);
+      m.setTargetAtTime(MIX.music * this.musicVolume * MIX.duck, t, 0.06);
+      m.setTargetAtTime(MIX.music * this.musicVolume, t + buf.duration, 0.3);
     });
   }
 }

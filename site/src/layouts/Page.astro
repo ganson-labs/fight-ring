@@ -1,7 +1,7 @@
 ---
 import '../styles/site.css';
 import { SITE } from '../data/site';
-import { PLAY } from '../data/ring';
+import { PLAY, WATCH } from '../data/ring';
 import { root, to } from '../lib/paths';
 
 interface Props {
@@ -14,7 +14,8 @@ const nav = [
   { href: 'tournament/', text: 'Турнир' },
   { href: 'fighters/', text: 'Бойцы' },
   { href: 'rating/', text: 'Рейтинг' },
-  { href: PLAY, text: 'Играть' },
+  { href: PLAY, text: 'Играть самому' },
+  { href: WATCH, text: 'Стравить модели' },
   { href: 'enter/', text: 'Свой боец' },
 ];
 const current = (href: string) => !href.startsWith('play/') && path.startsWith(`/${href}`);

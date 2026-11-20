@@ -1,0 +1,60 @@
+---
+// The finder of a long list: a search by name, model and author, a filter by model and, when the list can be
+// sorted, the order. It works on the elements marked data-item in the block named by `list` (ui/arcade.js): each
+// carries data-name, data-model, data-author, and data-rating and data-added when it can be sorted by them.
+// A list of a dozen needs no finder: the page shows it only for a long one.
+interface Props {
+  /** the id of the block with the items */
+  list: string;
+  /** model → how many items it has */
+  models: [string, number][];
+  /** the orders the list offers, the first one is how the page is built */
+  sorts?: ('top' | 'new' | 'name')[];
+}
+const { list, models, sorts = [] } = Astro.props;
+const SORT = { top: 'Рейтинг', new: 'Новые', name: 'Имя' };
+---
+<div class="finder" data-finder={list}>
+  <div class="finder-row">
+    <label class="find">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m15.5 15.5 5 5" /></svg>
+      <input type="search" placeholder="Имя, модель, автор" autocomplete="off" spellcheck="false" aria-label="Поиск бойца" data-find />
+    </label>
+    {sorts.length > 1 && (
+      <div class="find-set" role="group" aria-label="Порядок">
+        {sorts.map((k, i) => <button type="button" class:list={['find-chip', { on: i === 0 }]} data-sort={k} data-sfx aria-pressed={i === 0}>{SORT[k]}</button>)}
+      </div>
+    )}
+    <span class="find-count" data-count-shown aria-live="polite"></span>
+  </div>
+  {models.length > 1 && (
+    <div class="find-set models" role="group" aria-label="Модель">
+      <button type="button" class="find-chip on" data-model="" data-sfx aria-pressed="true">Все</button>
+      {models.map(([m, n]) => <button type="button" class="find-chip" data-model={m} data-sfx aria-pressed="false">{m}<i>{n}</i></button>)}
+    </div>
+  )}
+  <p class="find-none" data-none hidden>Никого не нашлось</p>
+</div>
+
+<style>
+  .finder { display: grid; gap: 10px; margin-bottom: 22px; }
+  .finder-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .find { flex: 1 1 220px; display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 18px; background: var(--panel2); clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%); }
+  .find svg { width: 19px; height: 19px; flex: none; fill: none; stroke: var(--dim); stroke-width: 2.2; stroke-linecap: round; }
+  .find input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; color: var(--ink); font: 500 17px/1.2 var(--text); }
+  .find input::placeholder { color: var(--mute); }
+  .find input::-webkit-search-cancel-button { display: none; }
+  .find:focus-within { box-shadow: inset 0 0 0 2px var(--gold); }
+  .find-set { display: flex; gap: 5px; }
+  .find-set.models { overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+  .find-set.models::-webkit-scrollbar { display: none; }
+  .find-chip { flex: none; min-height: 36px; padding: 6px 15px; border: 0; cursor: pointer; white-space: nowrap; font: italic 700 14px/1.1 var(--display); text-transform: uppercase; letter-spacing: .05em; color: var(--dim); background: var(--panel2); clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%); transition: color .1s, background .1s, transform .12s var(--snap); }
+  .finder-row .find-chip { min-height: 46px; }
+  .find-chip i { margin-left: 7px; font-style: normal; font-weight: 500; opacity: .6; }
+  .find-chip:hover { color: var(--ink); transform: translateY(-2px); }
+  .find-chip:active { transform: scale(.95); }
+  .find-chip.on { color: #160a04; background: linear-gradient(180deg, #ffe27a, #ffb02a 48%, #e2621a 52%, #ffb02a); }
+  .find-count { min-width: 4ch; font-size: 14px; color: var(--mute); font-variant-numeric: tabular-nums; }
+  .find-none { margin: 8px 0 0; color: var(--dim); font-style: italic; }
+  :global(html:not(.js)) .finder { display: none; }
+</style>

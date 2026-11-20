@@ -3,12 +3,13 @@
 // Everything it shows comes from /api/game: the judge's match snapshots and the contestants' folders.
 import * as E from '../../kit/arena/engine/index.js';
 import { Sfx } from '../sfx.js';
-import { at, loadGame } from '../data.js';
+import { at, ROOT, loadGame, fullFighter, fullMatch } from '../data.js';
 import { ringFonts } from '../../kit/arena/render/text.js';
 import { Nav, Pads, controlsHint, padHint, moveList, commandHtml, KEY_OF, PAD_OF, BTN_NAME } from './input.js';
 import { MenuSound } from './sound.js';
-import { figureShot, FigureView } from './figure.js';
-import { FightView, LiveMatch, computeFight, fighterAssets, stageAssets, expand } from './fight.js';
+import { figureShot, shotCached, FigureView } from './figure.js';
+import { FightView, LiveMatch, computeFight, fighterAssets, previewAssets, heldFighters, useLightPictures, stageAssets, expand } from './fight.js';
+import { fighterGrid, lazyShots, shotsWaiting, TILE_SHOT } from './select.js';
 import { Backdrop } from './backdrop.js';
 import { Intro } from './intro.js';
 import { tournamentScreen } from './tournament.js';
@@ -20,7 +21,7 @@ const q = new URLSearchParams(location.search);
 
 // ---------- settings ----------
 
-const DEFAULTS = { sound: true, volume: 0.8, menuVolume: 0.8, aspect: '16:9', ads: false, quality: 'high', fullscreen: false };
+const DEFAULTS = { sound: true, volume: 0.8, menuVolume: 0.8, musicVolume: 0.7, aspect: '16:9', ads: false, quality: 'high', fullscreen: false };
 let settings = { ...DEFAULTS };
 try {
   Object.assign(settings, JSON.parse(localStorage.getItem('ring.settings') || '{}'));
@@ -35,7 +36,7 @@ const saveSettings = () => {
 const sfx = new Sfx();
 const menu = new MenuSound(sfx);
 function applySettings() {
-  sfx.set(settings.sound, settings.volume, settings.menuVolume);
+  sfx.set(settings.sound, settings.volume, settings.menuVolume, settings.musicVolume);
   document.body.classList.toggle('q-medium', settings.quality === 'medium');
   fightView?.fit();
 }
@@ -53,7 +54,7 @@ function toggleFullscreen() {
   saveSettings();
   setFullscreen(settings.fullscreen);
   const top = stack[stack.length - 1];
-  if (top?.name === 'settings') setTimeout(() => SCREENS.settings({}, false), 120);
+  if (top?.name === 'settings') setTimeout(() => SCREENS.settings({}, null), 120);
 }
 document.addEventListener('fullscreenchange', () => document.body.classList.toggle('fs', !!document.fullscreenElement));
 window.addEventListener('keydown', (e) => {
@@ -79,8 +80,42 @@ let cardView = null;
 const nav = new Nav({
   onMove: () => menu.move(),
   onBack: () => back(),
-  onPress: () => menu.confirm(),
+  onPress: (el) => (el.dataset.sfx ? el.dataset.sfx !== 'none' && sfx.play(el.dataset.sfx, Number(el.dataset.gain || 0.6)) : menu.confirm()),
 });
+
+// The menu music: on from the first press, gives way to the stage's music for a fight and comes back after it. The
+// site plays the same track (site/public/ui/arcade.js) and both keep the place in sessionStorage, so going from the
+// site into the game and back does not start it over.
+const MUSIC_KEY = 'ring.music';
+function menuMusic() {
+  if (!sfx.ctx || fighting || sfx.beds?.music?.name === 'music-menu') return;
+  let from = 0;
+  try {
+    from = Number(sessionStorage.getItem(MUSIC_KEY)) || 0;
+  } catch {}
+  sfx.bed({ music: 'music-menu' }, 1.2, from);
+}
+function keepMusicPlace() {
+  if (sfx.beds?.music?.name !== 'music-menu' || !sfx.beds.music.src) return;
+  try {
+    sessionStorage.setItem(MUSIC_KEY, String(sfx.bedTime('music')));
+  } catch {}
+}
+addEventListener('pagehide', keepMusicPlace);
+// A browser gives a page its sound only after a press on it: whatever screen the game opened on, the first press
+// anywhere turns the sound on.
+let soundOn = false;
+function wakeSound() {
+  sfx.unlock();
+  if (soundOn || sfx.ctx.state !== 'running') return;
+  soundOn = true;
+  sfx.preload();
+  menuMusic();
+}
+for (const ev of ['pointerdown', 'keydown']) addEventListener(ev, () => {
+  sfx.unlock();
+  sfx.ctx.resume().then(wakeSound, () => {});
+}, true);
 const pads = new Pads(nav);
 
 const fighterById = (id) => data.fighters.find((f) => f.id === id);
@@ -150,11 +185,12 @@ window.addEventListener('resize', () => {
   fitAll();
 });
 
-function mount(html, { id, cls = '', backIn = false, focus = null } = {}) {
+// still: the same screen drawn again (a changed setting): it does not come in a second time
+function mount(html, { id, cls = '', backIn = false, focus = null, still = false } = {}) {
   cardView?.destroy();
   cardView = null;
   const el = document.createElement('section');
-  el.className = `screen ${cls} ${backIn ? 'back-in' : ''}`;
+  el.className = `screen ${cls} ${still ? 'still' : backIn ? 'back-in' : ''}`;
   if (id) el.id = id;
   el.innerHTML = html;
   ui.replaceChildren(el);
@@ -176,13 +212,34 @@ function back() {
     return;
   }
   if (overlay.firstChild && overlay.dataset.closable === '1') return closeOverlay();
-  if (stack.length <= 1) return;
+  // a panel opened inside a screen (the move list of the fight select) closes first
+  if (subBack) {
+    const f = subBack;
+    subBack = null;
+    menu.back();
+    return f();
+  }
+  // the first screen of a published game: the way back is the site the player came from
+  if (stack.length <= 1 || (stack.length === 2 && stack[0].name === 'title')) return data.static ? toSite() : undefined;
   menu.back();
   stack.pop();
   render(stack[stack.length - 1], true);
 }
+let subBack = null;
 
-// a screen that keeps working while it is open (the tournament console) stops when another one opens
+// Out of the published game: back to the page of the site the player came from, or to its front page. The press is
+// heard before the page goes.
+function toSite() {
+  menu.back();
+  keepMusicPlace();
+  try {
+    sessionStorage.setItem('ring.press', JSON.stringify({ name: 'menu-back', at: Date.now() }));
+  } catch {}
+  const from = document.referrer && new URL(document.referrer).origin === location.origin && !/\/play\//.test(new URL(document.referrer).pathname) ? document.referrer : at('./');
+  setTimeout(() => (location.href = from), 160);
+}
+
+// a screen that keeps working while it is open (the tournament console, live figures) stops when another one opens
 let screenLeave = null;
 
 // a short line at the bottom of the screen
@@ -199,15 +256,44 @@ function toast(text) {
   t._h = setTimeout(() => t.classList.remove('on'), 2600);
 }
 
-function render(entry, backIn = false) {
+// what a screen shows beyond the light list (viewer/data.js): asked for when the screen opens
+function details(entry) {
+  if (entry.name === 'card') return fullFighter(fighterById(entry.args.id));
+  if (entry.name === 'match') return matchDetails(data.matches.find((x) => x.id === entry.args.id));
+  return null;
+}
+const matchDetails = (m) => (m ? Promise.all([fullMatch(m), fullFighter(fighterById(`c/${m.red}`)), fullFighter(fighterById(`c/${m.blue}`))]) : null);
+const TOP = ['main', 'versus', 'play', 'custom', 'roster', 'matches', 'settings'];
+
+async function render(entry, backIn = false) {
+  const wait = details(entry);
+  if (wait) {
+    await wait;
+    if (stack[stack.length - 1] !== entry) return;
+  }
   screenLeave?.();
   screenLeave = null;
+  subBack = null;
   document.body.classList.toggle('menu', entry.name !== 'title');
+  document.body.dataset.screen = entry.name;
   $('#legend').hidden = entry.name === 'title';
+  // a published game shows the way out to the site on every screen of the top level
+  $('#siteBtn').hidden = !(data.static && TOP.includes(entry.name));
   SCREENS[entry.name](entry.args, backIn);
+  // a screen comes in with a sweep, the fight select with a heavier one; the way back has the sound of «назад»
+  if (!backIn && entry.name !== 'title' && entry.name !== 'main') sfx.play(['versus', 'play', 'custom'].includes(entry.name) ? 'whoosh-heavy' : 'whoosh-light', 0.5);
+  // the fight select has a backdrop of its own (the chosen stage): the live scene behind the menus rests
+  if (!fighting) backdrop.pause(['versus', 'play', 'custom'].includes(entry.name));
 }
 
 const legend = (extra = '') => `<b>⏎</b>Выбрать &nbsp; <b>Esc</b>Назад${extra}`;
+// the same cut-in for every screen title and every block that lands with a hit
+const hit = (el) => {
+  if (!el) return;
+  el.classList.remove('hit');
+  void el.offsetWidth;
+  el.classList.add('hit');
+};
 
 const SCREENS = {
   // the opening (intro.js) on the live background, then «Нажми любую клавишу». A key during the opening skips
@@ -229,8 +315,7 @@ const SCREENS = {
     })();
     const startGame = () => {
       menu.unlock();
-      sfx.unlock();
-      sfx.preload();
+      wakeSound();
       if (settings.fullscreen) setFullscreen(true);
       menu.start();
       try {
@@ -283,18 +368,18 @@ const SCREENS = {
   main(_, backIn) {
     if (backIn) refreshData();
     // a published copy (data.static) has no judge behind it: no tournament console, no developer mode, no ads
-    const items = [...(data.static ? [] : [['tournament', 'Турнир']]), ['matches', 'Матчи'], ['roster', 'Бойцы'], ['custom', 'Свой бой'], ['play', 'Играть самому'], ['settings', 'Настройки'], ...(data.static ? [['site', 'На сайт']] : [])];
+    const items = [['play', 'Играть самому'], ['custom', 'Бой нейросетей'], ['roster', 'Бойцы'], ['matches', 'Матчи'], ...(data.static ? [] : [['tournament', 'Турнир']]), ['settings', 'Настройки'], ...(data.static ? [['site', 'На сайт']] : [])];
     const el = mount(`
       <div class="wrap">
         <div>
           <div class="brand slab hot">Ринг моделей</div>
-          <nav class="mm">${items.map(([k, t], i) => `<button class="item" data-nav data-go="${k}"><span class="n">0${i + 1}</span>${t}</button>`).join('')}</nav>
+          <nav class="mm">${items.map(([k, t], i) => `<button class="item" data-nav data-go="${k}" style="--i:${i}"><span class="n">0${i + 1}</span>${t}</button>`).join('')}</nav>
         </div>
         <div class="side"><div class="pair"></div><div class="caption"></div></div>
       </div>`, { id: 'main', backIn, focus: stack.mainFocus ? `[data-go="${stack.mainFocus}"]` : null });
     el.querySelectorAll('[data-go]').forEach((b) => (b.onclick = () => {
       stack.mainFocus = b.dataset.go;
-      if (b.dataset.go === 'site') return void (location.href = at(''));
+      if (b.dataset.go === 'site') return toSite();
       go(b.dataset.go);
     }));
     $('#legend').innerHTML = legend();
@@ -310,25 +395,54 @@ const SCREENS = {
     }
   },
 
+  // The roster: the grid of every fighter and, beside it, the fighter under the cursor alive. One live figure on the
+  // screen whatever the number of fighters; the tiles are stills drawn as they come into the window.
   roster(_, backIn) {
-    const list = contestants().filter((f) => !f.roster);
-    // fighters sent by people outside a tournament (roster/): each says who made it
-    const shared = contestants().filter((f) => f.roster);
-    const train = data.fighters.filter((f) => f.training);
-    const tile = (f) => {
-      const c = colorsOf(f);
-      const v = topVersion(f);
-      return `<button class="tile" data-nav data-id="${esc(f.id)}" style="${cssColors(c)}"><img alt="" data-shot="${esc(v.url)}"><span class="ver">${f.versions.length > 1 ? `${f.versions.length} версии` : 'v1'}</span><div class="meta"><span class="model">${esc(f.model)}</span><div class="name slab">${esc(v.name)}</div>${f.author ? `<span class="by">${esc(f.author)}</span>` : ''}</div></button>`;
-    };
+    const all = data.fighters;
     const el = mount(`
-      <div class="head"><div class="left"><span class="kicker">Ростер</span><h1 class="title slab">Бойцы</h1></div></div>
-      ${list.length || shared.length ? '' : '<div class="empty">Бойцов пока нет: их создают участники</div>'}
-      ${list.length ? `<div class="grid">${list.map(tile).join('')}</div>` : ''}
-      ${shared.length ? `<div class="label section">Общий набор</div><div class="grid">${shared.map(tile).join('')}</div>` : ''}
-      ${train.length ? `<div class="label section">Спарринг</div><div class="grid small">${train.map(tile).join('')}</div>` : ''}`, { id: 'roster', backIn });
-    el.querySelectorAll('.tile').forEach((b) => (b.onclick = () => go('card', { id: b.dataset.id })));
-    fillShots(el);
-    $('#legend').innerHTML = legend();
+      <div class="ro-side">
+        <h1 class="title slab hit">Бойцы</h1>
+        <div class="ro-stage"></div>
+        <div class="ro-who"><span class="plate" data-p="model"></span><div class="ro-name slab" data-fit data-p="name"></div><span class="ro-by" data-p="by"></span></div>
+      </div>
+      <div class="ro-grid" data-grid></div>`, { id: 'roster', backIn });
+    if (!contestants().length) $('[data-grid]', el).insertAdjacentHTML('beforebegin', '<div class="empty">Бойцов пока нет: их создают участники</div>');
+    const view = new FigureView($('.ro-stage', el), { slot: 'roster', fit: 'corner' });
+    view.noIntro = true;
+    const ready = view.init();
+    screenLeave = () => view.destroy();
+    let seq = 0;
+    let timer = 0;
+    const show = (f) => {
+      const v = topVersion(f);
+      const side = $('.ro-side', el);
+      side.style.cssText = cssColors(colorsOf(f));
+      $('[data-p="model"]', el).textContent = f.model;
+      $('[data-p="name"]', el).textContent = v.name;
+      $('[data-p="by"]', el).textContent = f.author || '';
+      fitText($('[data-p="name"]', el));
+      hit($('.ro-who', el));
+      stack.rosterFocus = f.id;
+      const n = ++seq;
+      clearTimeout(timer);
+      $('.ro-stage', el).classList.add('loading');
+      // the cursor running over the grid does not load every fighter on its way
+      timer = setTimeout(async () => {
+        const [a] = await Promise.all([previewAssets(v.url), ready]).catch(() => []);
+        if (!a || n !== seq || !el.isConnected) return;
+        view.set(a);
+        $('.ro-stage', el).classList.remove('loading');
+      }, 160);
+    };
+    const grid = fighterGrid($('[data-grid]', el), {
+      fighters: all, nav, state: (stack.rosterGrid ||= {}),
+      cols: (n) => (n <= 8 ? 4 : n <= 24 ? 6 : n <= 80 ? 8 : 10),
+      onFocus: show,
+      onPick: (f) => go('card', { id: f.id }),
+    });
+    const start = grid.reveal(stack.rosterFocus) || grid.first();
+    if (start) nav.setRoot(el, `[data-id="${CSS.escape(start.dataset.id)}"]`);
+    $('#legend').innerHTML = legend(contestants().length > 12 ? ' &nbsp; <b>PgUp PgDn</b>Листать' : '');
   },
 
   card({ id, v = null, tab = null }, backIn) {
@@ -336,15 +450,17 @@ const SCREENS = {
     const ver = versionOf(f, v);
     const c = colorsOf(f, ver.v);
     const hasChanges = !!ver.changes;
+    stack.rosterFocus = f.id;
     const T = tab === 'changes' && !hasChanges ? 'about' : tab || 'about';
     stack[stack.length - 1].args.tab = T;
     const el = mount(`
       <div class="layout" style="${cssColors(c)}">
         <div class="stage"><div class="anim"><button class="btn" data-nav data-anim="intro">Представление</button><button class="btn" data-nav data-anim="victory">Победа</button><button class="btn" data-nav data-reveal>Собрать заново</button></div></div>
         <div class="info">
-          <span class="plate">${esc(f.model)}</span>${f.author ? `<span class="by">Автор: ${esc(f.author)}</span>` : ''}
-          <h1 class="name slab" data-fit>${esc(ver.name)}</h1>
+          <div class="who"><span class="plate">${esc(f.model)}</span>${f.author ? `<span class="by">${esc(f.author)}</span>` : ''}</div>
+          <h1 class="name slab hit" data-fit>${esc(ver.name)}</h1>
           <div class="motto" data-motto></div>
+          <div class="acts"><button class="btn primary" data-nav data-fight="play">Сразиться</button><button class="btn" data-nav data-fight="cpu">Стравить</button></div>
           ${f.versions.length > 1 || !f.training ? `<div class="versions">${f.versions.map((x) => `<button class="vchip ${x.v === ver.v ? 'on' : ''}" data-nav data-v="${x.v}" ${x.v === ver.v ? 'data-autofocus' : ''}><span class="v">${x.label}</span><span class="when">${esc(versionWhen(f, x))}</span></button>`).join('')}</div>` : ''}
           <div class="tabs">
             <button class="tab" data-nav data-tab="about">Обзор</button>
@@ -417,6 +533,19 @@ const SCREENS = {
     }));
     el.querySelectorAll('[data-v]').forEach((b) => (b.onclick = () => go('card', { id, v: Number(b.dataset.v), tab: stack[stack.length - 1].args.tab }, { replace: true })));
     el.querySelectorAll('[data-anim]').forEach((b) => (b.onclick = () => view.play(b.dataset.anim)));
+    // from the card straight into a fight: against this fighter yourself, or this fighter against another one
+    el.querySelectorAll('[data-fight]').forEach((b) => (b.onclick = () => {
+      const me = { id: f.id, v: ver.v };
+      initPick();
+      if (b.dataset.fight === 'play') {
+        if (pick.a.id === f.id) pick.a = pick.b;
+        Object.assign(pick, { b: me, side: 'a' });
+      } else {
+        if (pick.b.id === f.id) pick.b = pick.a;
+        Object.assign(pick, { a: me, side: 'b' });
+      }
+      go('versus', { mode: b.dataset.fight });
+    }));
     showTab(T);
     // the reveal: the first time this version is opened here, and again on «Собрать заново»
     const seenKey = `ring.revealed.${f.id}.v${ver.v}`;
@@ -466,7 +595,7 @@ const SCREENS = {
       });
     };
     $('[data-reveal]', el)?.addEventListener('click', () => assets && revealNow(assets));
-    Promise.all([view.init(), fighterAssets(ver.url)]).then(([, a]) => {
+    Promise.all([view.init(), previewAssets(ver.url)]).then(([, a]) => {
       assets = a;
       $('[data-motto]', el).textContent = a.def.card.motto;
       view.noIntro = !f.training && !seen();
@@ -492,9 +621,16 @@ const SCREENS = {
         <div class="when">${fmtDate(m.created)}<br>${status}</div></button>`;
     };
     const el = mount(`
-      <div class="head"><div class="left"><span class="kicker">Записи судьи</span><h1 class="title slab">Матчи</h1></div></div>
-      ${data.matches.length ? `<div class="mlist">${data.matches.map(card).join('')}</div>` : '<div class="empty">Матчей пока нет</div>'}`, { id: 'matches', backIn });
-    el.querySelectorAll('.mcard').forEach((b) => (b.onclick = () => go('match', { id: b.dataset.id })));
+      <div class="head"><div class="left"><h1 class="title slab hit">Матчи</h1></div></div>
+      ${data.matches.length ? `<div class="mlist">${data.matches.map(card).join('')}</div>` : '<div class="empty">Матчей пока нет</div>'}`, { id: 'matches', backIn, focus: stack.matchFocus ? `[data-id="${CSS.escape(stack.matchFocus)}"]` : null });
+    el.querySelectorAll('.mcard').forEach((b, i) => {
+      b.style.setProperty('--i', Math.min(i, 8));
+      b.dataset.sfx = 'vs-whoosh';
+      b.onclick = () => {
+        stack.matchFocus = b.dataset.id;
+        go('match', { id: b.dataset.id });
+      };
+    });
     fillShots(el);
     $('#legend').innerHTML = legend();
   },
@@ -535,7 +671,7 @@ const SCREENS = {
     });
     const nm = (f, cid) => (f ? topVersion(f).name : cid);
     const el = mount(`
-      <div class="mhead" style="--ca:${cornerOf(m, m.red)};--cb:${cornerOf(m, m.blue)}">
+      <div class="mhead hit" style="--ca:${cornerOf(m, m.red)};--cb:${cornerOf(m, m.blue)}">
         ${fa ? `<img class="mh-fig l" alt="" data-shot="${esc(topVersion(fa).url)}">` : ''}${fb ? `<img class="mh-fig r" alt="" data-shot="${esc(topVersion(fb).url)}">` : ''}
         <div class="s" style="--a:${cornerOf(m, m.red)}"><span class="plate">${esc(m.models[m.red])}</span><span data-fit class="nm slab ${m.winner === m.red ? 'hot' : ''}">${esc(nm(fa, m.red))}</span></div>
         <div class="score slab hot">${m.score[m.red]} : ${m.score[m.blue]}</div>
@@ -563,7 +699,11 @@ const SCREENS = {
   },
 
   custom(args, backIn) {
-    pickerScreen('custom', args, backIn);
+    versusScreen({ ...args, mode: 'cpu' }, backIn);
+  },
+
+  versus(args, backIn) {
+    versusScreen(args, backIn);
   },
 
   tournament(_, backIn) {
@@ -587,49 +727,52 @@ const SCREENS = {
   },
 
   play(args, backIn) {
-    pickerScreen('play', args, backIn);
+    versusScreen({ ...args, mode: 'play' }, backIn);
   },
 
   settings(_, backIn) {
     const on = (v) => (v ? 'Вкл' : 'Выкл');
-    const ICO = { sound: 'play', volume: 'stat', menuVolume: 'stat', aspect: 'card', quality: 'super', fullscreen: 'replay', ads: 'juicy' };
+    const ICO = { sound: 'play', volume: 'stat', menuVolume: 'stat', musicVolume: 'stat', aspect: 'card', quality: 'super', fullscreen: 'replay', ads: 'juicy' };
     const opt = (key, title, val) => `<button class="opt" data-nav data-adjust data-key="${key}"><span class="o-t">${icon(ICO[key])}<span>${title}</span></span><span class="val">${val}</span></button>`;
     const vol = (v) => `<span class="vol">${Array.from({ length: 10 }, (_, i) => `<i class="${i < Math.round(v * 10) ? 'on' : ''}"></i>`).join('')}</span>`;
     const two = (a, b, cur) => `<span class="o ${cur === a ? 'on' : ''}">${a}</span><span class="o ${cur === b ? 'on' : ''}">${b}</span>`;
     const el = mount(`
-      <div class="head"><div class="left"><span class="kicker">Игра</span><h1 class="title slab">Настройки</h1></div></div>
+      <div class="head"><div class="left"><h1 class="title slab hit">Настройки</h1></div></div>
       <div class="set">
         ${opt('sound', 'Звук', two('Вкл', 'Выкл', on(settings.sound)))}
         ${opt('volume', 'Громкость', vol(settings.volume))}
         ${opt('menuVolume', 'Звуки меню', vol(settings.menuVolume))}
+        ${opt('musicVolume', 'Музыка', vol(settings.musicVolume))}
         ${opt('aspect', 'Кадр боя', two('16:9', '9:16', settings.aspect))}
         ${opt('quality', 'Качество', two('Высокое', 'Среднее', settings.quality === 'medium' ? 'Среднее' : 'Высокое'))}
         ${opt('fullscreen', 'Полный экран', two('Вкл', 'Выкл', on(settings.fullscreen)))}
         ${data.static ? '' : `${opt('ads', 'Реклама', two('Вкл', 'Выкл', on(settings.ads)))}
         <a class="opt" data-nav href="${at('viewer/dev.html')}" style="text-decoration:none"><span>Режим разработчика</span><span class="val">→</span></a>`}
-      </div>`, { id: 'settings', backIn, focus: stack.setFocus ? `[data-key="${stack.setFocus}"]` : null });
+      </div>`, { id: 'settings', backIn, still: backIn === null, focus: stack.setFocus ? `[data-key="${stack.setFocus}"]` : null });
+    const VOLS = ['volume', 'menuVolume', 'musicVolume'];
     const change = (key, dir) => {
       if (key === 'sound') settings.sound = !settings.sound;
       if (key === 'ads') settings.ads = !settings.ads;
       if (key === 'aspect') settings.aspect = settings.aspect === '16:9' ? '9:16' : '16:9';
       if (key === 'quality') settings.quality = settings.quality === 'medium' ? 'high' : 'medium';
       if (key === 'fullscreen') return toggleFullscreen();
-      if (key === 'volume' || key === 'menuVolume') settings[key] = Math.max(0, Math.min(1, Math.round((settings[key] + (dir || 1) * 0.1) * 10) / 10));
+      if (VOLS.includes(key)) settings[key] = Math.max(0, Math.min(1, Math.round((settings[key] + (dir || 1) * 0.1) * 10) / 10));
       saveSettings();
       stack.setFocus = key;
-      SCREENS.settings({}, false);
-      menu.move();
+      SCREENS.settings({}, null);
+      menu.confirm();
+      if (key === 'sound' && settings.sound) wakeSound();
     };
     el.querySelectorAll('[data-key]').forEach((b) => {
       b.onclick = (e) => {
         const k = b.dataset.key;
-        if (k === 'volume' || k === 'menuVolume') {
+        if (VOLS.includes(k)) {
           const r = b.querySelector('.vol').getBoundingClientRect();
           if (e.clientX >= r.left && e.clientX <= r.right && e.detail) {
             settings[k] = Math.max(0.1, Math.min(1, Math.ceil(((e.clientX - r.left) / r.width) * 10) / 10));
             saveSettings();
             stack.setFocus = k;
-            return SCREENS.settings({}, false);
+            return SCREENS.settings({}, null);
           }
           return change(k, settings[k] >= 1 ? -10 : 1);
         }
@@ -652,89 +795,204 @@ function recordOf(cid) {
 }
 
 function fillShots(root) {
-  root.querySelectorAll('img[data-shot]').forEach(async (img) => {
-    try {
-      img.src = await figureShot(await fighterAssets(img.dataset.shot), img.dataset.crop === 'knees' ? { w: 520, h: 680, crop: 'knees' } : {});
-    } catch {}
-  });
+  lazyShots(root);
 }
 
-// ---------- pickers: two corners and a stage ----------
+// ---------- the fight select: who fights whom, where, and who holds the controls ----------
+// One screen for both kinds of fight. The grid of every fighter stands in the middle, the two corners at its sides
+// show their fighters alive, face to face. The corner that is choosing has the cursor of its colour; a press on a
+// tile gives that corner its fighter and hands the cursor to the other corner, then to «В бой».
 
-const pick = { custom: null, play: null };
+const pick = { mode: 'play', a: null, b: null, stage: null, side: 'a', grid: {} };
 
-function defaultPick(kind) {
+function initPick() {
+  if (pick.a && fighterById(pick.a.id) && fighterById(pick.b.id)) return;
   const list = contestants();
   const a = list[0] || data.fighters[0];
-  const b = kind === 'play' ? list[1] || fighterById('sparring/dummy') || data.fighters[0] : list[1] || data.fighters[1] || a;
-  return { a: { id: a.id, v: topVersion(a).v }, b: { id: b.id, v: topVersion(b).v }, stage: data.stages[0]?.id || null };
+  const b = list[1] || fighterById('sparring/dummy') || data.fighters[1] || a;
+  Object.assign(pick, { a: { id: a.id, v: topVersion(a).v }, b: { id: b.id, v: topVersion(b).v }, side: 'a' });
+  pick.stage ||= data.stages[0]?.id || null;
 }
 
-function pickerScreen(kind, args, backIn) {
-  const p = (pick[kind] ||= defaultPick(kind));
-  const corner = (side) => {
-    const s = p[side];
-    const f = fighterById(s.id);
-    const v = versionOf(f, s.v);
-    const c = colorsOf(f, v.v);
-    const label = kind === 'play' ? (side === 'a' ? 'Ты' : 'Соперник') : side === 'a' ? 'Слева' : 'Справа';
-    return `<div class="col" style="display:flex;flex-direction:column;gap:10px">
-      <button class="slot ${side === 'b' ? 'r' : ''}" data-nav data-slot="${side}" style="${cssColors(c)}"><img alt="" data-shot="${esc(v.url)}" data-crop="knees"><span class="corner">${label}</span><span class="change">Сменить</span><span class="plate">${esc(f.model)}</span><span data-fit class="nm slab">${esc(v.name)}</span></button>
-      ${f.versions.length > 1 ? `<div class="versions" style="${cssColors(c)};${side === 'b' ? 'justify-content:flex-end' : ''}">${f.versions.map((x) => `<button class="vchip ${x.v === v.v ? 'on' : ''}" data-nav data-side="${side}" data-v="${x.v}"><span class="v">${x.label}</span><span class="when">${esc(versionWhen(f, x))}</span></button>`).join('')}</div>` : ''}
+const KEY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h1M10 10h1M14 10h1M18 10h0M7 14h10"/></svg>';
+const PAD_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10a5 5 0 0 1 5 5v2.5a3 3 0 0 1-5.4 1.8L15.5 15h-7l-1.1 1.3A3 3 0 0 1 2 14.5V12a5 5 0 0 1 5-5z"/><path d="M7 10v3M5.5 11.5h3M16 10.5h0M18 12.5h0"/></svg>';
+const CPU_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1.5"/><path d="M9.5 9.5h5v5h-5zM9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3"/></svg>';
+
+function versusScreen({ mode = null, focusStart = false } = {}, backIn) {
+  initPick();
+  if (mode) pick.mode = mode;
+  const p = pick;
+  const pad = !!pads.first();
+  const corner = (s) => `
+    <div class="vs-corner ${s}">
+      <button class="vs-fig" data-nav data-corner="${s}" data-sfx="whoosh-light"><span class="vs-who plate"></span></button>
+      <div class="vs-name slab" data-fit></div>
+      <div class="vs-by"></div>
+      <div class="vs-vers"></div>
+      ${s === 'a' ? `<div class="vs-keys">${pad
+    ? `<i class="kcap wide">стик</i><span class="kgap"></span><i class="kcap p">X</i><i class="kcap p">Y</i><i class="kcap k">A</i><i class="kcap k">B</i>`
+    : `<i class="kcap">←</i><i class="kcap">↑</i><i class="kcap">↓</i><i class="kcap">→</i><span class="kgap"></span><i class="kcap p">U</i><i class="kcap p">I</i><i class="kcap k">J</i><i class="kcap k">K</i>`}<button class="btn small" data-nav data-moves>Приёмы</button></div>` : ''}
     </div>`;
-  };
-  const me = kind === 'play' ? versionOf(fighterById(p.a.id), p.a.v) : null;
   const el = mount(`
-    <div class="head"><div class="left"><span class="kicker">${kind === 'play' ? 'Ты против бойца' : 'Мозги против мозгов'}</span><h1 class="title slab">${kind === 'play' ? 'Играть самому' : 'Свой бой'}</h1></div>
-      <button class="btn primary" data-nav data-start ${args.focusStart ? 'data-autofocus' : ''}>В бой</button></div>
-    <div class="versus">${corner('a')}<div class="vsmark slab hot">VS</div>${corner('b')}</div>
-    <div class="label">Сцена</div>
-    <div class="stages">${data.stages.map((s) => `<button class="stg ${s.id === p.stage ? 'on' : ''}" data-nav data-stage="${esc(s.id)}" style="background-image:url('${esc(s.thumb || '')}')"><span>${esc(s.name)}</span></button>`).join('')}</div>
-    ${kind === 'play' ? '<div class="label">Клавиатура</div><div data-hint></div>' : ''}`, { id: kind, backIn, focus: args.focus || null });
-  el.querySelectorAll('[data-slot]').forEach((b) => (b.onclick = () => openPicker(kind, b.dataset.slot)));
-  el.querySelectorAll('[data-side]').forEach((b) => (b.onclick = () => {
-    p[b.dataset.side].v = Number(b.dataset.v);
-    pickerScreen(kind, { focus: `[data-side="${b.dataset.side}"][data-v="${b.dataset.v}"]` }, false);
-  }));
-  el.querySelectorAll('[data-stage]').forEach((b) => (b.onclick = () => {
-    p.stage = b.dataset.stage;
-    pickerScreen(kind, { focus: `[data-stage="${b.dataset.stage}"]` }, false);
-  }));
-  $('[data-start]', el).onclick = () => (kind === 'play' ? startLive(p) : startCustom(p));
-  fillShots(el);
-  if (me) fighterAssets(me.url).then((a) => {
-    const box = $('[data-hint]', el);
-    if (!box) return;
-    const kb = controlsHint(a.def).base;
-    const chip = ([k, t]) => `<span class="kk"><b>${esc(k)}</b>${esc(t)}</span>`;
-    box.innerHTML = `<div class="keys">${kb.map(chip).join('')}</div>
-      <div class="label">Геймпад</div><div class="keys">${padHint().map(chip).join('')}</div>
-      <div class="label">Приёмы</div>${moveListHtml(a.def)}`;
-  }).catch(() => {});
-  $('#legend').innerHTML = legend();
-}
+    <div class="vs-bg"></div>
+    <div class="vs-modes">
+      <button class="vs-mode" data-nav data-mode="play" data-sfx="whoosh-heavy">${pad ? PAD_ICON : KEY_ICON}<span>Ты против нейросети</span></button>
+      <button class="vs-mode" data-nav data-mode="cpu" data-sfx="whoosh-heavy">${CPU_ICON}<span>Нейросеть против нейросети</span></button>
+    </div>
+    <div class="vs-body">
+      ${corner('a')}
+      <div class="vs-mid">
+        <div class="vs-pickers">
+          <div class="vs-grid" data-grid></div>
+          <div class="vs-foot">
+            <div class="vs-stages">${data.stages.map((s) => `<button class="stg" data-nav data-stage="${esc(s.id)}" data-sfx="whoosh-light" style="background-image:url('${esc(s.thumb || '')}')"><span>${esc(s.name)}</span></button>`).join('')}</div>
+            <button class="btn primary vs-go" data-nav data-start data-sfx="none">В бой</button>
+          </div>
+        </div>
+        <div class="vs-moves" hidden></div>
+      </div>
+      ${corner('b')}
+    </div>`, { id: 'versus', backIn });
+  const views = {};
+  const shown = { a: null, b: null };
+  const showing = { a: null, b: null };
+  const seq = { a: 0, b: 0 };
+  const timers = { a: 0, b: 0 };
+  const dummy = fighterById('sparring/dummy');
+  for (const s of ['a', 'b']) {
+    views[s] = new FigureView($(`.vs-corner.${s} .vs-fig`, el), { slot: `vs-${s}`, flip: s === 'b' ? -1 : 1, fit: 'corner', dummy: s === 'a' && dummy ? () => fighterAssets(topVersion(dummy).url) : null });
+    views[s].noIntro = true;
+    views[s].ready = views[s].init();
+  }
+  screenLeave = () => Object.values(views).forEach((v) => v.destroy());
 
-function openPicker(kind, side) {
-  const p = pick[kind];
-  const all = data.fighters;
-  const m = document.createElement('div');
-  m.className = 'modal';
-  m.innerHTML = `<div class="head"><div class="left"><span class="kicker">${kind === 'play' ? (side === 'a' ? 'Твой боец' : 'Соперник') : side === 'a' ? 'Слева' : 'Справа'}</span><h1 class="title slab">Выбери бойца</h1></div></div>
-    <div class="grid">${all.map((f) => {
-      const c = colorsOf(f);
-      const v = topVersion(f);
-      return `<button class="tile ${f.id === p[side].id ? 'sel' : ''}" data-nav data-id="${esc(f.id)}" style="${cssColors(c)}"><img alt="" data-shot="${esc(v.url)}"><div class="meta"><span class="model">${esc(f.model)}</span><div class="name slab">${esc(v.name)}</div>${f.author ? `<span class="by">${esc(f.author)}</span>` : ''}</div></button>`;
-    }).join('')}</div>`;
-  overlay.replaceChildren(m);
-  overlay.dataset.closable = '1';
-  nav.setRoot(m, `[data-id="${CSS.escape(p[side].id)}"]`);
-  fillShots(m);
-  m.querySelectorAll('[data-id]').forEach((b) => (b.onclick = () => {
-    const f = fighterById(b.dataset.id);
-    p[side] = { id: f.id, v: topVersion(f).v };
-    closeOverlay(false);
-    pickerScreen(kind, { focus: `[data-slot="${side}"]` }, false);
+  // A corner shows a fighter: the one it has taken, or the one under the cursor while it is choosing.
+  // land: the fighter has just been taken — it lands with a hit, steps out and says its line.
+  function showCorner(s, id, v = null, { land = false, wait = 0 } = {}) {
+    const f = fighterById(id);
+    const ver = versionOf(f, v);
+    showing[s] = id;
+    const box = $(`.vs-corner.${s}`, el);
+    const human = p.mode === 'play' && s === 'a';
+    box.style.cssText = cssColors(colorsOf(f, ver.v));
+    const who = $('.vs-who', box);
+    who.innerHTML = human ? `${pads.first() ? PAD_ICON : KEY_ICON}<b>Ты</b>` : `${CPU_ICON}<b>${esc(f.model)}</b>`;
+    who.classList.toggle('me', human);
+    $('.vs-name', box).textContent = ver.name;
+    fitText($('.vs-name', box));
+    $('.vs-by', box).textContent = [human ? f.model : null, f.author].filter(Boolean).join(' · ');
+    const taken = id === p[s].id;
+    $('.vs-vers', box).innerHTML = taken && f.versions.length > 1 ? f.versions.map((x) => `<button class="vchip ${x.v === ver.v ? 'on' : ''}" data-nav data-v="${x.v}" data-sfx="whoosh-light"><span class="v">${x.label}</span></button>`).join('') : '';
+    $('.vs-vers', box).querySelectorAll('[data-v]').forEach((b) => (b.onclick = () => {
+      p[s].v = Number(b.dataset.v);
+      showCorner(s, id, p[s].v, { land: true });
+      nav.focus($(`.vs-corner.${s} [data-v="${p[s].v}"]`, el), { sound: false });
+    }));
+    if (land) hit(box);
+    const n = ++seq[s];
+    clearTimeout(timers[s]);
+    if (shown[s] === ver.url && !land) return;
+    if (shown[s] !== ver.url) $('.vs-fig', box).classList.add('loading');
+    timers[s] = setTimeout(async () => {
+      const [a] = await Promise.all([(taken ? fighterAssets : previewAssets)(ver.url), views[s].ready]).catch(() => []);
+      if (!a || n !== seq[s] || !el.isConnected) return;
+      if (shown[s] !== ver.url) views[s].set(a);
+      shown[s] = ver.url;
+      $('.vs-fig', box).classList.remove('loading');
+      if (land) {
+        if (a.def.anims.intro) views[s].play('intro');
+        const line = a.def.voice?.lines?.find((l) => l.kind === 'intro')?.id;
+        if (line) sfx.line(ver.url, line);
+      }
+    }, wait);
+  }
+
+  function setSide(s) {
+    p.side = s;
+    el.dataset.side = s;
+  }
+  function setMode(m) {
+    p.mode = m;
+    el.classList.toggle('mode-play', m === 'play');
+    el.classList.toggle('mode-cpu', m === 'cpu');
+    for (const b of el.querySelectorAll('[data-mode]')) b.classList.toggle('on', b.dataset.mode === m);
+    const top = stack[stack.length - 1];
+    if (top) top.args = { ...top.args, mode: m };
+    showCorner('a', p.a.id, p.a.v);
+  }
+  function setStage(id) {
+    p.stage = id;
+    for (const b of el.querySelectorAll('[data-stage]')) b.classList.toggle('on', b.dataset.stage === id);
+    const bg = $('.vs-bg', el);
+    bg.style.backgroundImage = `url('${stageById(id)?.thumb || ''}')`;
+    hit(bg);
+  }
+
+  const grid = fighterGrid($('[data-grid]', el), {
+    fighters: data.fighters, nav, state: p.grid,
+    cols: (n) => (n <= 10 ? 5 : n <= 24 ? 6 : n <= 100 ? 8 : 10),
+    onFocus: (f) => showCorner(p.side, f.id, f.id === p[p.side].id ? p[p.side].v : null, { wait: 140 }),
+    onPick: (f) => {
+      const s = p.side;
+      p[s] = { id: f.id, v: topVersion(f).v };
+      grid.mark(s, f.id);
+      sfx.play('vs-impact', 0.55);
+      showCorner(s, f.id, p[s].v, { land: true });
+      // the cursor goes to the other corner; when both have chosen, to the one main step
+      if (s === 'a') setSide('b');
+      else nav.focus($('[data-start]', el));
+    },
+  });
+  // the cursor has left the grid: the corner shows the fighter it has taken again
+  el.addEventListener('navfocus', (e) => {
+    if (!e.target.closest('.ft')) for (const s of ['a', 'b']) if (showing[s] !== p[s].id) showCorner(s, p[s].id, p[s].v);
+  });
+  el.querySelectorAll('[data-corner]').forEach((b) => (b.onclick = () => {
+    setSide(b.dataset.corner);
+    nav.focus(grid.reveal(p[p.side].id) || grid.first() || b);
   }));
+  el.querySelectorAll('[data-mode]').forEach((b) => (b.onclick = () => setMode(b.dataset.mode)));
+  el.querySelectorAll('[data-stage]').forEach((b) => (b.onclick = () => setStage(b.dataset.stage)));
+  $('[data-start]', el).onclick = () => {
+    sfx.play('title-slam', 0.7);
+    (p.mode === 'play' ? startLive(p) : startCustom(p));
+  };
+
+  // The move list of the player's fighter takes the place of the grid; the move under the cursor plays on the
+  // fighter in its corner, against the sparring dummy.
+  $('[data-moves]', el).onclick = async () => {
+    const ver = versionOf(fighterById(p.a.id), p.a.v);
+    showCorner('a', p.a.id, p.a.v);
+    const a = await fighterAssets(ver.url);
+    const panel = $('.vs-moves', el);
+    panel.innerHTML = `<div class="vs-moves-h slab">${esc(a.def.card.name)}</div>${moveListHtml(a.def, pads.first() ? 'pad' : 'kb', { play: true })}`;
+    panel.hidden = false;
+    $('.vs-pickers', el).hidden = true;
+    hit(panel);
+    panel.querySelectorAll('[data-move]').forEach((b) => {
+      const m = a.def.movesById[b.dataset.move];
+      b.onclick = () => views.a.play(m);
+      b.addEventListener('navfocus', () => views.a.play(m));
+    });
+    nav.setRoot(panel);
+    subBack = () => {
+      panel.hidden = true;
+      $('.vs-pickers', el).hidden = false;
+      views.a.stopDemo();
+      nav.setRoot(el, '[data-moves]');
+    };
+  };
+
+  setSide(p.side);
+  setMode(p.mode);
+  setStage(p.stage);
+  for (const s of ['a', 'b']) {
+    grid.mark(s, p[s].id);
+    showCorner(s, p[s].id, p[s].v);
+  }
+  const start = grid.reveal(p[p.side].id);
+  nav.setRoot(el, focusStart ? '[data-start]' : start ? `[data-id="${CSS.escape(p[p.side].id)}"]` : null);
+  $('#legend').innerHTML = legend(contestants().length > 12 ? ' &nbsp; <b>PgUp PgDn</b>Листать' : '');
 }
 
 function closeOverlay(sound = true) {
@@ -761,6 +1019,10 @@ function busy(text) {
 }
 
 function enterFight(kind) {
+  screenLeave?.();
+  screenLeave = null;
+  subBack = null;
+  keepMusicPlace();
   backdrop.pause(true);
   ui.hidden = true;
   $('#legend').hidden = true;
@@ -778,6 +1040,7 @@ function leaveFight() {
   ui.hidden = false;
   backdrop.pause(false);
   nav.enabled = true;
+  menuMusic();
   render(stack[stack.length - 1], true);
 }
 
@@ -814,18 +1077,18 @@ window.addEventListener('keydown', (e) => {
   else bar.classList.add('off');
 });
 
-// a fighter's command list like fighting games show it
-function moveListHtml(def, device = 'kb') {
-  const SL = { normal: 'Обычные удары', special: 'Особые приёмы', super: 'Суперприём' };
-  let last = null;
-  const rows = moveList(def).map((m) => {
-    const head = m.slot !== last ? `<div class="ml-h">${SL[m.slot]}</div>` : '';
-    last = m.slot;
-    return `${head}<div class="ml-r"><span class="ml-n">${esc(m.name)}${m.ability ? '<span class="tag">способность</span>' : ''}</span>${commandHtml(m, device)}</div>`;
-  }).join('');
-  const keys = ['LP', 'HP', 'LK', 'HK'].map((b) => `<span class="kc"><i class="cb ${b.endsWith('P') ? 'p' : 'k'}">${b}</i>${device === 'pad' ? PAD_OF[b] : KEY_OF[b]} · ${BTN_NAME[b]}</span>`).join('');
-  const extra = device === 'pad' ? [['LB', 'бросок'], ['LT', 'парирование'], ['RT', 'суперприём']] : [['U+J', 'бросок'], ['N', 'парирование'], ['I+K', 'суперприём']];
-  return `<div class="movelist"><div class="ml-keys">${keys}${extra.map(([k, t]) => `<span class="kc"><b>${k}</b>${t}</span>`).join('')}</div>${rows}<div class="ml-note">Стрелки — от бойца к сопернику: → вперёд, ← назад. <i class="ca hold">←</i> — держать.</div></div>`;
+// A fighter's command list as fighting games show it: the moves by kind with their commands in the keys of the
+// device in hand, then what every fighter can do. play: the rows are buttons — the move under the cursor plays on
+// the fighter's figure.
+function moveListHtml(def, device = 'kb', { play = false } = {}) {
+  const SL = { normal: 'Удары', special: 'Особые приёмы', super: 'Суперприём' };
+  const groups = { normal: [], special: [], super: [] };
+  for (const m of moveList(def)) groups[m.slot].push(`<${play ? `button data-nav data-sfx="none" data-move="${esc(m.id)}"` : 'div'} class="ml-r ${m.slot}"><span class="ml-n">${esc(m.name)}</span>${commandHtml(m, device)}</${play ? 'button' : 'div'}>`);
+  const key = (k) => `<span class="cmd">${k.split(' ').map((x) => (x === '+' ? '<i class="cplus">+</i>' : `<i class="ckey">${x}</i>`)).join('')}</span>`;
+  const common = (device === 'pad' ? [['Бросок', 'LB'], ['Парирование', 'LT'], ['Суперприём', 'RT'], ['Блок', '←'], ['Рывок', '→ →']] : [['Бросок', 'U + J'], ['Парирование', 'N'], ['Суперприём', 'I + K'], ['Блок', '←'], ['Рывок', '→ →']])
+    .map(([t, k]) => `<div class="ml-r base"><span class="ml-n">${t}</span>${key(k)}</div>`);
+  const col = (title, rows, cls = '') => (rows.length ? `<div class="ml-g ${cls}"><div class="ml-h">${title}</div>${rows.join('')}</div>` : '');
+  return `<div class="movelist">${col(SL.normal, groups.normal)}${col(SL.special, groups.special)}${col(SL.super, groups.super, 'sup')}${col('Всегда', common, 'base')}</div>`;
 }
 
 // a moment again: the round's clip from a little before it to its end (ticks of the fight)
@@ -906,11 +1169,11 @@ function pauseMenu() {
   fightView.pause(true);
   menu.back();
   const list = fighting.kind === 'live' && ctrlDef ? moveListHtml(ctrlDef, pads.first() ? 'pad' : 'kb') : '';
-  const el = showOverlay(`<div class="pauseov ${list ? 'has-list' : ''}"><div class="p-left"><span class="kicker">${esc(fighting.kind === 'live' ? 'Ты против бойца' : fighting.kind === 'custom' ? 'Свой бой' : 'Матч')}</span><div class="slab hot p-big">Пауза</div>
+  const el = showOverlay(`<div class="pauseov ${list ? 'has-list' : ''}"><div class="p-left"><span class="kicker">${esc(fighting.kind === 'live' ? 'Ты против нейросети' : fighting.kind === 'custom' ? 'Нейросеть против нейросети' : 'Матч')}</span><div class="slab hot p-big">Пауза</div>
     <nav class="mm">
     <button class="item" data-nav data-autofocus data-k="go">Продолжить</button>
     ${fighting.restart ? '<button class="item" data-nav data-k="again">Начать заново</button>' : ''}
-    <button class="item" data-nav data-k="out">Выйти в меню</button></nav></div>${list ? `<div class="p-list"><div class="label">Приёмы · ${esc(ctrlDef.card.name)}</div>${list}</div>` : ''}</div>`);
+    <button class="item" data-nav data-k="out">Выйти в меню</button></nav></div>${list ? `<div class="p-list"><div class="vs-moves-h slab">${esc(ctrlDef.card.name)}</div>${list}</div>` : ''}</div>`);
   const resume = () => {
     overlay.replaceChildren();
     fighting.paused = false;
@@ -947,6 +1210,7 @@ async function roundShow(m, r, { intro = true } = {}) {
 async function watchRound(m, n) {
   const r = m.rounds.find((x) => x.n === n);
   enterFight('round');
+  matchDetails(m);
   fighting.restart = () => watchRound(m, n);
   busy('Загружаю раунд');
   try {
@@ -957,6 +1221,7 @@ async function watchRound(m, n) {
     if (res.stopped || !fighting) return;
     const next = m.rounds.find((x) => x.n === n + 1);
     const buttons = [['Ещё раз', () => watchRound(m, n)], ...(next ? [['Следующий раунд', () => watchRound(m, n + 1)]] : []), ['К матчу', leaveFight]];
+    await matchDetails(m);
     const i = await betweenScreen((html) => resultFor(data, m, n, { assetsOf: fighterAssets, buttons: html }), buttons);
     if (i >= 0) buttons[i][1]();
   } catch (e) {
@@ -971,6 +1236,7 @@ async function watchMatch(m) {
   fighting.restart = () => watchMatch(m);
   const token = fighting;
   try {
+    await matchDetails(m);
     for (let i = 0; i < m.rounds.length; i++) {
       const r = m.rounds[i];
       const prev = m.rounds[i - 1];
@@ -1118,8 +1384,8 @@ let refreshing = null;
 async function refreshData() {
   if (refreshing || fighting) return refreshing;
   refreshing = loadGame().then((d) => {
-    const changed = JSON.stringify(d) !== JSON.stringify(data);
-    data = d;
+    const changed = d.text !== data.text;
+    if (changed) data = d;
     return changed;
   }).catch(() => false).finally(() => (refreshing = null));
   return refreshing;
@@ -1144,7 +1410,19 @@ function startMenuBackdrop() {
 async function boot() {
   await ringFonts();
   data = await loadGame();
-  if (data.static) settings.ads = false;
+  if (data.static) {
+    settings.ads = false;
+    // the site's lighter copies of the fighters' pictures, one small file a fighter
+    const rigs = new Map();
+    useLightPictures(async (url) => {
+      const dir = url.startsWith(ROOT.href) ? url.slice(ROOT.href.length) : null;
+      const id = dir?.match(/^(?:seasons\/[^/]+\/fighters|roster)\/([^/]+)\//)?.[1];
+      if (!id) return null;
+      if (!rigs.has(id)) rigs.set(id, fetch(at(`ui/rig/${id}.json`)).then((r) => (r.ok ? r.json() : {})).catch(() => ({})));
+      const map = (await rigs.get(id))[dir];
+      return map ? Object.fromEntries(Object.entries(map).map(([img, to]) => [img, at(to)])) : null;
+    });
+  }
   requestAnimationFrame(frame);
   // the opening needs the four stages and the contestants (never the dummy); behind the menus later the same
   introReady = (async () => {
@@ -1166,40 +1444,56 @@ async function boot() {
     }
   })();
   // a link straight into a screen skips the title: the menu background starts now (the title starts its own)
-  if (q.get('screen') || q.get('match')) startMenuBackdrop();
-  // A link from the site opens a round or a screen at once, past the title — and the browser gives a page its
-  // sound only after a press on it. The published game asks for that press first, like the title does.
-  if (data.static && (q.get('screen') || q.get('match')) && navigator.userActivation && !navigator.userActivation.hasBeenActive) {
-    await new Promise((res) => {
-      const gate = document.createElement('div');
-      gate.id = 'gate';
-      gate.innerHTML = '<div class="press">Нажми любую клавишу</div>';
-      document.body.appendChild(gate);
-      const go = () => {
-        removeEventListener('keydown', go, true);
-        removeEventListener('pointerdown', go, true);
-        gate.remove();
-        res();
-      };
-      addEventListener('keydown', go, true);
-      addEventListener('pointerdown', go, true);
-    });
-  }
-  if (q.get('screen') || q.get('match')) {
-    menu.unlock();
+  const linked = q.get('screen') || q.get('match');
+  if (linked) startMenuBackdrop();
+  // A link from the site opens a round or a screen at once, past the title — and a browser gives a page its sound
+  // only after a press on it. A visitor who has pressed something on the site usually keeps that right on the next
+  // page, so the game asks for a press only when the sound really did not start.
+  if (linked) {
     sfx.unlock();
-    sfx.preload();
+    if (data.static) await Promise.race([sfx.ctx.resume().catch(() => {}), new Promise((r) => setTimeout(r, 150))]);
+    if (data.static && sfx.ctx.state !== 'running') {
+      await new Promise((res) => {
+        const gate = document.createElement('div');
+        gate.id = 'gate';
+        gate.innerHTML = '<div class="press">Нажми любую клавишу</div>';
+        document.body.appendChild(gate);
+        const go = () => {
+          removeEventListener('keydown', go, true);
+          removeEventListener('pointerdown', go, true);
+          gate.remove();
+          res();
+        };
+        addEventListener('keydown', go, true);
+        addEventListener('pointerdown', go, true);
+      });
+      sfx.unlock();
+      await sfx.ctx.resume().catch(() => {});
+    }
+    wakeSound();
+    // the press on the site's link is finished here: its sound was cut by the change of pages
+    if (data.static) {
+      let from = 9;
+      try {
+        const t = JSON.parse(sessionStorage.getItem('ring.press') || 'null');
+        sessionStorage.removeItem('ring.press');
+        if (t) from = (Date.now() - t.at) / 1000;
+      } catch {}
+      if (from < 0.7) sfx.play('menu-select', 1, 0, 0, from);
+      else menu.start();
+    }
   }
-  // shots of the roster are made while the title is on: menus open with their pictures ready
+  // the two fighters of the main menu are drawn while the title is on; every other still waits for its tile
   (async () => {
     for (const f of contestants().slice(-2)) await figureShot(await fighterAssets(topVersion(f).url), { w: 680, h: 900, crop: 'knees' }).catch(() => {});
-    for (const f of data.fighters) await figureShot(await fighterAssets(topVersion(f).url)).catch(() => {});
   })();
+  // A published game opened by a link has no menu under its first screen: Esc there leads back to the site.
+  const under = data.static ? [] : [{ name: 'main', args: {} }];
   // links: ?screen=roster, ?match=<id>&round=N&auto=round
   // ?match=<id>&round=N&auto=result (the round's result screen) or auto=locker&cid=<id> (its locker room)
   if (q.get('match') && ['result', 'locker'].includes(q.get('auto'))) {
-    stack.push({ name: 'main', args: {} }, { name: 'match', args: { id: q.get('match') } });
-    render(stack[stack.length - 1]);
+    stack.push(...under, { name: 'match', args: { id: q.get('match') } });
+    await render(stack[stack.length - 1]);
     const m = data.matches.find((x) => x.id === q.get('match'));
     const n = Number(q.get('round') || 1);
     if (m) {
@@ -1210,23 +1504,32 @@ async function boot() {
     return;
   }
   if (q.get('match') && q.get('auto') === 'round') {
-    stack.push({ name: 'main', args: {} }, { name: 'match', args: { id: q.get('match') } });
-    render(stack[stack.length - 1]);
+    stack.push(...under, { name: 'match', args: { id: q.get('match') } });
+    await render(stack[stack.length - 1]);
     const m = data.matches.find((x) => x.id === q.get('match'));
     if (m) watchRound(m, Number(q.get('round') || 1));
     return;
   }
-  if (q.get('screen') && SCREENS[q.get('screen')]) {
-    stack.push({ name: 'main', args: {} });
+  const screen = q.get('screen');
+  if (screen && SCREENS[screen]) {
+    stack.push(...under);
     const args = q.get('id') ? { id: q.get('id'), v: q.get('v') ? Number(q.get('v')) : null, tab: q.get('tab') || undefined } : {};
-    // ?screen=play&vs=c/<id> — the opponent is already chosen (the site's «Сразиться» on a fighter's page)
-    const vs = pick[q.get('screen')] === null && fighterById(q.get('vs'));
-    if (vs) {
-      const p = (pick[q.get('screen')] = defaultPick(q.get('screen')));
-      if (p.a.id === vs.id) p.a = p.b;
-      p.b = { id: vs.id, v: topVersion(vs).v };
+    // ?screen=play&vs=c/<id> — the opponent is already chosen (the site's «Сразиться» on a fighter's page);
+    // ?screen=custom&a=c/<id> — the left corner is chosen, the cursor chooses its opponent («Стравить»)
+    if (['play', 'custom', 'versus'].includes(screen)) {
+      initPick();
+      const vs = fighterById(q.get('vs'));
+      const a = fighterById(q.get('a'));
+      if (vs) {
+        if (pick.a.id === vs.id) pick.a = pick.b;
+        pick.b = { id: vs.id, v: topVersion(vs).v };
+      }
+      if (a) {
+        if (pick.b.id === a.id) pick.b = pick.a;
+        Object.assign(pick, { a: { id: a.id, v: topVersion(a).v }, side: 'b' });
+      }
     }
-    go(q.get('screen'), args);
+    go(screen, args);
     return;
   }
   go('title');
@@ -1238,4 +1541,4 @@ boot().catch((e) => {
 });
 
 // for tests and agents: the game state and a direct way into a live fight
-window.__game = { get data() { return data; }, go, back, get stack() { return stack; }, nav, fightView, startLive, startCustom };
+window.__game = { get data() { return data; }, go, back, get stack() { return stack; }, nav, fightView, startLive, startCustom, pick, sfx, load: () => ({ held: heldFighters(), waiting: shotsWaiting() }) };

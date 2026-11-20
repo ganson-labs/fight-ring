@@ -2,7 +2,7 @@
 import Page from '../../layouts/Page.astro';
 import Figure from '../../components/Figure.astro';
 import MatchCard from '../../components/MatchCard.astro';
-import { agentName, allFighters, playAgainst, roundTitle, seasons } from '../../data/ring';
+import { agentName, allFighters, playAgainst, roundTitle, seasons, setAgainst } from '../../data/ring';
 import type { Fighter, MoveSlot, Season, StatKey } from '../../data/ring';
 import { commandGlyphs } from '../../lib/command';
 import { to } from '../../lib/paths';
@@ -52,6 +52,7 @@ const agent = f.agent ? [agentName(f.agent.tool), f.agent.model, f.agent.effort 
         )}
         <div class="steps">
           <a class="plate primary" href={to(path, playAgainst(f))}>Сразиться</a>
+          <a class="plate" href={to(path, setAgainst(f))}>Стравить с…</a>
           {f.matches.length > 0 && <a class="plate" href="#bouts">Смотреть бои</a>}
         </div>
       </div>

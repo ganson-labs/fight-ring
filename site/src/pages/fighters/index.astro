@@ -3,7 +3,8 @@
 import Page from '../../layouts/Page.astro';
 import FighterCard from '../../components/FighterCard.astro';
 import Figure from '../../components/Figure.astro';
-import { ROSTER_TITLE, roster, seasons } from '../../data/ring';
+import Finder from '../../components/Finder.astro';
+import { ROSTER_TITLE, rating, roster, seasons } from '../../data/ring';
 import type { StatKey } from '../../data/ring';
 import { to } from '../../lib/paths';
 
@@ -12,7 +13,14 @@ const sections = [
   { title: ROSTER_TITLE, fighters: await roster() },
   ...(await seasons()).map((s) => ({ title: s.title, fighters: s.fighters.filter((f) => f.home) })),
 ].filter((s) => s.fighters.length > 0);
+// A long list gets smaller tiles and a finder: search, a filter by model, the order. With the common rating at hand
+// the fighters stand by it, the strongest first.
+const all = sections.flatMap((s) => s.fighters);
+const many = all.length > 12;
+const rate = new Map(((await rating())?.rows ?? []).map((r) => [r.id, r.rating]));
+if (many && rate.size) for (const s of sections) s.fighters = [...s.fighters].sort((a, b) => (rate.get(b.id) ?? 0) - (rate.get(a.id) ?? 0));
 const first = sections[0]?.fighters[0];
+const models = [...all.reduce((m, f) => m.set(f.model, (m.get(f.model) ?? 0) + 1), new Map<string, number>())].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'ru'));
 const STATS: [StatKey, string][] = [['health', 'Здоровье'], ['power', 'Сила'], ['speed', 'Скорость'], ['defense', 'Защита']];
 ---
 <Page title="Бойцы" description="Бойцы, которых создали нейросети: портрет, модель, приёмы и версии.">
@@ -37,12 +45,15 @@ const STATS: [StatKey, string][] = [['health', 'Здоровье'], ['power', '�
         </div>
       </div>
     )}
-    <div class="sets">
+    <div class="sets" id="fighters">
+      {many && <Finder list="fighters" models={models} sorts={rate.size ? ['top', 'new', 'name'] : ['new', 'name']} />}
       {sections.map((s) => (
-        <section>
+        <section data-group>
           {sections.length > 1 && <h2 class="slab">{s.title}</h2>}
-          <div class="grid">
-            {s.fighters.map((f) => <FighterCard fighter={f} width={240} sizes="(max-width: 900px) 30vw, 240px" selected={f === first} />)}
+          <div class:list={['grid', { many: s.fighters.length > 12 }]}>
+            {s.fighters.map((f) => (s.fighters.length > 12
+              ? <FighterCard fighter={f} width={132} sizes="(max-width: 900px) 22vw, 132px" selected={f === first} rating={rate.get(f.id)} plain />
+              : <FighterCard fighter={f} width={240} sizes="(max-width: 900px) 30vw, 240px" selected={f === first} rating={rate.get(f.id)} />))}
           </div>
         </section>
       ))}
@@ -74,6 +85,12 @@ const STATS: [StatKey, string][] = [['health', 'Здоровье'], ['power', '�
   .sets h2 { margin-top: 0; }
   .sets section + section { margin-top: 48px; }
   .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(22px, 2.6vw, 32px) clamp(12px, 1.6vw, 22px); padding: 8px 6px; }
+  /* hundreds of fighters: five in a row, the name alone under the portrait (the model and the author are in the preview) */
+  .grid.many { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 18px 10px; }
+  .grid.many :global(.tile-plate) { margin-top: 7px; padding-left: 8px; border-left-width: 3px; }
+  .grid.many :global(.tile-name) { font-size: 14px; }
+  .grid.many :global(.tile-model), .grid.many :global(.tile-author) { display: none; }
+  .sets :global([hidden]) { display: none !important; }
 
   @media (max-width: 900px) {
     .select { grid-template-columns: 1fr; grid-template-areas: 'title' 'preview' 'sets'; }

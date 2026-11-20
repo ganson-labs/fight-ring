@@ -1,7 +1,9 @@
 // The live background behind the title and the menus. The opening (intro.js) plays on it first; behind the menus
 // one of the stages shows the contestants of the roster: two of them fight with their own brains, one stands
 // alone, none — the stage is empty. The sparring dummy and the kit's template never appear here. The scene is
-// calm: no screen flashes and softer effects behind the menu items. Rendered at the window's real pixels.
+// calm: no screen flashes and softer effects behind the menu items. The opening is rendered at the window's real
+// pixels; the scene behind the menus is shown blurred and dark, so it is drawn on a quarter of the pixels (960×540)
+// and at half the frames: a full-size scene behind a menu took a third of a laptop's frame time.
 import * as PIXI from 'pixi.js';
 import * as E from '../../kit/arena/engine/index.js';
 import { Scene } from '../../kit/arena/render/scene.js';
@@ -36,7 +38,8 @@ export class Backdrop {
     if (!this.app) return;
     const s = Math.max(window.innerWidth / 1920, window.innerHeight / 1080);
     const res = Math.max(1, Math.min(s * Math.min(window.devicePixelRatio || 1, 2), this.maxRes || 2)); // below 1 the filters cut the frame
-    if (Math.abs(this.app.renderer.resolution - res) > 0.01) this.app.renderer.resize(1920, 1080, res);
+    const [w, h, r] = this.low ? [960, 540, 1] : [1920, 1080, res];
+    if (Math.abs(this.app.renderer.resolution - r) > 0.01 || this.app.renderer.width !== Math.round(w * r)) this.app.renderer.resize(w, h, r);
     this.app.canvas.style.width = `${Math.ceil(1920 * s)}px`;
     this.app.canvas.style.height = `${Math.ceil(1080 * s)}px`;
   }
@@ -44,6 +47,7 @@ export class Backdrop {
   // the opening on this canvas; resolves with the Intro (it keeps drawing its last frame until stopped)
   async intro(make) {
     this.stop();
+    this.low = false;
     const app = await this.ensure();
     this.introRun = make(app);
     return this.introRun;
@@ -52,10 +56,11 @@ export class Backdrop {
   // behind the menus: assets/urls of 0–2 contestants and a stage
   async start({ assets, urls, stage }) {
     this.stop();
+    this.low = true;
     const app = await this.ensure();
     app.stage.removeChildren();
     app.stage.position.set(0, 0);
-    const scene = new Scene(app, { width: 1920, height: 1080, hud: false, calm: true });
+    const scene = new Scene(app, { width: 960, height: 540, hud: false, calm: true, fast: true });
     scene.setStage(stage);
     this.scene = scene;
     const alone = assets.length === 1;
@@ -75,6 +80,8 @@ export class Backdrop {
       scene.reset(fake);
       const loop = (now) => {
         if (!this.running) return;
+        this.raf = requestAnimationFrame(loop);
+        if ((this.odd = !this.odd)) return;
         const dt = Math.min(0.05, (now - prev) / 1000);
         prev = now;
         t += dt;
@@ -83,7 +90,6 @@ export class Backdrop {
           scene.draw(fake, dt);
           app.render();
         }
-        this.raf = requestAnimationFrame(loop);
       };
       this.raf = requestAnimationFrame(loop);
       return;
@@ -131,6 +137,8 @@ export class Backdrop {
     let restarting = false;
     const loop = (now) => {
       if (!this.running) return;
+      this.raf = requestAnimationFrame(loop);
+      if ((this.odd = !this.odd)) return; // every other frame: 30 a second is enough behind a menu
       const dt = Math.min(0.05, (now - prev) / 1000);
       prev = now;
       if (!this.paused) {
@@ -148,7 +156,6 @@ export class Backdrop {
           restarting = false;
         });
       }
-      this.raf = requestAnimationFrame(loop);
     };
     this.raf = requestAnimationFrame(loop);
   }

@@ -5,7 +5,7 @@ import { mkdtempSync, rmSync, cpSync, readFileSync, writeFileSync, mkdirSync } f
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { buildVersions } from '../judge/gamedata.js';
+import { buildVersions, folderHash, gameData, gameFiles, gameIndex, fighterDetail, matchDetail } from '../judge/gamedata.js';
 import { lockerReplyIn } from '../judge/contestants.js';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
@@ -195,4 +195,52 @@ test('игрок: каждая команда набора вызывает св
   const f3 = fresh();
   f3.f[0].x = f3.f[1].x - 90;
   assert.ok(play(f3, [{ dir: 5, press: ['LP', 'LK'] }], 'kb', 'throw'), 'бросок LP+LK вплотную');
+});
+
+test('данные игры: лёгкий список без слов моделей и цифр матчей, подробности отдельно по бойцу и по матчу', () => {
+  const full = gameData({ live: false, roster: null });
+  const list = gameIndex(full, { rating: [{ id: 'opus50', origin: 'season', rating: 1700 }, { id: 'skala', origin: 'ref', rating: 1000 }] });
+  assert.equal(list.fighters.length, full.fighters.length);
+  assert.equal(list.matches.length, full.matches.length);
+  const heavy = full.fighters.find((f) => f.cid && f.versions.some((v) => v.note || v.changes));
+  assert.ok(heavy, 'в сезоне есть боец с раздевалкой');
+  const light = list.fighters.find((f) => f.id === heavy.id);
+  assert.equal(light.detail, `/api/fighter/${heavy.cid}.json`);
+  assert.ok(light.versions.every((v) => !('note' in v) && !('changes' in v)), 'слова модели и разбор изменений в список не попадают');
+  assert.deepEqual(light.versions.map((v) => [v.v, v.url, v.name]), heavy.versions.map((v) => [v.v, v.url, v.name]), 'версии для выбора бойца остаются в списке');
+  assert.equal(light.versions.find((v) => v.v === 2).hasChanges, true);
+  assert.equal(list.fighters.find((f) => f.cid === 'opus50').rating, 1700, 'рейтинг для сортировки');
+  const spar = list.fighters.find((f) => f.training);
+  assert.ok(!spar.detail && spar.versions[0].changes === null, 'бойцу без подробностей файл не нужен');
+  const m = list.matches[0];
+  assert.ok(!('roundStats' in m) && !('stats' in m) && !('story' in m) && !('protocol' in m));
+  assert.ok(m.rounds.length && m.rounds[0].replay, 'раунды и записи боёв остаются в списке');
+  // the details put back give the full data
+  const fd = fighterDetail(full, heavy.cid);
+  assert.deepEqual(fd.versions.map((v) => v.changes), heavy.versions.map((v) => v.changes));
+  assert.deepEqual(fd.versions.map((v) => v.note), heavy.versions.map((v) => v.note));
+  const md = matchDetail(full, m.id);
+  assert.deepEqual(md.roundStats, full.matches[0].roundStats);
+  assert.equal(fighterDetail(full, 'no-such'), null);
+  const files = gameFiles(full);
+  assert.equal(files[0][0], 'api/game.json');
+  assert.ok(files.some(([p]) => p === `api/fighter/${heavy.cid}.json`) && files.some(([p]) => p === `api/match/${m.id}.json`));
+  const size = (x) => JSON.stringify(x).length;
+  assert.ok(size(list) < size(full) / 3, `список втрое легче полных данных: ${size(list)} против ${size(full)}`);
+});
+
+test('хэш папки бойца: неизменённая папка второй раз не читается, изменённая считается заново', () => {
+  const base = mkdtempSync(join(tmpdir(), 'ring-hash-'));
+  try {
+    const dir = join(base, 'fighter');
+    cpSync(KIT, dir, { recursive: true });
+    const a = folderHash(dir);
+    assert.equal(folderHash(dir), a);
+    const f = JSON.parse(readFileSync(join(dir, 'fighter.json'), 'utf8'));
+    f.name = `${f.name} Второй`;
+    writeFileSync(join(dir, 'fighter.json'), JSON.stringify(f));
+    assert.notEqual(folderHash(dir), a);
+  } finally {
+    rmSync(base, { recursive: true, force: true });
+  }
 });

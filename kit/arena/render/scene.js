@@ -266,7 +266,10 @@ export class Rig {
 // ---------- scene ----------
 
 export class Scene {
-  constructor(app, { width, height, vertical = false, debug = false, hud = true, names = null, quality = 'high', calm = false } = {}) {
+  constructor(app, { width, height, vertical = false, debug = false, hud = true, names = null, quality = 'high', calm = false, fast = false } = {}) {
+    // fast: a scene played live in a browser — the soft blurs of the far layers, of the bloom and of the reflections
+    // are computed on half the pixels (a third more frames on a laptop's video card); the judge's clips keep full size
+    this.fast = fast;
     this.calm = calm; // behind menus: no screen flashes or shock waves, softer bloom and sparks
     this.camFixed = null; // { x, y, zoom } in world units: a camera that does not follow the fighters (intro)
     this.quality = quality; // 'high' | 'medium': the medium one skips the grade, the rim light and the reflections
@@ -308,6 +311,7 @@ export class Scene {
     this.projLayer = new PIXI.Container();
     this.fxLayer = new PIXI.Container();
     this.fxLayer.filters = [new AdvancedBloomFilter(calm ? { threshold: 0.5, bloomScale: 0.5, brightness: 0.85, blur: 4, quality: 3 } : { threshold: 0.25, bloomScale: 1.1, brightness: 1.05, blur: 6, quality: 4 })];
+    if (fast) this.fxLayer.filters[0].resolution = 0.5;
     if (calm) this.fxLayer.alpha = 0.3;
     this.debugLayer = new PIXI.Graphics();
     this.reflections = new PIXI.Container(); // the fighters mirrored in a wet floor (stage.json "reflect")
@@ -368,7 +372,7 @@ export class Scene {
           if (l.alpha !== undefined) sp.alpha = l.alpha;
           c.addChild(sp);
         }
-        if (l.blur) c.filters = [new PIXI.BlurFilter({ strength: l.blur * this.k, quality: 3 })];
+        if (l.blur) c.filters = [new PIXI.BlurFilter({ strength: l.blur * this.k, quality: 3, ...(this.fast ? { resolution: 0.5 } : {}) })];
         this.bg.addChild(c);
         this.layers.push({ c, p: l.parallax ?? 1 });
       }
@@ -455,7 +459,7 @@ export class Scene {
       this.rigs.push(rig);
       if (lit && this.reflect > 0) {
         const m = new Rig(a, { tint: this.fighterTint, ghost: true });
-        m.root.filters = [new PIXI.BlurFilter({ strength: 3, quality: 2 })];
+        m.root.filters = [new PIXI.BlurFilter({ strength: 3, quality: 2, ...(this.fast ? { resolution: 0.5 } : {}) })];
         this.reflections.addChild(m.root);
         this.mirrors.push(m);
       } else this.mirrors.push(null);

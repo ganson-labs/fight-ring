@@ -157,6 +157,8 @@ export interface Fighter {
   colors: RawColors;
   motto: string | null;
   story: string | null;
+  /** the day the fighter came to the ring: the day it was sent to the roster, or of its first version */
+  added: string | null;
   /** the portrait's file on disk, for the image pipeline */
   portraitFile: string | null;
   stats: Record<StatKey, number> | null;
@@ -349,6 +351,7 @@ async function readSeason(id: string): Promise<Season | null> {
       colors: f.colors,
       motto: card?.motto ?? null,
       story: card?.story ?? null,
+      added: f.versions[0]?.at ?? null,
       portraitFile: portrait && existsSync(portrait) ? portrait : null,
       stats: stats ? { health: stats.health ?? 3, power: stats.power ?? 3, speed: stats.speed ?? 3, defense: stats.defense ?? 3 } : null,
       moves: rawMoves.map((m) => ({ id: m.id, name: m.name ?? set.get(m.id)?.name ?? m.id, command: m.command ?? null, slot: set.get(m.id)?.slot ?? null, kitName: set.get(m.id)?.name ?? null })),
@@ -456,6 +459,7 @@ export function roster(): Promise<Fighter[]> {
         colors,
         motto: card.motto ?? null,
         story: card.story ?? null,
+        added: entry.date ?? null,
         portraitFile: portrait && existsSync(portrait) ? portrait : null,
         stats: card.stats ? { health: card.stats.health ?? 3, power: card.stats.power ?? 3, speed: card.stats.speed ?? 3, defense: card.stats.defense ?? 3 } : null,
         moves: rawMoves.map((m) => ({ id: m.id, name: m.name ?? set.get(m.id)?.name ?? m.id, command: m.command ?? null, slot: set.get(m.id)?.slot ?? null, kitName: set.get(m.id)?.name ?? null })),
@@ -500,6 +504,10 @@ export function fighterIn(season: Season, id: string): Fighter | null {
 export const watchRound = (match: Match, round: Round) => `play/?match=${encodeURIComponent(match.id)}&auto=round&round=${round.n}`;
 export const playAgainst = (f: Fighter) => `play/?screen=play&vs=${encodeURIComponent(f.gameId)}`;
 export const PLAY = 'play/?screen=play';
+/** two models against each other, no player: the same fight select in its other mode */
+export const WATCH = 'play/?screen=custom';
+/** this fighter in the left corner, the visitor chooses whom to set it against */
+export const setAgainst = (f: Fighter) => `play/?screen=custom&a=${encodeURIComponent(f.gameId)}`;
 
 // ---------- words ----------
 

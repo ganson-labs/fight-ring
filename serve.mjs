@@ -7,7 +7,7 @@ import { extname, join, normalize, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { TYPES } from './kit/arena/tools/serve.js';
 import { roundOrder } from './judge/match.js';
-import { gameData, stageList } from './judge/gamedata.js';
+import { gameData, gameIndex, fighterDetail, matchDetail, stageList } from './judge/gamedata.js';
 
 const root = resolve(fileURLToPath(new URL('.', import.meta.url)));
 const portArg = process.argv.indexOf('--port');
@@ -60,6 +60,22 @@ async function listMatches() {
 }
 
 const listStages = async () => stageList();
+
+// The game's data: the light list and the details of one fighter or one match (judge/gamedata.js). A page asks for
+// several of them at once, so what was read from the disk serves the requests of the next second.
+let gameCache = { at: 0, full: null };
+function fullGame() {
+  if (Date.now() - gameCache.at > 1000) gameCache = { at: Date.now(), full: gameData() };
+  return gameCache.full;
+}
+const ratingRows = () => readJSON(join(root, 'out', 'rating.json')).rows || null;
+const gameList = () => gameIndex(fullGame(), { rating: ratingRows() });
+function gameDetail(path) {
+  const f = path.match(/^\/api\/fighter\/([a-z0-9-]+)\.json$/);
+  if (f) return fighterDetail(fullGame(), f[1]);
+  const m = path.match(/^\/api\/match\/([A-Za-z0-9._-]+)\.json$/);
+  return m ? matchDetail(fullGame(), m[1]) : undefined;
+}
 
 // the tournament console (judge/tournament.js): this machine only — it starts agents and the judge
 const local = (req) => ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.socket.remoteAddress);
@@ -124,11 +140,16 @@ createServer(async (req, res) => {
         return res.end(JSON.stringify({ error: String(e.message || e) }));
       }
     }
-    const api = { '/api/fighters': listFighters, '/api/stages': listStages, '/api/matches': listMatches, '/api/game': gameData, '/api/game.json': gameData }[url.pathname];
+    const api = { '/api/fighters': listFighters, '/api/stages': listStages, '/api/matches': listMatches, '/api/game': gameList, '/api/game.json': gameList }[url.pathname];
     if (api) {
       res.writeHead(200, { 'content-type': TYPES['.json'], 'cache-control': 'no-store' });
       res.end(JSON.stringify(await api()));
       return;
+    }
+    const detail = gameDetail(url.pathname);
+    if (detail !== undefined) {
+      res.writeHead(detail ? 200 : 404, { 'content-type': TYPES['.json'], 'cache-control': 'no-store' });
+      return res.end(JSON.stringify(detail));
     }
     if (url.pathname === '/dev') {
       res.writeHead(302, { location: `/viewer/dev.html${url.search}` });

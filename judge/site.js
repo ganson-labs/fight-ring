@@ -9,13 +9,14 @@
 // No server behind it and no address inside it: any static hosting serves the folder, under any path.
 // --no-pages leaves the pages out (no npm needed): the game alone, the root index sends to play/.
 // --no-rating skips the common rating (judge/rating.js): the page «Рейтинг» is built without the table.
+// --kept-rating builds with the table of the last count (out/rating.json) and plays nothing.
 //   <out>/_headers         what the pages and the workers of the site may load and talk to (Cloudflare Pages)
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { RING } from './contestants.js';
-import { gameData } from './gamedata.js';
+import { gameData, gameFiles } from './gamedata.js';
 import { commonRating, RATING_FILE } from './rating.js';
 
 // folder → [where it goes, what of it goes out (a test of the path inside the folder; nothing — everything)]
@@ -135,7 +136,8 @@ export async function buildSite(out, { log = console.log, pages = true, rating =
   rmSync(out, { recursive: true, force: true });
   mkdirSync(out, { recursive: true });
   // the common rating is played before the pages are built: the page «Рейтинг» is made of it
-  const table = rating ? await commonRating({ log }) : null;
+  // rating: 'kept' takes the table as it lies in out/rating.json (the last count), without playing a fight
+  const table = rating === 'kept' ? (existsSync(RATING_FILE) ? JSON.parse(readFileSync(RATING_FILE, 'utf8')) : null) : rating ? await commonRating({ log }) : null;
   if (pages) buildPages(out, log, table ? RATING_FILE : null);
   else writeFileSync(join(out, 'index.html'), '<!doctype html><meta charset="utf-8"><title>Ринг моделей</title><meta http-equiv="refresh" content="0;url=play/"><a href="play/">Ринг моделей</a>\n');
   mkdirSync(join(out, 'api'), { recursive: true });
@@ -145,7 +147,11 @@ export async function buildSite(out, { log = console.log, pages = true, rating =
     cpSync(from, join(out, to || dir), { recursive: true, filter: (src) => { const p = relative(from, src).split(sep).join('/'); return !p || !keep || keep(p); } });
   }
   const data = { ...gameData({ live: false }), static: true };
-  writeFileSync(join(out, 'api', 'game.json'), JSON.stringify(data));
+  // the light list and a file of details for every fighter and match that has them (judge/gamedata.js)
+  for (const [path, body] of gameFiles(data, { rating: table?.rows || null })) {
+    mkdirSync(join(out, path, '..'), { recursive: true });
+    writeFileSync(join(out, path), JSON.stringify(body));
+  }
   if (table) writeFileSync(join(out, 'api', 'rating.json'), JSON.stringify(table));
   writeFileSync(join(out, '_headers'), siteHeaders(out));
   // a round without its record cannot be watched: say so at build time, not in the visitor's browser

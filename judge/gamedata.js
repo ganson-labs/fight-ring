@@ -17,20 +17,31 @@ const readJSON = (f, fb = null) => {
   }
 };
 
-// one hash for a fighter folder (raw parts are not part of the fighter)
+// one hash for a fighter folder (raw parts are not part of the fighter). The server asks on every refresh of the
+// game and a roster of 300 fighters is 2 GB of pictures, so a folder whose files did not change (names, sizes, times)
+// is not read again.
+const hashCache = new Map();
 export function folderHash(dir) {
-  const h = createHash('sha1');
+  const files = [];
   const walk = (d) => {
     for (const n of readdirSync(d).sort()) {
       const p = join(d, n);
-      if (statSync(p).isDirectory()) {
+      const st = statSync(p);
+      if (st.isDirectory()) {
         if (n === 'raw' && d.endsWith('parts')) continue;
         walk(p);
-      } else h.update(relative(dir, p).split(sep).join('/')).update(readFileSync(p));
+      } else files.push([p, st]);
     }
   };
   walk(dir);
-  return h.digest('hex').slice(0, 12);
+  const stamp = files.map(([p, st]) => `${p}|${st.size}|${st.mtimeMs}`).join('\n');
+  const have = hashCache.get(dir);
+  if (have?.stamp === stamp) return have.hash;
+  const h = createHash('sha1');
+  for (const [p] of files) h.update(relative(dir, p).split(sep).join('/')).update(readFileSync(p));
+  const hash = h.digest('hex').slice(0, 12);
+  hashCache.set(dir, { stamp, hash });
+  return hash;
 }
 
 // the ability's own words: the leading comment of its module
@@ -171,7 +182,9 @@ export function stageList() {
     const d = readJSON(join(dir, name, 'stage.json'));
     if (!d) continue;
     const far = (d.layers || []).find((l) => l.image)?.image;
-    out.push({ id: name, dir: `/stages/${name}/`, name: d.name || name, thumb: far ? `/stages/${name}/${far}` : null });
+    // thumb.jpg: the far layer 640 points wide (the layer itself is 2.4 MB, four of them on the fight select)
+    const thumb = existsSync(join(dir, name, 'thumb.jpg')) ? 'thumb.jpg' : far;
+    out.push({ id: name, dir: `/stages/${name}/`, name: d.name || name, thumb: thumb ? `/stages/${name}/${thumb}` : null });
   }
   return out;
 }
@@ -297,4 +310,55 @@ export function liveData({ dirs = false } = {}) {
     return { fighters: fighters.filter((f) => !f.cid || only.includes(f.cid)), matches: matchList.filter((m) => only.includes(m.red) && only.includes(m.blue)) };
   }
   return { fighters, matches: matchList };
+}
+
+// ---------- the light list and the details ----------
+// The game opens with a list it can show a fighter select and a match list from; what only one page needs is asked
+// for when that page opens: a fighter's locker-room replies, the breakdown of its changes and its abilities
+// (api/fighter/<cid>.json), a match's numbers, story and protocol (api/match/<id>.json). With hundreds of fighters
+// and seasons the list stays about half a kilobyte a fighter.
+const FIGHTER_HEAVY = ['note', 'changes', 'abilities'];
+const MATCH_HEAVY = ['stats', 'roundStats', 'story', 'protocol'];
+const heavyVersion = (v) => !!v.note || !!v.changes || (v.abilities || []).length > 0;
+
+// rating: rows of the common rating (out/rating.json), when it has been played: the game sorts by it
+export function gameIndex(full, { rating = null } = {}) {
+  const rate = new Map((rating || []).filter((r) => r.origin !== 'ref').map((r) => [r.id, r.rating]));
+  return {
+    ...full,
+    fighters: full.fighters.map((f) => {
+      // a fighter with nothing heavy (one version, no abilities in code) is whole in the list and has no file
+      const heavy = !!f.cid && f.versions.some(heavyVersion);
+      return {
+        ...f,
+        ...(f.cid && rate.has(f.cid) ? { rating: rate.get(f.cid) } : {}),
+        ...(heavy ? { detail: `/api/fighter/${f.cid}.json` } : {}),
+        versions: f.versions.map((v) => {
+          const light = Object.fromEntries(Object.entries(v).filter(([k]) => !FIGHTER_HEAVY.includes(k)));
+          return heavy ? { ...light, hasChanges: !!v.changes } : { ...light, note: null, changes: null, abilities: v.abilities || [] };
+        }),
+      };
+    }),
+    matches: full.matches.map((m) => ({ ...Object.fromEntries(Object.entries(m).filter(([k]) => !MATCH_HEAVY.includes(k))), detail: `/api/match/${m.id}.json` })),
+  };
+}
+
+export function fighterDetail(full, cid) {
+  const f = full.fighters.find((x) => x.cid === cid);
+  return f ? { id: f.id, versions: f.versions.map((v) => ({ v: v.v, note: v.note ?? null, changes: v.changes ?? null, abilities: v.abilities || [] })) } : null;
+}
+
+export function matchDetail(full, id) {
+  const m = full.matches.find((x) => x.id === id);
+  return m ? { id: m.id, ...Object.fromEntries(MATCH_HEAVY.map((k) => [k, m[k] ?? null])) } : null;
+}
+
+// every file of the split, for a site of plain files: [[path under the root, data]]
+export function gameFiles(full, opts = {}) {
+  const index = gameIndex(full, opts);
+  return [
+    ['api/game.json', index],
+    ...index.fighters.filter((f) => f.detail).map((f) => [f.detail.slice(1), fighterDetail(full, f.cid)]),
+    ...index.matches.map((m) => [m.detail.slice(1), matchDetail(full, m.id)]),
+  ];
 }
