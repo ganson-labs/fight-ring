@@ -12,7 +12,7 @@ const earlier = (await seasons()).filter((s) => s.id !== season.id);
   {earlier.length > 0 && (
     <section class="wrap">
       <h2 class="slab">Прошлые турниры</h2>
-      <ul>{earlier.map((s) => <li><a href={to(Astro.url.pathname, `tournament/${s.id}/`)}>{s.title}</a></li>)}</ul>
+      <div class="steps">{earlier.map((s) => <a class="plate" href={to(Astro.url.pathname, `tournament/${s.id}/`)}>{s.title}</a>)}</div>
     </section>
   )}
 </Page>

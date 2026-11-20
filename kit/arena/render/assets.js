@@ -26,7 +26,9 @@ async function getJSON(url) {
 }
 
 // base: URL of the fighter folder, ending with "/".
-export async function loadFighterAssets(base) {
+// src(image) → the address of one picture, for a page that serves lighter copies of the same pictures (the site's
+// WebP); portrait: false leaves the card's portrait out (up to 2.7 MB that a figure never draws).
+export async function loadFighterAssets(base, { src = (img) => `${base}${img}`, portrait: withPortrait = true } = {}) {
   const input = {};
   for (const f of ['fighter', 'body', 'moves', 'voice']) input[f] = await getJSON(`${base}${f}.json`);
   const res = checkFighter(input);
@@ -58,7 +60,7 @@ export async function loadFighterAssets(base) {
   for (const img of def.abilityImages || []) images.add(img);
   await Promise.all([...images].map(async (img) => {
     try {
-      textures[img] = await PIXI.Assets.load({ src: `${base}${img}`, loadParser: 'loadTextures', data: SMOOTH });
+      textures[img] = await PIXI.Assets.load({ src: src(img), loadParser: 'loadTextures', data: SMOOTH });
     } catch (err) {
       console.warn('картинка не загрузилась', base + img, err);
     }
@@ -81,9 +83,9 @@ export async function loadFighterAssets(base) {
     if (px.get(p.image)) pictures[bone] = px.get(p.image);
   }
   let portrait = null;
-  if (def.card.portrait) {
+  if (withPortrait && def.card.portrait) {
     try {
-      portrait = await PIXI.Assets.load({ src: `${base}${def.card.portrait}`, loadParser: 'loadTextures' });
+      portrait = await PIXI.Assets.load({ src: src(def.card.portrait), loadParser: 'loadTextures' });
     } catch {}
   }
   return { base, def, textures, seat, pixels: pictures, portrait, warnings: res.warnings, abilities };

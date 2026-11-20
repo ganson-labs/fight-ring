@@ -1,25 +1,21 @@
 ---
-import { existsSync } from 'node:fs';
-import { join } from 'node:path';
 import Page from '../layouts/Page.astro';
-import Portrait from '../components/Portrait.astro';
 import FighterCard from '../components/FighterCard.astro';
-import { PLAY, RING, fighterIn, latestSeason, plural } from '../data/ring';
+import MatchCard from '../components/MatchCard.astro';
+import { PLAY, fighterIn, latestSeason, plural } from '../data/ring';
 import { to } from '../lib/paths';
+import { stageBackdrop } from '../lib/rig';
 
 const season = await latestSeason();
 const path = Astro.url.pathname;
 const final = season.final;
-const duel = final ? final.sides.map((cid, i) => ({ fighter: fighterIn(season, cid), score: final.score[i] ?? 0 })) : [];
-const [left, right] = duel;
 const winner = final?.winner ? fighterIn(season, final.winner) : null;
-const stage = final?.rounds[0]?.stage;
-const backdrop = stage && existsSync(join(RING, 'stages', stage, 'far.hd.webp')) ? to(path, `stages/${stage}/far.hd.webp`) : null;
+const backdrop = await stageBackdrop(final?.rounds[0]?.stage);
 const n = season.fighters.length;
 const lead = 'Это файтинг, в котором бойцов создают нейросети. Модель сама придумывает персонажа, рисует его, выбирает приёмы и голос и пишет программу, которая ведёт бойца в бою.';
 ---
 <Page description={lead}>
-  <section class="hero" style={backdrop ? `--stage:url('${backdrop}')` : undefined}>
+  <section class="hero" style={backdrop ? `--stage:url('${to(path, backdrop)}')` : undefined}>
     <div class="wrap hero-in">
       <div class="hero-text">
         <h1 class="slab"><span class="hot">Ринг моделей</span></h1>
@@ -36,47 +32,40 @@ const lead = 'Это файтинг, в котором бойцов создаю
           </div>
         </div>
       </div>
-      {left?.fighter && right?.fighter && (
-        <a class="duel" href={to(path, 'tournament/')} aria-label={`Финал: ${left.fighter.name} против ${right.fighter.name}, счёт ${left.score}:${right.score}`}>
-          <span class="duel-side a"><Portrait fighter={left.fighter} width={300} sizes="(max-width: 880px) 42vw, 300px" eager alt="" /></span>
-          <span class="duel-score slab"><span class="hot">{left.score}:{right.score}</span></span>
-          <span class="duel-side b"><Portrait fighter={right.fighter} width={300} sizes="(max-width: 880px) 42vw, 300px" eager alt="" /></span>
-        </a>
-      )}
+      {final && <div class="duel"><MatchCard season={season} match={final} heading="h2" rounds={false} href={to(path, 'tournament/')} /></div>}
     </div>
   </section>
 
   <section class="wrap">
     <h2 class="slab">Бойцы</h2>
     <div class="row">
-      {season.fighters.map((f) => <FighterCard fighter={f} width={220} sizes="(max-width: 700px) 44vw, 220px" />)}
+      {season.fighters.map((f, i) => <div class="cell" data-rise="up" style={`--i:${i}`}><FighterCard fighter={f} width={230} sizes="(max-width: 700px) 30vw, 230px" /></div>)}
     </div>
   </section>
 </Page>
 
 <style>
-  .hero { position: relative; isolation: isolate; padding: clamp(20px, 5vw, 72px) 0 clamp(40px, 6vw, 88px); }
-  .hero::before { content: ''; position: absolute; inset: -120px 0 0; z-index: -1; background: linear-gradient(180deg, var(--bg) 0%, transparent 22%, transparent 55%, var(--bg) 100%), linear-gradient(90deg, rgba(6, 7, 11, .88) 0%, rgba(6, 7, 11, .45) 100%), var(--stage, none) center 30% / cover no-repeat; filter: saturate(1.1); opacity: .75; }
-  .hero-in { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 64px); align-items: center; }
-  .hero-text h1 { margin-bottom: 26px; font-size: clamp(44px, 7vw, 96px); }
+  .hero { position: relative; isolation: isolate; padding: clamp(12px, 3vw, 48px) 0 clamp(24px, 4vw, 56px); }
+  .hero::before { content: ''; position: absolute; inset: -120px 0 0; z-index: -1; background: linear-gradient(180deg, var(--bg) 0%, transparent 22%, transparent 55%, var(--bg) 100%), linear-gradient(90deg, rgba(6, 7, 11, .9) 0%, rgba(6, 7, 11, .5) 100%), var(--stage, none) center 30% / cover no-repeat; filter: saturate(1.1); opacity: .75; }
+  .hero-in { display: grid; grid-template-columns: minmax(0, .82fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 56px); align-items: center; }
+  .hero-text h1 { margin-bottom: 26px; font-size: clamp(46px, 6.6vw, 96px); }
   .hero-text .lead + .lead { color: var(--dim); font-size: 17px; }
   .hero .steps { flex-direction: column; align-items: flex-start; gap: 14px; }
   .more { display: flex; flex-wrap: wrap; gap: 12px 6px; }
+  .duel { min-width: 0; transform: rotate(-1.2deg); }
+  .duel :global(.vs-stage) { aspect-ratio: 4 / 3; box-shadow: 0 30px 80px -20px #000, 0 0 70px -14px rgba(255, 176, 42, .5); }
 
-  .duel { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 4%; align-items: center; text-decoration: none; padding: 5% 0; }
-  .duel-side { display: block; }
-  .duel-side.a { transform: rotate(-4deg) translate(0, -8%); }
-  .duel-side.b { transform: rotate(3deg) translate(0, 9%); }
-  .duel-side :global(.frame) { box-shadow: 0 0 0 1px rgba(0, 0, 0, .6); filter: drop-shadow(0 18px 40px color-mix(in srgb, var(--c) 45%, transparent)); }
-  .duel-score { position: absolute; z-index: 2; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(-6deg); font-size: clamp(54px, 8vw, 116px); letter-spacing: -.01em; filter: drop-shadow(0 0 22px rgba(0, 0, 0, .9)) drop-shadow(0 0 4px #000); white-space: nowrap; }
-
-  .row { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: clamp(14px, 2vw, 26px); }
+  .row { display: flex; flex-wrap: wrap; justify-content: center; gap: clamp(22px, 2.6vw, 34px) clamp(10px, 2vw, 26px); }
+  .cell { flex: 0 1 calc((100% - 4 * clamp(10px, 2vw, 26px)) / 5); min-width: 0; }
 
   @media (max-width: 880px) {
     .hero-in { grid-template-columns: 1fr; }
-    .duel { order: -1; max-width: 380px; width: 100%; margin: 0 auto; padding: 3% 4% 6%; }
+    .hero-text { display: contents; }
+    .hero-text h1 { order: -2; margin-bottom: 0; }
+    .duel { order: -1; transform: none; margin: 0 calc(var(--gutter) * -1 + 6px); }
+    .duel :global(.vs-stage) { aspect-ratio: 1; }
     .hero .steps { align-items: stretch; }
     .more { flex-direction: column; }
-    .row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 16px; }
+    .cell { flex-basis: calc((100% - 2 * clamp(10px, 2vw, 26px)) / 3); }
   }
 </style>

@@ -1,25 +1,31 @@
 ---
-// The card of a fighter in a gallery: portrait, the fighter's name, the model, the author when there is one.
+// A fighter as a tile of the fighter select: the portrait in a slanted frame, the name and the model on a plate
+// of the contestant's colour, the author when there is one. The tile carries the fighter's card in data-*: a
+// page with a preview (data-select, see ui/arcade.js) shows the fighter under the pointer there.
 import type { Fighter } from '../data/ring';
 import { to } from '../lib/paths';
+import { rigDir } from '../lib/rig';
 import Portrait from './Portrait.astro';
 
-interface Props { fighter: Fighter; width?: number; sizes?: string }
-const { fighter, width = 340, sizes } = Astro.props;
+interface Props { fighter: Fighter; width?: number; sizes?: string; selected?: boolean }
+const { fighter, width = 340, sizes, selected = false } = Astro.props;
 ---
-<a class="card" href={to(Astro.url.pathname, `fighters/${fighter.id}/`)} style={`--c:${fighter.color}`}>
+<a
+  class:list={['tile', { on: selected }]}
+  href={to(Astro.url.pathname, `fighters/${fighter.id}/`)}
+  style={`--c:${fighter.color};view-transition-name:f-${fighter.id.replace(/[^a-z0-9_-]/gi, '_')}`}
+  data-pick
+  data-name={fighter.name}
+  data-model={fighter.model}
+  data-motto={fighter.motto}
+  data-color={fighter.color}
+  data-dir={rigDir(fighter)}
+  data-stats={fighter.stats ? JSON.stringify(fighter.stats) : undefined}
+>
   <Portrait fighter={fighter} width={width} sizes={sizes} alt="" />
-  <span class="card-name slab">{fighter.name}</span>
-  <span class="card-model">{fighter.model}</span>
-  {fighter.author && <span class="card-author">{fighter.author}</span>}
+  <span class="tile-plate">
+    <span class="tile-name slab">{fighter.name}</span>
+    <span class="tile-model">{fighter.model}</span>
+    {fighter.author && <span class="tile-author">{fighter.author}</span>}
+  </span>
 </a>
-
-<style>
-  .card { display: flex; flex-direction: column; text-decoration: none; }
-  .card :global(.frame) { transition: transform .15s; }
-  .card:hover :global(.frame) { transform: translateY(-4px); }
-  .card-name { margin-top: 14px; font-size: clamp(19px, 1.9vw, 24px); line-height: 1.08; }
-  .card-model { margin-top: 4px; font-size: 15px; font-weight: 500; color: var(--c); }
-  .card-author { font-size: 14px; color: var(--dim); }
-  @media (prefers-reduced-motion: reduce) { .card :global(.frame) { transition: none; } }
-</style>

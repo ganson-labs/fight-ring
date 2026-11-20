@@ -1,62 +1,151 @@
 ---
-// One match: both sides with the score, then every round with its outcome and a link into the game.
+// One match as the game's VS screen: both fighters face to face on halves of their colours, cut on a slant, the
+// score across the cut, the winner in the light and the loser in the shade. Under it every round as a plate that
+// opens the round in the game.
 import type { Match, Season } from '../data/ring';
-import { fighterIn, roundOutcome, roundTitle, watchRound } from '../data/ring';
+import { fighterIn, roundTitle, watchRound } from '../data/ring';
 import { to } from '../lib/paths';
+import Figure from './Figure.astro';
 import Portrait from './Portrait.astro';
 
-interface Props { season: Season; match: Match; heading?: 'h2' | 'h3' }
-const { season, match, heading: H = 'h3' } = Astro.props;
+interface Props {
+  season: Season;
+  match: Match;
+  heading?: 'h2' | 'h3';
+  /** without the plates of the rounds */
+  rounds?: boolean;
+  /** the whole screen is one link (the final on the home page); otherwise each side leads to its fighter */
+  href?: string;
+}
+const { season, match, heading: H = 'h3', rounds = true, href } = Astro.props;
 const path = Astro.url.pathname;
-const name = (cid: string) => fighterIn(season, cid)?.name ?? cid;
-const sides = match.sides.map((cid, i) => ({ cid, fighter: fighterIn(season, cid), score: match.score[i] ?? 0, won: match.winner === cid }));
+const sides = match.sides.map((cid, i) => ({ cid, fighter: fighterIn(season, cid), score: match.score[i] ?? 0, won: match.winner === cid, lost: match.winner !== null && match.winner !== cid }));
+const [a, b] = sides;
+const color = (cid: string | null) => (cid ? fighterIn(season, cid)?.color : null) ?? null;
+const how = (r: Match['rounds'][number]) => (r.winner ? (r.reason === 'ko' ? 'Нокаут' : 'По времени') : r.reason === 'ko' ? 'Двойной нокаут' : 'Ничья');
+const told = (r: Match['rounds'][number]) => `${match.title}, ${roundTitle(r).toLowerCase()}: ${r.winner ? `${fighterIn(season, r.winner)?.name ?? r.winner}, ` : ''}${how(r).toLowerCase()}${r.seconds !== null ? `, ${Math.round(r.seconds)} с` : ''}. Смотреть раунд`;
 ---
-<article class="match" id={match.id}>
-  <H class="slab match-title">{match.title}</H>
-  <div class="sides">
-    {sides.map((s) => (
-      <div class:list={['side', { lost: match.winner !== null && !s.won }]} style={`--c:${s.fighter?.color ?? 'var(--line)'}`}>
-        {s.fighter && <a class="thumb" href={to(path, `fighters/${s.fighter.id}/`)} tabindex="-1" aria-hidden="true"><Portrait fighter={s.fighter} width={56} alt="" /></a>}
-        <div class="side-who">
-          {s.fighter ? <a class="side-name slab" href={to(path, `fighters/${s.fighter.id}/`)}>{s.fighter.name}</a> : <span class="side-name slab">{s.cid}</span>}
-          {s.fighter && <span class="side-model">{s.fighter.model}</span>}
-        </div>
-        <span class="score slab" aria-label={`побед в раундах: ${s.score}`}>{s.score}</span>
-      </div>
-    ))}
+<article class:list={['vs', `vs-${match.kind}`]} id={match.id} data-rise="vs" style={`--a:${a?.fighter?.color ?? 'var(--line)'};--b:${b?.fighter?.color ?? 'var(--line)'};--w:${color(match.winner) ?? 'var(--line)'}`}>
+  <H class="vs-title slab"><span>{match.title}</span></H>
+  <div class="vs-stage">
+    {sides.map((s, i) => {
+      const Side = s.fighter && !href ? 'a' : 'div';
+      return (
+        <Side class:list={['vs-side', i ? 'b' : 'a', { won: s.won, lost: s.lost }]} href={Side === 'a' && s.fighter ? to(path, `fighters/${s.fighter.id}/`) : undefined} style={`--c:${s.fighter?.color ?? 'var(--line)'}`}>
+          {s.fighter && <span class="vs-fig"><Figure fighter={s.fighter} flip={i === 1} play={s.won ? 'victory' : 'intro'} width={300} sizes="(max-width: 700px) 50vw, 300px" /></span>}
+          <span class="vs-who">
+            <span class="vs-name slab">{s.fighter?.name ?? s.cid}</span>
+            {s.fighter && <span class="vs-model">{s.fighter.model}</span>}
+          </span>
+        </Side>
+      );
+    })}
+    <span class="vs-cut" aria-hidden="true"></span>
+    <p class="vs-score slab" aria-label={`Счёт ${a?.score}:${b?.score}`}>
+      {sides.map((s) => <b class:list={{ won: s.won, lost: s.lost }} aria-hidden="true">{s.score}</b>)}
+    </p>
+    {href && <a class="vs-link" href={href} aria-label={`${match.title}: ${a?.fighter?.name} против ${b?.fighter?.name}, счёт ${a?.score}:${b?.score}`}></a>}
   </div>
-  <ol class="rounds">
-    {match.rounds.map((r) => (
-      <li>
-        <span class="round-title">{roundTitle(r)}</span>
-        <span class="round-out">{roundOutcome(r, name)}{r.seconds !== null && <span class="dim">, {Math.round(r.seconds)}&nbsp;с</span>}</span>
-        <a class="watch" href={to(path, watchRound(match, r))} aria-label={`Смотреть раунд: ${match.title}, ${roundTitle(r).toLowerCase()}`}>Смотреть раунд</a>
-      </li>
-    ))}
-  </ol>
+  {rounds && (
+    <div class="vs-rounds">
+      <ol class="chips">
+        {match.rounds.map((r) => {
+          const winner = r.winner ? fighterIn(season, r.winner) : null;
+          return (
+            <li>
+              <a class="chip" href={to(path, watchRound(match, r))} style={`--c:${winner?.color ?? 'var(--mute)'}`} aria-label={told(r)}>
+                {winner ? <span class="chip-face"><Portrait fighter={winner} width={40} alt="" /></span> : <span class="chip-face none"></span>}
+                <span class="chip-n slab">Раунд {r.num}</span>
+                {r.rerun && <span class="chip-re">переигровка</span>}
+                <span class="chip-how">{how(r)}</span>
+                {r.seconds !== null && <span class="chip-sec">{Math.round(r.seconds)}&nbsp;с</span>}
+                <svg class="chip-go" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1.5v13l11-6.5z" /></svg>
+              </a>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  )}
 </article>
 
 <style>
-  .match { background: var(--panel); border-top: 3px solid var(--gold2); padding: 20px 22px 8px; min-width: 0; }
-  .match-title { font-size: 20px; color: var(--gold); margin: 0 0 14px; }
-  .sides { display: grid; gap: 10px; }
-  .side { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; }
-  .thumb { width: 56px; flex: none; }
-  .thumb :global(.frame) { padding: 2px; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%); }
-  .thumb :global(img) { clip-path: none; }
-  .side-who { display: flex; flex-direction: column; min-width: 0; }
-  .side-name { font-size: 21px; line-height: 1.1; text-decoration: none; overflow-wrap: anywhere; }
-  a.side-name:hover { color: var(--gold); }
-  .side-model { font-size: 14px; font-weight: 500; color: var(--c); }
-  .score { font-size: 40px; min-width: 1ch; text-align: right; }
-  .side.lost .score, .side.lost .side-name { color: var(--mute); }
-  .rounds { list-style: none; margin: 18px 0 0; padding: 0; }
-  .rounds li { display: grid; grid-template-columns: 1fr auto; gap: 0 16px; align-items: baseline; padding: 11px 0; border-top: 1px solid var(--line); font-size: 15.5px; line-height: 1.4; }
-  .round-title { font-weight: 600; }
-  .round-out { grid-column: 1; color: #d6d9e3; }
-  .watch { grid-column: 2; grid-row: 1 / span 2; align-self: center; padding: 8px 0; font: italic 700 15px/1.1 var(--display); text-transform: uppercase; letter-spacing: .06em; color: var(--gold); white-space: nowrap; }
-  @media (max-width: 400px) {
-    .match { padding: 18px 16px 6px; }
-    .side-name { font-size: 19px; }
+  .vs { min-width: 0; }
+  .vs-title { margin: 0 0 -1px; font-size: clamp(17px, 1.6vw, 21px); letter-spacing: .05em; }
+  .vs-title span { display: inline-block; padding: 7px 26px 6px 18px; color: #160a04; background: linear-gradient(180deg, #ffe27a, #ffb02a 48%, #e2621a 52%, #ffb02a); clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%); }
+
+  .vs-stage { position: relative; aspect-ratio: 16 / 9; container-type: inline-size; overflow: hidden; background: #000; isolation: isolate; }
+  .vs-side { position: absolute; inset: 0; display: block; text-decoration: none; color: inherit; overflow: hidden;
+    background:
+      linear-gradient(0deg, rgba(4, 5, 9, .92) 0%, rgba(4, 5, 9, 0) 46%),
+      repeating-linear-gradient(104deg, rgba(255, 255, 255, .07) 0 2px, transparent 2px 26px),
+      radial-gradient(70% 90% at var(--gx) 62%, color-mix(in srgb, var(--c) 78%, #fff 0%) 0%, color-mix(in srgb, var(--c) 46%, #05060a) 48%, color-mix(in srgb, var(--c) 14%, #05060a) 100%);
+    transition: filter .2s; }
+  .vs-side.a { --gx: 24%; clip-path: polygon(0 0, 57% 0, 43% 100%, 0 100%); }
+  .vs-side.b { --gx: 76%; clip-path: polygon(57% 0, 100% 0, 100% 100%, 43% 100%); }
+  .vs-fig { position: absolute; top: 5%; bottom: 0; width: 50%; transition: transform .3s var(--snap), filter .2s; }
+  .vs-side.a .vs-fig { left: -4%; }
+  .vs-side.b .vs-fig { right: -4%; }
+  .vs-side.lost { filter: saturate(.35) brightness(.78); }
+  a.vs-side:hover, a.vs-side:focus-visible { filter: brightness(1.18); }
+  a.vs-side.lost:hover, a.vs-side.lost:focus-visible { filter: saturate(.7) brightness(.85); }
+  a.vs-side.a:hover .vs-fig { transform: translateX(3%) scale(1.04); }
+  a.vs-side.b:hover .vs-fig { transform: translateX(-3%) scale(1.04); }
+  a.vs-side:focus-visible { outline: none; }
+  a.vs-side:focus-visible .vs-name { text-decoration: underline; text-decoration-color: var(--gold); }
+  /* the winner's light: a beam from above, in the fighter's colour */
+  .vs-side.won::after { content: ''; position: absolute; top: -10%; bottom: 30%; width: 42%; left: 4%; background: linear-gradient(180deg, rgba(255, 255, 255, .5), transparent); clip-path: polygon(38% 0, 62% 0, 100% 100%, 0 100%); mix-blend-mode: overlay; pointer-events: none; }
+  .vs-side.b.won::after { left: auto; right: 4%; }
+
+  .vs-fig :global(.frame img) { object-fit: cover; object-position: 50% 15%; }
+  .vs-who { position: absolute; bottom: 5cqw; display: flex; flex-direction: column; gap: .3cqw; max-width: 40%; }
+  .vs-side.a .vs-who { left: 3.2cqw; }
+  .vs-side.b .vs-who { right: 3.2cqw; text-align: right; align-items: flex-end; max-width: 46%; }
+  .vs-name { font-size: clamp(15px, 4.4cqw, 34px); line-height: 1; text-shadow: 0 2px 0 #000, 0 0 18px rgba(0, 0, 0, .8); overflow-wrap: anywhere; }
+  .vs-model { font-size: clamp(11.5px, 2.5cqw, 16px); font-weight: 600; line-height: 1.2; color: color-mix(in srgb, var(--c) 62%, #fff); text-shadow: 0 1px 0 #000; }
+
+  /* the cut between the halves: a blade of light */
+  .vs-cut { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, transparent, #fff 45%, #fff 55%, transparent); clip-path: polygon(56.6% 0, 57.4% 0, 43.4% 100%, 42.6% 100%); filter: drop-shadow(0 0 8px #fff); }
+
+  .vs-score { position: absolute; left: 50%; top: 44%; margin: 0; max-width: none; display: flex; gap: 6cqw; transform: translate(-50%, -50%); font-size: 25cqw; line-height: .8; pointer-events: none; }
+  .vs-score b { display: block; padding: .1em .12em .06em .04em; margin: -.1em -.12em -.06em -.04em; font-weight: 700; background: var(--silver); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 .03em 0 #05060a) drop-shadow(0 0 .12em rgba(0, 0, 0, .85)); }
+  .vs-score b.won { background-image: var(--hot); }
+  .vs-score b.lost { background-image: linear-gradient(180deg, #8f93a3, #4a4e5c); }
+  .vs-score b:first-child { transform: translateY(-9%); }
+  .vs-score b:last-child { transform: translateY(9%); }
+
+  .vs-link { position: absolute; inset: 0; z-index: 2; }
+  .vs-link:focus-visible { outline-offset: -4px; }
+
+  .vs-rounds { margin-top: 8px; }
+
+  /* the final is the main fight: a gold frame, a taller screen */
+  .vs-final .vs-stage { outline: 3px solid var(--gold); outline-offset: -3px; box-shadow: 0 0 60px -12px rgba(255, 176, 42, .55); }
+
+  /* the screen lands: the halves come from their sides, the score slams, the cut flashes */
+  @keyframes from-left { from { transform: translateX(-60%); } }
+  @keyframes from-right { from { transform: translateX(60%); } }
+  @keyframes score { 0% { opacity: 0; scale: 3; filter: blur(12px) brightness(3); } 60% { opacity: 1; scale: .92; filter: brightness(2); } 100% { opacity: 1; scale: 1; } }
+  @keyframes cut { 0% { opacity: 0; } 35% { opacity: 1; filter: drop-shadow(0 0 40px #fff) brightness(3); } 100% { opacity: 1; } }
+  :global(html.js) .vs[data-rise] { opacity: 1; }
+  :global(html.js) .vs[data-rise]:not(.in) :is(.vs-stage, .vs-title, .vs-rounds) { opacity: 0; }
+  :global(html.js) .vs.in { animation: none; }
+  :global(html.js) .vs.in .vs-fig { animation: from-left .42s var(--snap) both; }
+  :global(html.js) .vs.in .vs-side.b .vs-fig { animation-name: from-right; }
+  :global(html.js) .vs.in .vs-score { animation: score .36s cubic-bezier(.2, .9, .3, 1) .24s both; }
+  :global(html.js) .vs.in .vs-cut { animation: cut .5s ease-out .2s both; }
+  :global(html.js) .vs.in .vs-title { animation: dash .35s var(--snap) both; }
+  :global(html.js) .vs.in .chips > li { animation: rise .32s var(--snap) both; }
+  :global(html.js) .vs.in .chips > li:nth-child(1) { animation-delay: .42s; }
+  :global(html.js) .vs.in .chips > li:nth-child(2) { animation-delay: .5s; }
+  :global(html.js) .vs.in .chips > li:nth-child(3) { animation-delay: .58s; }
+  :global(html.js) .vs.in .chips > li:nth-child(n + 4) { animation-delay: .66s; }
+
+  @media (max-width: 640px) {
+    .vs-stage { aspect-ratio: 5 / 4; }
+    .vs-fig { top: 4%; width: 56%; }
+    .vs-side.a .vs-fig { left: -5%; }
+    .vs-side.b .vs-fig { right: -5%; }
+    .vs-score { top: 40%; font-size: 30cqw; }
   }
 </style>

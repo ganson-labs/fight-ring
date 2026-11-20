@@ -1,0 +1,31 @@
+---
+// A live fighter: the figure the game draws from the fighter's skeleton (ui/live.js), over the portrait that is
+// shown until the figure is ready. The parent gives the box: the figure fills it and stands on its bottom edge.
+import type { Fighter } from '../data/ring';
+import { rigDir } from '../lib/rig';
+import Portrait from './Portrait.astro';
+
+interface Props {
+  fighter: Fighter;
+  /** the fighter looks to the left: the right side of a VS screen */
+  flip?: boolean;
+  /** an animation played once when the figure appears: intro, victory */
+  play?: string;
+  /** repeat that animation every so many seconds */
+  again?: number;
+  /** bust: from the head to the hips, for a narrow box */
+  fit?: 'full' | 'bust';
+  /** the widest the portrait behind is shown, CSS px */
+  width?: number;
+  sizes?: string;
+  eager?: boolean;
+  /** a name for the preview of the fighter select, which changes its fighter */
+  part?: string;
+}
+const { fighter, flip = false, play, again, fit = 'full', width = 320, sizes, eager = false, part } = Astro.props;
+const dir = rigDir(fighter);
+---
+<span class="fig" data-fig={dir ? '' : undefined} data-dir={dir} data-flip={flip ? '' : undefined} data-play={play} data-again={again} data-fit={fit === 'bust' ? 'bust' : undefined} data-p={part}>
+  <Portrait fighter={fighter} width={width} sizes={sizes} eager={eager} alt="" />
+  <canvas aria-hidden="true"></canvas>
+</span>
