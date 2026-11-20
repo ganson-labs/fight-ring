@@ -9,6 +9,7 @@ import { assignCommands, parseCommand } from './commands.js';
 import { SOUND_NAMES } from './soundnames.js';
 import { readExtraBones, readPoseLook, meshChainOk, MESH_BONES_MAX } from './body.js';
 
+import { getRuleset, standardMoves, STANDARD_STATS, STANDARD_SCALE } from './standard.js';
 const RING_NAMES = new Set(BONE_NAMES);
 
 const SOUND_SET = new Set(SOUND_NAMES);
@@ -317,7 +318,11 @@ export function checkFighter(input, opts = {}) {
   const colors = isObj(card.colors) ? card.colors : {};
   for (const c of ['primary', 'secondary', 'accent']) if (!HEX.test(colors[c] || '')) errors.push(`fighter.json → colors.${c}: цвет #rrggbb`);
   if (card.portrait !== undefined && (typeof card.portrait !== 'string' || !has(card.portrait))) errors.push(`fighter.json → portrait: нет файла ${card.portrait}`);
-  const stats = isObj(card.stats) ? card.stats : {};
+  // ring 4: one kit for everyone — the stats, the moves' mechanics and the damage scales are the ring's (engine/standard.js)
+  const standard = opts.ruleset ? opts.ruleset === 'standard' : getRuleset() === 'standard';
+  if (standard && (card.stances !== undefined || card.resources !== undefined)) errors.push('fighter.json → stances, resources: стоек и своих ресурсов в наборе ринга нет — убери поля');
+  // ring 4: the build — 12 points over four stats, as in ring 3; without the field a fighter is the even 3/3/3/3
+  const stats = standard && card.stats === undefined ? { ...STANDARD_STATS } : isObj(card.stats) ? card.stats : {};
   let statTotal = 0;
   for (const k of STAT_KEYS) {
     const v = stats[k];
@@ -355,7 +360,7 @@ export function checkFighter(input, opts = {}) {
     });
   }
   const goodStats = STAT_KEYS.every((k) => Number.isInteger(stats[k]) && stats[k] >= 0 && stats[k] <= STAT_MAX) && statTotal <= STAT_POINTS;
-  const derived = deriveStats(goodStats ? stats : { health: 3, power: 3, speed: 3, defense: 3 });
+  const derived = deriveStats(goodStats ? stats : { health: 3, power: 3, speed: 3, defense: 3 }, standard ? STANDARD_SCALE : null);
 
   // ---- voice ----
   const lineIds = new Set();
@@ -503,9 +508,11 @@ export function checkFighter(input, opts = {}) {
 
   // ---- moves ----
   const moves = [];
-  if (!isObj(mv) || !Array.isArray(mv.moves)) errors.push('moves.json: нужен объект { moves: [...] }');
+  const rawMoves = standard ? { moves: standardMoves(mv, errors) } : mv;
+  if (!isObj(rawMoves) || !Array.isArray(rawMoves.moves)) errors.push('moves.json: нужен объект { moves: [...] }');
   else {
-    if (mv.moves.length > MOVES_MAX) errors.push(`moves.json: приёмов ${mv.moves.length}, можно не больше ${MOVES_MAX}`);
+    const mv = rawMoves;
+    if (!standard && mv.moves.length > MOVES_MAX) errors.push(`moves.json: приёмов ${mv.moves.length}, можно не больше ${MOVES_MAX}`);
     const ctx = { poses, look: bodyLook, lineIds, damageMul: derived.damageMul, stanceIds: new Set(stances.map((x) => x.id)), files };
     const ids = new Set();
     mv.moves.forEach((raw, i) => {
@@ -528,7 +535,7 @@ export function checkFighter(input, opts = {}) {
     if (!moves.some((m) => m.slot === 'normal')) errors.push('moves.json: нужен хотя бы один обычный приём (slot "normal")');
   }
   const budgetUsed = moves.reduce((s, m) => s + m.cost, 0);
-  if (budgetUsed > MOVE_BUDGET) errors.push(`moves.json: приёмы стоят ${budgetUsed} очков, бюджет ${MOVE_BUDGET}`);
+  if (!standard && budgetUsed > MOVE_BUDGET) errors.push(`moves.json: приёмы стоят ${budgetUsed} очков, бюджет ${MOVE_BUDGET}`);
 
   const compiled = errors.length
     ? null
@@ -541,6 +548,8 @@ export function checkFighter(input, opts = {}) {
         abilities: null,
         stats: { ...stats },
         derived,
+        ruleset: standard ? 'standard' : 'free',
+        scale: standard ? { ...STANDARD_SCALE } : null,
         parts,
         bones: extraBones,
         ik,
@@ -555,6 +564,6 @@ export function checkFighter(input, opts = {}) {
     errors,
     warnings,
     fighter: compiled,
-    budget: { used: budgetUsed, max: MOVE_BUDGET, moves: moves.map((m) => ({ id: m.id, slot: m.slot, cost: m.cost, duration: m.duration })) },
+    budget: standard ? null : { used: budgetUsed, max: MOVE_BUDGET, moves: moves.map((m) => ({ id: m.id, slot: m.slot, cost: m.cost, duration: m.duration })) },
   };
 }

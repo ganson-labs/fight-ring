@@ -1,0 +1,1639 @@
+{
+ "note": "Облик запасных спецприёмов Метронома: перенеси запись в moves.json → moves, когда мозги берут этот приём.",
+ "moves": [
+  {
+   "id": "retreat",
+   "name": "Ритардандо",
+   "command": "[6]4P",
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": {
+       "root": [
+        0,
+        -9
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -5,
+        "head": 7,
+        "upper_arm_front": 39,
+        "forearm_front": 130,
+        "hand_front": 6,
+        "upper_arm_back": 25,
+        "forearm_back": 154,
+        "hand_back": 4,
+        "thigh_front": 28.3,
+        "shin_front": -36.1,
+        "foot_front": 7.8,
+        "thigh_back": -8.8,
+        "shin_back": -19.6,
+        "foot_back": 28.4,
+        "needle": 0,
+        "key": 0
+       }
+      },
+      "ease": "out"
+     },
+     {
+      "t": 6,
+      "pose": {
+       "root": [
+        -12,
+        -14
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": 8,
+        "head": 0,
+        "upper_arm_front": 26,
+        "forearm_front": 130,
+        "hand_front": 6,
+        "upper_arm_back": 12,
+        "forearm_back": 154,
+        "hand_back": 4,
+        "thigh_front": 34.8,
+        "shin_front": -46.7,
+        "foot_front": 11.9,
+        "thigh_back": -3.1,
+        "shin_back": -34.2,
+        "foot_back": 37.3,
+        "needle": -40,
+        "key": 0
+       }
+      },
+      "ease": "in"
+     },
+     {
+      "t": 10,
+      "pose": {
+       "root": [
+        -12,
+        -14
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": 8,
+        "head": 0,
+        "upper_arm_front": 26,
+        "forearm_front": 130,
+        "hand_front": 6,
+        "upper_arm_back": 12,
+        "forearm_back": 154,
+        "hand_back": 4,
+        "thigh_front": 34.8,
+        "shin_front": -46.7,
+        "foot_front": 11.9,
+        "thigh_back": -3.1,
+        "shin_back": -34.2,
+        "foot_back": 37.3,
+        "needle": 40,
+        "key": 0
+       }
+      },
+      "ease": "out"
+     },
+     {
+      "t": 18,
+      "pose": {
+       "root": [
+        0,
+        -9
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -5,
+        "head": 7,
+        "upper_arm_front": 39,
+        "forearm_front": 130,
+        "hand_front": 6,
+        "upper_arm_back": 25,
+        "forearm_back": 154,
+        "hand_back": 4,
+        "thigh_front": 28.3,
+        "shin_front": -36.1,
+        "foot_front": 7.8,
+        "thigh_back": -8.8,
+        "shin_back": -19.6,
+        "foot_back": 28.4,
+        "needle": 0,
+        "key": 0
+       }
+      }
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "start",
+     "type": "afterimage",
+     "color": "#ffb02e",
+     "count": 3,
+     "duration": 10
+    },
+    {
+     "on": "active",
+     "type": "ring",
+     "color": "#ffb02e",
+     "size": 0.8
+    }
+   ],
+   "sounds": {
+    "start": "glitch",
+    "active": "teleport"
+   }
+  },
+  {
+   "id": "twin",
+   "name": "Двудольник",
+   "command": "623P",
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": {
+       "root": [
+        0,
+        -9
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -5,
+        "head": 7,
+        "upper_arm_front": 39,
+        "forearm_front": 130,
+        "hand_front": 6,
+        "upper_arm_back": 25,
+        "forearm_back": 154,
+        "hand_back": 4,
+        "thigh_front": 28.3,
+        "shin_front": -36.1,
+        "foot_front": 7.8,
+        "thigh_back": -8.8,
+        "shin_back": -19.6,
+        "foot_back": 28.4,
+        "needle": 0,
+        "key": 0
+       }
+      },
+      "ease": "out"
+     },
+     {
+      "t": 5,
+      "pose": {
+       "root": [
+        3,
+        -9.9
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -6.5,
+        "head": 8.5,
+        "upper_arm_front": 58.5,
+        "forearm_front": 90.4,
+        "hand_front": 3.6,
+        "upper_arm_back": 25.3,
+        "forearm_back": 155.8,
+        "hand_back": 4,
+        "thigh_front": 29.5,
+        "shin_front": -38.4,
+        "foot_front": 8.9,
+        "thigh_back": -10.4,
+        "shin_back": -19,
+        "foot_back": 29.4,
+        "needle": -7.8,
+        "key": 0
+       }
+      },
+      "ease": "in"
+     },
+     {
+      "t": 8,
+      "pose": {
+       "root": [
+        10,
+        -12
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -10,
+        "head": 12,
+        "upper_arm_front": 104,
+        "forearm_front": -2,
+        "hand_front": -2,
+        "upper_arm_back": 26,
+        "forearm_back": 160,
+        "hand_back": 4,
+        "thigh_front": 32.1,
+        "shin_front": -43.3,
+        "foot_front": 11.2,
+        "thigh_back": -15,
+        "shin_back": -15.8,
+        "foot_back": 30.8,
+        "needle": -26,
+        "key": 0
+       }
+      },
+      "ease": "out"
+     },
+     {
+      "t": 12,
+      "pose": {
+       "root": [
+        10,
+        -12
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -10,
+        "head": 12,
+        "upper_arm_front": 104,
+        "forearm_front": -2,
+        "hand_front": -2,
+        "upper_arm_back": 26,
+        "forearm_back": 160,
+        "hand_back": 4,
+        "thigh_front": 32.1,
+        "shin_front": -43.3,
+        "foot_front": 11.2,
+        "thigh_back": -15,
+        "shin_back": -15.8,
+        "foot_back": 30.8,
+        "needle": -26,
+        "key": 0
+       }
+      },
+      "ease": "inout"
+     },
+     {
+      "t": 19,
+      "pose": {
+       "root": [
+        2.4,
+        -17.4
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -7,
+        "head": 9,
+        "upper_arm_front": 41,
+        "forearm_front": 130,
+        "hand_front": 6,
+        "upper_arm_back": 27,
+        "forearm_back": 154,
+        "hand_back": 4,
+        "thigh_front": 37.1,
+        "shin_front": -54.8,
+        "foot_front": 7.7,
+        "thigh_back": 1.3,
+        "shin_back": -43.2,
+        "foot_back": 41.9,
+        "needle": 10.4,
+        "key": 0
+       }
+      },
+      "ease": "in"
+     },
+     {
+      "t": 23,
+      "pose": {
+       "root": [
+        6,
+        -30
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -10,
+        "head": 12,
+        "upper_arm_front": 44,
+        "forearm_front": 130,
+        "hand_front": 6,
+        "upper_arm_back": 30,
+        "forearm_back": 154,
+        "hand_back": 4,
+        "thigh_front": 60.7,
+        "shin_front": -25.7,
+        "foot_front": -45,
+        "thigh_back": 8.9,
+        "shin_back": -64.1,
+        "foot_back": 55.2,
+        "needle": 26,
+        "key": 0
+       }
+      },
+      "ease": "out"
+     },
+     {
+      "t": 27,
+      "pose": {
+       "root": [
+        6,
+        -30
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -10,
+        "head": 12,
+        "upper_arm_front": 44,
+        "forearm_front": 130,
+        "hand_front": 6,
+        "upper_arm_back": 30,
+        "forearm_back": 154,
+        "hand_back": 4,
+        "thigh_front": 60.7,
+        "shin_front": -25.7,
+        "foot_front": -45,
+        "thigh_back": 8.9,
+        "shin_back": -64.1,
+        "foot_back": 55.2,
+        "needle": 26,
+        "key": 0
+       }
+      },
+      "ease": "inout"
+     },
+     {
+      "t": 40,
+      "pose": {
+       "root": [
+        1.8,
+        -15.3
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -6.5,
+        "head": 8.5,
+        "upper_arm_front": 40.5,
+        "forearm_front": 130,
+        "hand_front": 6,
+        "upper_arm_back": 26.5,
+        "forearm_back": 154,
+        "hand_back": 4,
+        "thigh_front": 35.2,
+        "shin_front": -50.7,
+        "foot_front": 5.5,
+        "thigh_back": -0.5,
+        "shin_back": -38.7,
+        "foot_back": 39.2,
+        "needle": 7.8,
+        "key": 0
+       }
+      },
+      "ease": "inout"
+     },
+     {
+      "t": 48,
+      "pose": {
+       "root": [
+        0,
+        -9
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -5,
+        "head": 7,
+        "upper_arm_front": 39,
+        "forearm_front": 130,
+        "hand_front": 6,
+        "upper_arm_back": 25,
+        "forearm_back": 154,
+        "hand_back": 4,
+        "thigh_front": 28.3,
+        "shin_front": -36.1,
+        "foot_front": 7.8,
+        "thigh_back": -8.8,
+        "shin_back": -19.6,
+        "foot_back": 28.4,
+        "needle": 0,
+        "key": 0
+       }
+      }
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "active",
+     "type": "trail",
+     "bone": "hand_front",
+     "color": "#c9a13b",
+     "size": 0.8,
+     "duration": 4
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "color": "#ffb02e",
+     "count": 12,
+     "size": 0.8
+    }
+   ],
+   "sounds": {
+    "start": "whoosh-light",
+    "hit": "hit-light"
+   }
+  },
+  {
+   "id": "lance",
+   "name": "Стрелка",
+   "command": "41236P",
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": {
+       "root": [
+        0,
+        -9
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -5,
+        "head": 7,
+        "upper_arm_front": 39,
+        "forearm_front": 130,
+        "hand_front": 6,
+        "upper_arm_back": 25,
+        "forearm_back": 154,
+        "hand_back": 4,
+        "thigh_front": 28.3,
+        "shin_front": -36.1,
+        "foot_front": 7.8,
+        "thigh_back": -8.8,
+        "shin_back": -19.6,
+        "foot_back": 28.4,
+        "needle": 0,
+        "key": 0
+       }
+      },
+      "ease": "out"
+     },
+     {
+      "t": 6,
+      "pose": {
+       "root": [
+        -2,
+        -10
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": 2,
+        "head": 0,
+        "upper_arm_front": 48,
+        "forearm_front": 160,
+        "hand_front": 10,
+        "upper_arm_back": 18,
+        "forearm_back": 154,
+        "hand_back": 4,
+        "thigh_front": 30,
+        "shin_front": -37.7,
+        "foot_front": 7.6,
+        "thigh_back": -4.8,
+        "shin_back": -26.2,
+        "foot_back": 31.1,
+        "needle": 30,
+        "key": 0
+       }
+      },
+      "ease": "in"
+     },
+     {
+      "t": 9,
+      "pose": {
+       "root": [
+        8,
+        -12
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -10,
+        "head": 12,
+        "upper_arm_front": 110,
+        "forearm_front": -4,
+        "hand_front": -6,
+        "upper_arm_back": 26,
+        "forearm_back": 160,
+        "hand_back": 4,
+        "thigh_front": 29.9,
+        "shin_front": -46,
+        "foot_front": 16.1,
+        "thigh_back": -12.2,
+        "shin_back": -19.9,
+        "foot_back": 32.1,
+        "needle": -40,
+        "key": 0
+       }
+      },
+      "ease": "out"
+     },
+     {
+      "t": 14,
+      "pose": {
+       "root": [
+        8,
+        -12
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -10,
+        "head": 12,
+        "upper_arm_front": 110,
+        "forearm_front": -4,
+        "hand_front": -6,
+        "upper_arm_back": 26,
+        "forearm_back": 160,
+        "hand_back": 4,
+        "thigh_front": 29.9,
+        "shin_front": -46,
+        "foot_front": 16.1,
+        "thigh_back": -12.2,
+        "shin_back": -19.9,
+        "foot_back": 32.1,
+        "needle": -40,
+        "key": 0
+       }
+      },
+      "ease": "inout"
+     },
+     {
+      "t": 29,
+      "pose": {
+       "root": [
+        0,
+        -9
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -5,
+        "head": 7,
+        "upper_arm_front": 39,
+        "forearm_front": 130,
+        "hand_front": 6,
+        "upper_arm_back": 25,
+        "forearm_back": 154,
+        "hand_back": 4,
+        "thigh_front": 28.3,
+        "shin_front": -36.1,
+        "foot_front": 7.8,
+        "thigh_back": -8.8,
+        "shin_back": -19.6,
+        "foot_back": 28.4,
+        "needle": 0,
+        "key": 0
+       }
+      }
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "projectile",
+     "type": "glow",
+     "image": "art/shot.png",
+     "color": "#ffb02e",
+     "size": 0.7
+    },
+    {
+     "on": "active",
+     "type": "ring",
+     "color": "#ffb02e",
+     "size": 0.4
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "color": "#ffb02e",
+     "count": 12
+    }
+   ],
+   "sounds": {
+    "start": "whoosh-light",
+    "projectile": "projectile",
+    "hit": "projectile-hit"
+   }
+  },
+  {
+   "id": "spike",
+   "name": "Высокая нота",
+   "command": "22P",
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": {
+       "root": [
+        0,
+        -9
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -5,
+        "head": 7,
+        "upper_arm_front": 39,
+        "forearm_front": 130,
+        "hand_front": 6,
+        "upper_arm_back": 25,
+        "forearm_back": 154,
+        "hand_back": 4,
+        "thigh_front": 28.3,
+        "shin_front": -36.1,
+        "foot_front": 7.8,
+        "thigh_back": -8.8,
+        "shin_back": -19.6,
+        "foot_back": 28.4,
+        "needle": 0,
+        "key": 0
+       }
+      },
+      "ease": "out"
+     },
+     {
+      "t": 8,
+      "pose": {
+       "root": [
+        -4,
+        -6
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": 8,
+        "head": 2,
+        "upper_arm_front": 202,
+        "forearm_front": 30,
+        "hand_front": 10,
+        "upper_arm_back": 12,
+        "forearm_back": 154,
+        "hand_back": 4,
+        "thigh_front": 23.9,
+        "shin_front": -24.2,
+        "foot_front": 0.3,
+        "thigh_back": -12.4,
+        "shin_back": -8.3,
+        "foot_back": 20.7,
+        "needle": 40,
+        "key": 0
+       }
+      },
+      "ease": "in"
+     },
+     {
+      "t": 12,
+      "pose": {
+       "root": [
+        10,
+        -14
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -12,
+        "head": 14,
+        "upper_arm_front": 122,
+        "forearm_front": 0,
+        "hand_front": 0,
+        "upper_arm_back": 28,
+        "forearm_back": 160,
+        "hand_back": 4,
+        "thigh_front": 35.3,
+        "shin_front": -45.8,
+        "foot_front": 10.5,
+        "thigh_back": -11.1,
+        "shin_back": -24.5,
+        "foot_back": 35.6,
+        "needle": -40,
+        "key": 0
+       }
+      },
+      "ease": "out"
+     },
+     {
+      "t": 18,
+      "pose": {
+       "root": [
+        10,
+        -14
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -12,
+        "head": 14,
+        "upper_arm_front": 122,
+        "forearm_front": 0,
+        "hand_front": 0,
+        "upper_arm_back": 28,
+        "forearm_back": 160,
+        "hand_back": 4,
+        "thigh_front": 35.3,
+        "shin_front": -45.8,
+        "foot_front": 10.5,
+        "thigh_back": -11.1,
+        "shin_back": -24.5,
+        "foot_back": 35.6,
+        "needle": -40,
+        "key": 0
+       }
+      },
+      "ease": "inout"
+     },
+     {
+      "t": 34,
+      "pose": {
+       "root": [
+        0,
+        -9
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -5,
+        "head": 7,
+        "upper_arm_front": 39,
+        "forearm_front": 130,
+        "hand_front": 6,
+        "upper_arm_back": 25,
+        "forearm_back": 154,
+        "hand_back": 4,
+        "thigh_front": 28.3,
+        "shin_front": -36.1,
+        "foot_front": 7.8,
+        "thigh_back": -8.8,
+        "shin_back": -19.6,
+        "foot_back": 28.4,
+        "needle": 0,
+        "key": 0
+       }
+      }
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "projectile",
+     "type": "glow",
+     "image": "art/shot.png",
+     "color": "#ffe08a",
+     "size": 0.9
+    },
+    {
+     "on": "active",
+     "type": "ring",
+     "color": "#ffe08a",
+     "size": 0.5
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "color": "#ffb02e",
+     "count": 18
+    }
+   ],
+   "sounds": {
+    "start": "whoosh-light",
+    "projectile": "projectile",
+    "hit": "projectile-hit"
+   }
+  },
+  {
+   "id": "dive",
+   "name": "Падение гири",
+   "command": "22K",
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": {
+       "root": [
+        0,
+        0
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -14,
+        "head": 10,
+        "upper_arm_front": 84,
+        "forearm_front": 105,
+        "hand_front": 5,
+        "upper_arm_back": 64,
+        "forearm_back": 132,
+        "hand_back": 3,
+        "thigh_front": 110,
+        "shin_front": -120,
+        "foot_front": -12,
+        "thigh_back": 60,
+        "shin_back": -110,
+        "foot_back": -12,
+        "needle": 30
+       }
+      },
+      "ease": "out"
+     },
+     {
+      "t": 5,
+      "pose": {
+       "root": [
+        0,
+        0
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -4,
+        "head": -4,
+        "upper_arm_front": 154,
+        "forearm_front": 40,
+        "hand_front": 10,
+        "upper_arm_back": 134,
+        "forearm_back": 50,
+        "hand_back": 10,
+        "thigh_front": 40,
+        "shin_front": -10,
+        "foot_front": -90,
+        "thigh_back": 70,
+        "shin_back": -120,
+        "foot_back": -12,
+        "needle": -45
+       }
+      },
+      "ease": "out"
+     },
+     {
+      "t": 14,
+      "pose": {
+       "root": [
+        0,
+        0
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -4,
+        "head": -4,
+        "upper_arm_front": 154,
+        "forearm_front": 40,
+        "hand_front": 10,
+        "upper_arm_back": 134,
+        "forearm_back": 50,
+        "hand_back": 10,
+        "thigh_front": 40,
+        "shin_front": -10,
+        "foot_front": -90,
+        "thigh_back": 70,
+        "shin_back": -120,
+        "foot_back": -12,
+        "needle": -45
+       }
+      },
+      "ease": "inout"
+     },
+     {
+      "t": 23,
+      "pose": {
+       "root": [
+        0,
+        0
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -14,
+        "head": 10,
+        "upper_arm_front": 84,
+        "forearm_front": 105,
+        "hand_front": 5,
+        "upper_arm_back": 64,
+        "forearm_back": 132,
+        "hand_back": 3,
+        "thigh_front": 110,
+        "shin_front": -120,
+        "foot_front": -12,
+        "thigh_back": 60,
+        "shin_back": -110,
+        "foot_back": -12,
+        "needle": 30
+       }
+      }
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "active",
+     "type": "trail",
+     "bone": "foot_front",
+     "color": "#ffb02e",
+     "color2": "#ffe08a",
+     "size": 1.2,
+     "duration": 10
+    },
+    {
+     "on": "hit",
+     "type": "shockwave",
+     "color": "#c9a13b",
+     "size": 1
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "color": "#ffb02e",
+     "count": 18
+    }
+   ],
+   "sounds": {
+    "start": "whoosh-heavy",
+    "hit": "kick-heavy"
+   }
+  },
+  {
+   "id": "smash",
+   "name": "Бой курантов",
+   "command": "[2]8P",
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": {
+       "root": [
+        0,
+        -9
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -5,
+        "head": 7,
+        "upper_arm_front": 39,
+        "forearm_front": 130,
+        "hand_front": 6,
+        "upper_arm_back": 25,
+        "forearm_back": 154,
+        "hand_back": 4,
+        "thigh_front": 28.3,
+        "shin_front": -36.1,
+        "foot_front": 7.8,
+        "thigh_back": -8.8,
+        "shin_back": -19.6,
+        "foot_back": 28.4,
+        "needle": 0,
+        "key": 0
+       }
+      },
+      "ease": "out"
+     },
+     {
+      "t": 8,
+      "pose": {
+       "root": [
+        -8,
+        -16
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": 10,
+        "head": -4,
+        "upper_arm_front": 20,
+        "forearm_front": 140,
+        "hand_front": 6,
+        "upper_arm_back": -70,
+        "forearm_back": 90,
+        "hand_back": 10,
+        "thigh_front": 38.3,
+        "shin_front": -47.9,
+        "foot_front": 9.6,
+        "thigh_back": 6.8,
+        "shin_back": -46.2,
+        "foot_back": 39.5,
+        "needle": 45,
+        "key": 0
+       },
+       "scale": {
+        "key": [
+         1,
+         0.25
+        ]
+       }
+      },
+      "ease": "inout"
+     },
+     {
+      "t": 12,
+      "pose": {
+       "root": [
+        22,
+        -18
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -20,
+        "head": 16,
+        "upper_arm_front": 26,
+        "forearm_front": 176,
+        "hand_front": 4,
+        "upper_arm_back": 116,
+        "forearm_back": -3,
+        "hand_back": -3,
+        "thigh_front": 40.4,
+        "shin_front": -51.7,
+        "foot_front": 11.3,
+        "thigh_back": -24.1,
+        "shin_back": -10.4,
+        "foot_back": 34.4,
+        "needle": -45,
+        "key": 0
+       },
+       "scale": {
+        "key": [
+         1,
+         1
+        ]
+       }
+      },
+      "ease": "out"
+     },
+     {
+      "t": 16,
+      "pose": {
+       "root": [
+        22,
+        -18
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -20,
+        "head": 16,
+        "upper_arm_front": 26,
+        "forearm_front": 176,
+        "hand_front": 4,
+        "upper_arm_back": 116,
+        "forearm_back": -3,
+        "hand_back": -3,
+        "thigh_front": 40.4,
+        "shin_front": -51.7,
+        "foot_front": 11.3,
+        "thigh_back": -24.1,
+        "shin_back": -10.4,
+        "foot_back": 34.4,
+        "needle": -45,
+        "key": 0
+       },
+       "scale": {
+        "key": [
+         1,
+         1
+        ]
+       }
+      },
+      "ease": "inout"
+     },
+     {
+      "t": 28,
+      "pose": {
+       "root": [
+        8.8,
+        -12.6
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -11,
+        "head": 10.6,
+        "upper_arm_front": 33.8,
+        "forearm_front": 148.4,
+        "hand_front": 5.2,
+        "upper_arm_back": 61.4,
+        "forearm_back": 91.2,
+        "hand_back": 1.2,
+        "thigh_front": 33.5,
+        "shin_front": -43.2,
+        "foot_front": 9.7,
+        "thigh_back": -13.1,
+        "shin_back": -19.6,
+        "foot_back": 32.7,
+        "needle": -18,
+        "key": 0
+       },
+       "scale": {
+        "key": [
+         1,
+         1
+        ]
+       }
+      },
+      "ease": "inout"
+     },
+     {
+      "t": 40,
+      "pose": {
+       "root": [
+        0,
+        -9
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -5,
+        "head": 7,
+        "upper_arm_front": 39,
+        "forearm_front": 130,
+        "hand_front": 6,
+        "upper_arm_back": 25,
+        "forearm_back": 154,
+        "hand_back": 4,
+        "thigh_front": 28.3,
+        "shin_front": -36.1,
+        "foot_front": 7.8,
+        "thigh_back": -8.8,
+        "shin_back": -19.6,
+        "foot_back": 28.4,
+        "needle": 0,
+        "key": 0
+       }
+      }
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "start",
+     "type": "glow",
+     "color": "#ffb02e",
+     "size": 0.9
+    },
+    {
+     "on": "active",
+     "type": "trail",
+     "bone": "hand_back",
+     "color": "#ffb02e",
+     "color2": "#ffe08a",
+     "size": 1.3,
+     "duration": 5
+    },
+    {
+     "on": "hit",
+     "type": "shockwave",
+     "color": "#ffb02e",
+     "size": 1.4
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "color": "#c9a13b",
+     "color2": "#ffe08a",
+     "count": 30,
+     "size": 1.2
+    }
+   ],
+   "sounds": {
+    "start": "bass-hit",
+    "hit": "hit-heavy"
+   }
+  },
+  {
+   "id": "ram",
+   "name": "Таран маховика",
+   "command": "[4]6K",
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": {
+       "root": [
+        0,
+        -9
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -5,
+        "head": 7,
+        "upper_arm_front": 39,
+        "forearm_front": 130,
+        "hand_front": 6,
+        "upper_arm_back": 25,
+        "forearm_back": 154,
+        "hand_back": 4,
+        "thigh_front": 28.3,
+        "shin_front": -36.1,
+        "foot_front": 7.8,
+        "thigh_back": -8.8,
+        "shin_back": -19.6,
+        "foot_back": 28.4,
+        "needle": 0,
+        "key": 0
+       }
+      },
+      "ease": "out"
+     },
+     {
+      "t": 10,
+      "pose": {
+       "root": [
+        -4,
+        -22
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -24,
+        "head": 14,
+        "upper_arm_front": 94,
+        "forearm_front": 80,
+        "hand_front": 10,
+        "upper_arm_back": 74,
+        "forearm_back": 110,
+        "hand_back": 10,
+        "thigh_front": 44.7,
+        "shin_front": -57.7,
+        "foot_front": 13,
+        "thigh_back": 0.9,
+        "shin_back": -48.3,
+        "foot_back": 47.4,
+        "needle": 40,
+        "key": 0
+       }
+      },
+      "ease": "inout"
+     },
+     {
+      "t": 18,
+      "pose": {
+       "root": [
+        24,
+        -20
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -30,
+        "head": 18,
+        "upper_arm_front": 120,
+        "forearm_front": 50,
+        "hand_front": 10,
+        "upper_arm_back": 100,
+        "forearm_back": 80,
+        "hand_back": 10,
+        "thigh_front": 42.4,
+        "shin_front": -55.3,
+        "foot_front": 12.9,
+        "thigh_back": -30.9,
+        "shin_back": -3,
+        "foot_back": 34,
+        "needle": -45,
+        "key": 0
+       }
+      },
+      "ease": "out"
+     },
+     {
+      "t": 22,
+      "pose": {
+       "root": [
+        24,
+        -20
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -30,
+        "head": 18,
+        "upper_arm_front": 120,
+        "forearm_front": 50,
+        "hand_front": 10,
+        "upper_arm_back": 100,
+        "forearm_back": 80,
+        "hand_back": 10,
+        "thigh_front": 42.4,
+        "shin_front": -55.3,
+        "foot_front": 12.9,
+        "thigh_back": -30.9,
+        "shin_back": -3,
+        "foot_back": 34,
+        "needle": -45,
+        "key": 0
+       }
+      },
+      "ease": "inout"
+     },
+     {
+      "t": 36,
+      "pose": {
+       "root": [
+        9.6,
+        -13.4
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -15,
+        "head": 11.4,
+        "upper_arm_front": 71.4,
+        "forearm_front": 98,
+        "hand_front": 7.6,
+        "upper_arm_back": 55,
+        "forearm_back": 124.4,
+        "hand_back": 6.4,
+        "thigh_front": 34.4,
+        "shin_front": -44.9,
+        "foot_front": 10.5,
+        "thigh_back": -15.9,
+        "shin_back": -16.8,
+        "foot_back": 32.6,
+        "needle": -18,
+        "key": 0
+       }
+      },
+      "ease": "inout"
+     },
+     {
+      "t": 48,
+      "pose": {
+       "root": [
+        0,
+        -9
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -5,
+        "head": 7,
+        "upper_arm_front": 39,
+        "forearm_front": 130,
+        "hand_front": 6,
+        "upper_arm_back": 25,
+        "forearm_back": 154,
+        "hand_back": 4,
+        "thigh_front": 28.3,
+        "shin_front": -36.1,
+        "foot_front": 7.8,
+        "thigh_back": -8.8,
+        "shin_back": -19.6,
+        "foot_back": 28.4,
+        "needle": 0,
+        "key": 0
+       }
+      }
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "start",
+     "type": "glow",
+     "color": "#4fb3a9",
+     "color2": "#c9a13b",
+     "size": 1,
+     "duration": 18
+    },
+    {
+     "on": "hit",
+     "type": "shockwave",
+     "color": "#c9a13b",
+     "size": 1.3
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "color": "#ffb02e",
+     "count": 26
+    }
+   ],
+   "sounds": {
+    "start": "bass-hit",
+    "hit": "hit-heavy"
+   }
+  },
+  {
+   "id": "breaker",
+   "name": "Молот часовщика",
+   "command": "KK",
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": {
+       "root": [
+        0,
+        -9
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -5,
+        "head": 7,
+        "upper_arm_front": 39,
+        "forearm_front": 130,
+        "hand_front": 6,
+        "upper_arm_back": 25,
+        "forearm_back": 154,
+        "hand_back": 4,
+        "thigh_front": 28.3,
+        "shin_front": -36.1,
+        "foot_front": 7.8,
+        "thigh_back": -8.8,
+        "shin_back": -19.6,
+        "foot_back": 28.4,
+        "needle": 0,
+        "key": 0
+       }
+      },
+      "ease": "out"
+     },
+     {
+      "t": 10,
+      "pose": {
+       "root": [
+        -6,
+        -4
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": 14,
+        "head": 2,
+        "upper_arm_front": 206,
+        "forearm_front": 40,
+        "hand_front": 5,
+        "upper_arm_back": 196,
+        "forearm_back": 40,
+        "hand_back": 10,
+        "thigh_front": 18.2,
+        "shin_front": -11.4,
+        "foot_front": -6.8,
+        "thigh_back": -13.9,
+        "shin_back": -3.1,
+        "foot_back": 17,
+        "needle": 50,
+        "key": 0
+       }
+      },
+      "ease": "inout"
+     },
+     {
+      "t": 20,
+      "pose": {
+       "root": [
+        -6,
+        -4
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": 18,
+        "head": -2,
+        "upper_arm_front": 212,
+        "forearm_front": 45,
+        "hand_front": 5,
+        "upper_arm_back": 192,
+        "forearm_back": 40,
+        "hand_back": 10,
+        "thigh_front": 18.2,
+        "shin_front": -11.4,
+        "foot_front": -6.8,
+        "thigh_back": -13.9,
+        "shin_back": -3.1,
+        "foot_back": 17,
+        "needle": 50,
+        "key": 0
+       }
+      },
+      "ease": "in"
+     },
+     {
+      "t": 24,
+      "pose": {
+       "root": [
+        16,
+        -28
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -36,
+        "head": 20,
+        "upper_arm_front": 96,
+        "forearm_front": -25,
+        "hand_front": -10,
+        "upper_arm_back": 86,
+        "forearm_back": -25,
+        "hand_back": -10,
+        "thigh_front": 49.6,
+        "shin_front": -67.8,
+        "foot_front": 18.2,
+        "thigh_back": -6.9,
+        "shin_back": -46.6,
+        "foot_back": 53.4,
+        "needle": -50,
+        "key": 0
+       }
+      },
+      "ease": "out"
+     },
+     {
+      "t": 28,
+      "pose": {
+       "root": [
+        16,
+        -28
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -36,
+        "head": 20,
+        "upper_arm_front": 96,
+        "forearm_front": -25,
+        "hand_front": -10,
+        "upper_arm_back": 86,
+        "forearm_back": -25,
+        "hand_back": -10,
+        "thigh_front": 49.6,
+        "shin_front": -67.8,
+        "foot_front": 18.2,
+        "thigh_back": -6.9,
+        "shin_back": -46.6,
+        "foot_back": 53.4,
+        "needle": -50,
+        "key": 0
+       }
+      },
+      "ease": "inout"
+     },
+     {
+      "t": 42,
+      "pose": {
+       "root": [
+        6.4,
+        -16.6
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -17.4,
+        "head": 12.2,
+        "upper_arm_front": 61.8,
+        "forearm_front": 68,
+        "hand_front": -0.4,
+        "upper_arm_back": 49.4,
+        "forearm_back": 82.4,
+        "hand_back": -1.6,
+        "thigh_front": 37.9,
+        "shin_front": -51.3,
+        "foot_front": 13.4,
+        "thigh_back": -5.6,
+        "shin_back": -34.8,
+        "foot_back": 40.5,
+        "needle": -20,
+        "key": 0
+       }
+      },
+      "ease": "inout"
+     },
+     {
+      "t": 54,
+      "pose": {
+       "root": [
+        0,
+        -9
+       ],
+       "bones": {
+        "pelvis": 0,
+        "torso": -5,
+        "head": 7,
+        "upper_arm_front": 39,
+        "forearm_front": 130,
+        "hand_front": 6,
+        "upper_arm_back": 25,
+        "forearm_back": 154,
+        "hand_back": 4,
+        "thigh_front": 28.3,
+        "shin_front": -36.1,
+        "foot_front": 7.8,
+        "thigh_back": -8.8,
+        "shin_back": -19.6,
+        "foot_back": 28.4,
+        "needle": 0,
+        "key": 0
+       }
+      }
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "start",
+     "type": "glow",
+     "color": "#4fb3a9",
+     "color2": "#c9a13b",
+     "size": 1.1,
+     "duration": 24
+    },
+    {
+     "on": "active",
+     "type": "trail",
+     "bone": "hand_front",
+     "color": "#ffb02e",
+     "size": 1.3,
+     "duration": 5
+    },
+    {
+     "on": "hit",
+     "type": "shockwave",
+     "color": "#ffb02e",
+     "size": 1.6
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "color": "#c9a13b",
+     "color2": "#ffe08a",
+     "count": 34,
+     "size": 1.3
+    }
+   ],
+   "sounds": {
+    "start": "whoosh-heavy",
+    "hit": "kick-heavy"
+   }
+  }
+ ]
+}

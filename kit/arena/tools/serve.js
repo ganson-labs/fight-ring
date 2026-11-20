@@ -17,6 +17,7 @@ export const TYPES = {
   '.ogg': 'audio/ogg',
   '.mp4': 'video/mp4',
   '.md': 'text/markdown; charset=utf-8',
+  '.woff2': 'font/woff2',
 };
 
 // map: url prefix → folder, or a list of folders tried in order (a round's engine snapshot, then the kit for the

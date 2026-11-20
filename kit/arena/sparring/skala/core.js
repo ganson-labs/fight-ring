@@ -1,0 +1,271 @@
+// Shared brain of the ring's sparring partners (ring 3.0). Each partner folder has a copy of this file
+// (brains import only their own files) and a brain.js that passes its style to makeBrain().
+// The partners are deliberately plain: honest defence, footsies at their range, punishes, a mixup.
+// They are not the strongest fighters possible — they are different, so a fighter can be tested against styles.
+// What they know of 3.0: they see the opponent `reaction` ticks late and allow for it; they block the hits of
+// abilities by `strikes` (zone and ticks left); they spend ether only on what it pays for; the way out of a throw is
+// a throw of their own a moment before the grab, a guess; a full guard gauge is not held; passivity is walked off.
+
+const REACH = { short: 55, mid: 95, long: 150 };
+
+// deterministic "random" in [0, 1): same fight — same choices
+function chance(tick, salt) {
+  let h = (tick * 2654435761 + salt * 97531) >>> 0;
+  h ^= h >>> 15;
+  h = Math.imul(h, 2246822519) >>> 0;
+  h ^= h >>> 13;
+  return ((h >>> 0) % 10000) / 10000;
+}
+
+const defOf = (F, id) => F.moves.find((m) => m.id === id);
+
+// how far a move reaches from the centre of the fighter
+export function moveReach(m) {
+  let reach = 0;
+  for (const g of m.segments) {
+    if (g.type === 'strike') reach = Math.max(reach, 35 + REACH[g.reach] + 35 + (g.advance || 0));
+    else if (g.type === 'projectile') reach = Math.max(reach, 2000);
+    else if (g.type === 'teleport') reach = Math.max(reach, g.to === 'behind' ? 2000 : g.distance + 120);
+    else if (g.type === 'ability') reach = Math.max(reach, g.reach ?? 260);
+  }
+  return reach;
+}
+
+// ether a cast of this move costs (rules P3: its power, at most the pool; a super costs none)
+export function etherCost(m, etherMax = 150) {
+  if (!m.ability || m.slot === 'super') return 0;
+  return Math.min(etherMax, Math.ceil(m.ability.power || 0));
+}
+
+const zoneGuard = (z) => (z === 'low' ? 'low' : z === 'overhead' || z === 'air' || z === 'high' ? 'high' : 'any');
+
+// what can hit me soon: { guard: 'high' | 'low' | 'any', in, sure } or null
+function danger(s) {
+  const me = s.me;
+  const op = s.opponent;
+  const lag = s.reaction ?? 15;
+  const dist = Math.abs(op.x - me.x);
+  const toMe = Math.sign(me.x - op.x) || op.facing;
+  let best = null;
+  const add = (guard, t, sure = false) => {
+    if (!best || t < best.in) best = { guard, in: t, sure };
+    else if (t === best.in && best.guard === 'any') best.guard = guard;
+  };
+  // the opponent's move as it was `lag` ticks ago: where it is now
+  if (op.move) {
+    const d = defOf(op, op.move.id);
+    const t = op.move.t + lag;
+    if (d) {
+      for (const g of d.segments) {
+        if (g.activeEnd <= t) continue;
+        const until = Math.max(0, g.activeStart - t - 1);
+        if (until > 16) continue;
+        if (g.type === 'strike') {
+          if (op.facing !== toMe) continue;
+          const reach = 35 + REACH[g.reach] + 40;
+          if (dist > reach + 30) continue;
+          add(zoneGuard(g.zone), until, dist < reach && !op.airborne);
+        } else if (g.type === 'teleport') add('any', until + 4);
+      }
+    }
+  }
+  // hits of abilities on their way: the box and the zone are known
+  for (const st of s.strikes || []) {
+    if (st.mine || !st.box) continue;
+    const b = st.box;
+    if (b[0] > me.x + 50 || b[2] < me.x - 50 || b[1] > me.y + 290 || b[3] < me.y) continue;
+    add(st.kind === 'effect' ? 'any' : zoneGuard(st.zone), Math.max(0, st.in - 1), true);
+  }
+  for (const p of s.projectiles) {
+    if (p.mine) continue;
+    const dx = me.x - p.x;
+    if (Math.sign(dx) !== Math.sign(p.vx) && Math.abs(dx) > 30) continue;
+    // seen `lag` ticks ago: it flew on since
+    const gap = Math.abs(dx) - Math.abs(p.vx) * lag - 65;
+    const t = Math.max(0, gap / Math.max(1, Math.abs(p.vx)));
+    if (t < 14) add(p.zone === 'low' ? 'low' : p.zone === 'high' ? 'high' : 'any', Math.floor(t), true);
+  }
+  // objects that touch: block the one coming in; one already hanging on me is fought through, not waited out
+  for (const o of s.objects) {
+    if (o.mine || !o.touch) continue;
+    const dx = me.x - o.x;
+    const vx = o.vx || 0;
+    const gap = Math.abs(dx) - o.w / 2 - 40 - Math.abs(vx) * lag;
+    if (gap <= -40) continue;
+    const t = gap <= 0 ? 0 : Math.sign(dx) === Math.sign(vx) ? gap / Math.max(1, Math.abs(vx)) : 99;
+    if (t < 12 && o.y - o.h / 2 < 300) add(zoneGuard(o.touch.zone), Math.max(Math.floor(t), o.touch.from || 0));
+  }
+  if (op.airborne && op.state !== 'juggle' && dist < 300 && op.y < 330 && op.vy < 0) add('high', 4);
+  return best;
+}
+
+function opponentOpen(op, lag) {
+  if (op.invulnerable) return false;
+  // seen `lag` ticks ago: only a recovery longer than that is still open now
+  if (op.state === 'move' && op.move && op.move.phase === 'recovery') return op.move.duration - op.move.t > lag;
+  if (['staggered', 'dizzy'].includes(op.state)) return op.stateLength - op.stateTicks > lag;
+  if (op.state === 'throw') return op.stateLength - op.stateTicks > lag;
+  return false;
+}
+
+function ready(me, id) {
+  const m = defOf(me, id);
+  if (!m) return null;
+  if (m.slot === 'super' && me.bars < 3) return null;
+  if (me.cooldowns && me.cooldowns[id] > 0) return null;
+  if (m.segments.some((g) => g.type === 'projectile') && me.projectileOut) return null;
+  if (m.stance && me.stance !== m.stance) return null;
+  if (m.posture === 'air' && !me.airborne) return null;
+  if (m.posture !== 'air' && me.airborne) return null;
+  if ((me.ether ?? Infinity) < etherCost(m, me.etherMax)) return null;
+  return m;
+}
+
+// style: {
+//   range: [min, max] — where it likes to stand; dash: 0..1 — how readily it dashes to get there;
+//   pokes: [ids] at range; mixLow / mixHigh: [ids] up close; punish: [ids] fastest first; antiAir: id;
+//   zoning: [ids] thrown from far; specials: [{ id, when: 'far'|'near'|'any', rate }]; superWhen: 'punish'|'near'|'any';
+//   parry: 0..1 — parry a sure hit instead of blocking; throwRate: 0..1 up close; techRate: 0..1 — a throw of its own
+//   when the opponent comes into throw range (the way out of a throw is a guess); jumpIn: 0..1; patience: 0..1 — wait
+//   instead of attacking
+// }
+export function makeBrain(style) {
+  let M = null;
+  const fresh = () => ({ lastAttack: -999, lastSay: -999, round: 1 });
+  const S = { range: [140, 260], dash: 0.3, pokes: [], mixLow: [], mixHigh: [], punish: [], antiAir: null, zoning: [], specials: [], superWhen: 'punish', parry: 0.15, throwRate: 0.2, techRate: 0.08, jumpIn: 0.02, patience: 0.3, ...style };
+
+  function attack(s, ids, dist, salt) {
+    const me = s.me;
+    const options = ids.map((id) => ready(me, id)).filter((m) => m && moveReach(m) >= dist);
+    if (!options.length) return null;
+    return options[Math.floor(chance(s.tick, salt) * options.length)].id;
+  }
+
+  return {
+    init(info) {
+      M = fresh();
+      M.round = info?.options?.round || 1;
+    },
+    tick(s) {
+      if (!M) M = fresh();
+      const me = s.me;
+      const op = s.opponent;
+      const lag = s.reaction ?? 15;
+      const dist = s.distance;
+      const act = {};
+
+      // talk a little
+      if (s.tick - M.lastSay > 600 && s.lines.length && chance(s.tick, 11) < 0.01) {
+        const taunts = s.lines.filter((l) => l.kind === 'taunt');
+        if (taunts.length) {
+          act.say = taunts[s.tick % taunts.length].id;
+          M.lastSay = s.tick;
+        }
+      }
+
+      if (!me.canAct && me.state !== 'blockstun') return act;
+
+      // 1. defence: block what comes; a full guard gauge is not held — parry or step back instead
+      const d = danger(s);
+      const gaugeFull = me.guardGauge != null && me.guardGauge >= (me.guardGaugeMax || 100) * 0.7;
+      if (d && d.in <= 8) {
+        if (d.sure && me.canAct && d.in >= 1 && d.in <= 5 && chance(s.tick, 3) < S.parry + (gaugeFull ? 0.3 : 0)) return { ...act, parry: true };
+        if (gaugeFull && me.canAct && d.in >= 4 && chance(s.tick, 5) < 0.5) return { ...act, dash: 'back' };
+        const guard = d.guard === 'any' ? (op.move && defOf(op, op.move.id)?.segments.some((g) => g.zone === 'low') ? 'low' : 'high') : d.guard;
+        return { ...act, guard, crouch: guard === 'low' };
+      }
+      if (me.state === 'blockstun') return { ...act, guard: me.guard || 'high' };
+      if (!me.canAct) return act;
+
+      // 2. anti-air
+      if (S.antiAir && op.airborne && op.state === 'air' && dist < 260 && op.vy < 2) {
+        const m = ready(me, S.antiAir);
+        if (m) return { ...act, attack: m.id };
+      }
+
+      // never swing into invulnerability
+      if (op.invulnerable && op.state !== 'move') {
+        if (dist < S.range[0]) return { ...act, walk: -1 };
+        return { ...act, guard: 'high' };
+      }
+
+      // 3. punish an open opponent
+      if (opponentOpen(op, lag)) {
+        if (S.superWhen === 'punish' || S.superWhen === 'any') {
+          const sup = me.moves.find((m) => m.slot === 'super');
+          if (sup && ready(me, sup.id) && moveReach(sup) >= dist) return { ...act, attack: sup.id };
+        }
+        const id = attack(s, S.punish, dist, 5);
+        if (id) return { ...act, attack: id };
+      }
+
+      // 4. the way out of a throw is a guess: now and then a throw of its own as the opponent comes close
+      if (dist < 150 && op.state === 'neutral' && !op.airborne && chance(s.tick, 61) < S.techRate) return { ...act, throw: true };
+
+      // 5. super when it reaches
+      if (S.superWhen === 'near' || S.superWhen === 'any') {
+        const sup = me.moves.find((m) => m.slot === 'super');
+        if (sup && ready(me, sup.id) && moveReach(sup) >= dist && chance(s.tick, 7) < 0.08) return { ...act, attack: sup.id };
+      }
+
+      // 6. specials by distance
+      for (const sp of S.specials) {
+        const m = ready(me, sp.id);
+        if (!m) continue;
+        const far = dist > S.range[1];
+        if ((sp.when === 'far' && !far) || (sp.when === 'near' && dist > S.range[0] + 60)) continue;
+        if (moveReach(m) < dist && sp.when !== 'any') continue;
+        if (chance(s.tick, 13 + sp.id.length) < sp.rate) return { ...act, attack: m.id };
+      }
+
+      // 6a. a stage object in reach and room to throw: hurl it
+      const prop = (s.props || []).find((o) => !o.in && Math.abs(o.x - me.x) <= o.reach);
+      if (prop && dist > 260 && !me.airborne) return { ...act, use: true };
+
+      // 7. zoning from far
+      if (dist > S.range[0] && S.zoning.length && chance(s.tick, 17) < 0.06) {
+        const id = attack(s, S.zoning, dist, 19);
+        if (id) return { ...act, attack: id };
+      }
+
+      // 8. up close: mixup, throw (more throws against a raised guard)
+      if (dist < 150) {
+        const r = chance(s.tick, 23);
+        const throwRate = S.throwRate * (op.guard ? 2 : 1);
+        if (r < throwRate && op.state === 'neutral' && !op.airborne) return { ...act, throw: true };
+        if (s.tick - M.lastAttack > 8 && chance(s.tick, 29) > S.patience) {
+          const pool = r < 0.5 ? S.mixLow : S.mixHigh;
+          const id = attack(s, pool.length ? pool : S.pokes, dist, 31);
+          if (id) {
+            M.lastAttack = s.tick;
+            return { ...act, attack: id, crouch: defOf(me, id).posture === 'crouch' };
+          }
+        }
+      }
+
+      // 9. footsies at its range
+      if (dist <= S.range[1] && s.tick - M.lastAttack > 10 && chance(s.tick, 37) > S.patience * 0.6 + 0.2) {
+        const id = attack(s, S.pokes, dist, 41);
+        if (id) {
+          M.lastAttack = s.tick;
+          return { ...act, attack: id, crouch: defOf(me, id).posture === 'crouch' };
+        }
+      }
+
+      // 10. movement; passivity is walked off
+      const restless = me.passive != null && me.passive > (me.passiveMax || 360) * 0.5;
+      if (S.jumpIn && dist > 220 && dist < 420 && chance(s.tick, 43) < S.jumpIn) return { ...act, jump: 1 };
+      if (dist > S.range[1] || restless) {
+        if (dist > S.range[1] + 150 && chance(s.tick, 47) < S.dash * 0.1) return { ...act, dash: 'forward' };
+        return { ...act, walk: 1 };
+      }
+      if (dist < S.range[0]) {
+        if (chance(s.tick, 53) < S.dash * 0.06) return { ...act, dash: 'back' };
+        return { ...act, walk: -1 };
+      }
+      // in range: hold a guard while waiting, step a little
+      const sway = Math.floor(s.tick / 40) % 3;
+      return { ...act, walk: sway === 0 ? 1 : sway === 1 ? -1 : 0, guard: sway === 2 ? 'high' : null };
+    },
+  };
+}

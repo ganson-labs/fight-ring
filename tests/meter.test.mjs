@@ -13,7 +13,7 @@ import { loadFighter, runFight, replayFight } from '../kit/arena/tools/load.js';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const FIXTURE = join(root, 'tests', 'fixtures', 'ability-fighter');
-const DUMMY = join(root, 'kit', 'arena', 'sparring', 'dummy');
+const DUMMY = join(root, 'tests', 'fixtures', 'ring3', 'dummy');
 const L = E.ABILITY;
 const tmp = mkdtempSync(join(tmpdir(), 'ring-meter-'));
 test.after(() => rmSync(tmp, { recursive: true, force: true }));
@@ -30,7 +30,8 @@ function fighterWith(files) {
 async function checkFails(files) {
   const t0 = Date.now();
   const r = await loadFighter(fighterWith(files));
-  assert.ok(Date.now() - t0 < 30000, 'check закончился');
+  // «does not hang»: the measurement of 3.0 runs 112 situations per ability twice, and the test files run in parallel
+  assert.ok(Date.now() - t0 < 120000, 'check закончился');
   assert.equal(r.ok, false);
   return r.errors.join('\n');
 }
@@ -74,17 +75,19 @@ export function start(api) {
 
 test('цикл верхнего уровня модуля не вешает загрузку', async () => {
   const errs = await checkFails({ 'abilities/spark.js': 'let x = 0\nwhile (x >= 0) x++\nexport function start(api) {}\n' });
-  assert.match(errs, /abilities\/spark\.js: модуль не загрузился — больше 100000 шагов/);
+  assert.match(errs, /abilities\/spark\.js: модуль не загрузился — больше \d+ шагов/);
 });
 
 test('в бою зависший хук отключает только свою способность, бой детерминирован и повторяется', async () => {
-  // spark hangs only late in a fight, where the dummy measurement never goes: check passes, the fight meets it
+  // spark hangs only after 1500 of its own passive calls: one run of the measurement never lasts that long (a run starts
+  // anywhere in a round — the measurement is blind — but api.mem is fresh in every run), the fight does
   const dir = fighterWith({
     'abilities/spark.js': `export function start(api) {
   api.hit({ box: [20, 100, 140, 240], damage: 20, zone: 'mid' });
 }
 export function passive(api) {
-  if (api.tick > 1500) while (true) api.mem.spin = (api.mem.spin || 0) + 1;
+  api.mem.n = (api.mem.n || 0) + 1;
+  if (api.mem.n > 1500) while (true) api.mem.spin = (api.mem.spin || 0) + 1;
 }
 `,
   });
@@ -116,6 +119,7 @@ test('переписанный счётчиком движок играет то
     toUrl: (src) => `data:text/javascript;charset=utf-8,${encodeURIComponent(src)}`,
   });
   const IE = await load('index.js');
+  IE.setRuleset('free'); // its own copy of the engine: the fixture is a fighter of the constructor
   const raw = (dir) => Object.fromEntries(['fighter', 'body', 'moves', 'voice'].map((f) => [f, JSON.parse(readFileSync(join(dir, `${f}.json`), 'utf8'))]));
   const fixture = await loadFighter(FIXTURE);
   const modules = Object.fromEntries(Object.entries(fixture.fighter.abilities).map(([k, v]) => [k, { ...v }]));

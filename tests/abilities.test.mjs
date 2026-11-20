@@ -1,25 +1,31 @@
 // Abilities written as code: limits, diminishing control, determinism, measured cooldown.  node --test tests/
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as E from '../kit/arena/engine/index.js';
 import { loadFighter, runFight, replayFight, scanAbilityModule } from '../kit/arena/tools/load.js';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
-const KIT = join(root, 'kit', 'fighter');
-const DUMMY = join(root, 'kit', 'arena', 'sparring', 'dummy');
+const KIT = join(root, 'tests', 'fixtures', 'ring3', 'fighter');
+const DUMMY = join(root, 'tests', 'fixtures', 'ring3', 'dummy');
 const FIXTURE = join(root, 'tests', 'fixtures', 'ability-fighter');
 const raw = (dir) => Object.fromEntries(['fighter', 'body', 'moves', 'voice'].map((f) => [f, JSON.parse(readFileSync(join(dir, `${f}.json`), 'utf8'))]));
 const L = E.ABILITY;
+// ring 3.0: a test of one mechanic casts on an endless ether pool (the pool has its own tests in engine.test.mjs)
+const fightOf = (opts) => {
+  const fight = E.createFight(opts);
+  for (const F of fight.f) F.ether = Infinity;
+  return fight;
+};
 
 // A kit fighter with extra ability moves; modules: { id: module object } (no files: the hooks are passed directly).
-function withAbilities(modules, { slot = 'special', fighter = {} } = {}) {
+function withAbilities(modules, { slot = 'special', fighter = {}, recovery = 10 } = {}) {
   const input = raw(KIT);
   Object.assign(input.fighter, fighter);
   for (const id of Object.keys(modules)) {
-    input.moves.moves.push({ id, name: id, slot, posture: 'stand', blocks: [{ type: 'ability', script: `abilities/${id}.js`, startup: 6, recovery: 10 }], anim: { keys: [{ t: 0, pose: 'stance' }] } });
+    input.moves.moves.push({ id, name: id, slot, posture: 'stand', blocks: [{ type: 'ability', script: `abilities/${id}.js`, startup: 6, recovery }], anim: { keys: [{ t: 0, pose: 'stance' }] } });
   }
   if (slot === 'super') input.moves.moves = input.moves.moves.filter((m) => m.id !== 'super_1');
   const r = E.checkFighter(input);
@@ -38,7 +44,7 @@ const dummyDef = () => {
 // Press `id` once (and again when `again` says so), the opponent stands; returns the events.
 // at: the tick of the press (control on the opponent never lands in the first L.controlStart ticks of a round)
 function cast(def, id, { ticks = 400, gap = 140, again = () => false, foe = dummyDef(), seed, at = 0 } = {}) {
-  const fight = E.createFight({ fighters: [def, foe], seed });
+  const fight = fightOf({ fighters: [def, foe], seed });
   fight.f[0].x = E.STAGE.width / 2 - gap / 2;
   fight.f[1].x = E.STAGE.width / 2 + gap / 2;
   if (def.movesById[id].slot === 'super') fight.f[0].meter = E.METER_MAX;
@@ -99,9 +105,10 @@ test('урон способности идёт по общим правилам:
 });
 
 test('удар способности блокируется и парируется, как обычный', () => {
-  const { def } = withAbilities({ poke: { start: (api) => api.hit({ box: [0, 0, 200, 290], damage: 40, zone: 'mid' }) } });
+  // a long recovery: the hit lands 22 ticks after the cast, the attacker is still in the move when it is parried
+  const { def } = withAbilities({ poke: { start: (api) => api.hit({ box: [0, 0, 200, 290], damage: 40, zone: 'mid' }) } }, { recovery: 40 });
   const run = (act) => {
-    const fight = E.createFight({ fighters: [def, dummyDef()] });
+    const fight = fightOf({ fighters: [def, dummyDef()] });
     fight.f[0].x = fight.f[1].x - 140;
     const ev = [];
     let after = null;
@@ -113,7 +120,8 @@ test('удар способности блокируется и парирует
     return { ev, after };
   };
   assert.ok(run(() => ({ guard: 'high' })).ev.some((e) => e.type === 'block' && e.move === 'poke'));
-  const p = run((i) => (i === 3 ? { parry: true } : {}));
+  // the hit lands telegraphTicks after the cast (startup 6; the box centre is 100 units ahead): parry just before it
+  const p = run((i) => (i === 4 + E.telegraphTicks(100) ? { parry: true } : {}));
   assert.ok(p.ev.some((e) => e.type === 'parry'));
   assert.equal(p.after, 'staggered', 'парированный атакующий замирает');
 });
@@ -132,23 +140,23 @@ test('контроль и множители срезаются по рамка�
   assert.match(cutsOf('slowx'), /получаемого урона 3 → 1.25/);
   assert.match(cutsOf('swarm'), new RegExp(`больше ${L.objectsMax} своих объектов`));
 
-  let { fight } = cast(def, 'freeze', { ticks: L.controlStart + 20, at: L.controlStart + 2 });
+  let { fight } = cast(def, 'freeze', { ticks: L.controlStart + 40, at: L.controlStart + 2 });
   const e = fight.f[1].effects.find((x) => x.id === 'f');
   assert.equal(e.ticks, L.stopTicks);
   assert.equal(fight.f[1].mods.stop, true);
   assert.equal(E.brainView(fight, 1).me.canAct, false);
-  ({ fight } = cast(def, 'slowx', { ticks: L.controlStart + 20, at: L.controlStart + 2 }));
+  ({ fight } = cast(def, 'slowx', { ticks: L.controlStart + 40, at: L.controlStart + 2 }));
   assert.equal(fight.f[1].mods.speed, L.speed[0]);
   assert.equal(fight.f[1].mods.taken, L.taken[1]);
-  ({ fight } = cast(def, 'swarm', { ticks: 12 }));
+  ({ fight } = cast(def, 'swarm', { ticks: 12 + E.REACTION_TICKS }));
   assert.equal(fight.objects.filter((o) => o.side === 0).length, L.objectsMax);
-  assert.equal(E.brainView(fight, 1).objects.length, L.objectsMax, 'объекты видны мозгам соперника');
+  assert.equal(E.brainView(fight, 1).objects.length, L.objectsMax, 'объекты видны мозгам соперника (с опозданием реакции)');
 });
 
 test('повторный контроль в окне слабее: ×1, ×0.5, ×0.25, затем не действует', () => {
   const { def } = withAbilities({ stun: { start: (api) => api.effect('opponent', { id: `s${api.tick}`, ticks: 60, speed: 0.5, box: [0, 0, 200, 290] }) } });
   def.movesById.stun.ability.cooldown = 0; // only here: press it four times in a row
-  const fight = E.createFight({ fighters: [def, dummyDef()] });
+  const fight = fightOf({ fighters: [def, dummyDef()] });
   fight.f[0].x = E.STAGE.width / 2 - 70;
   fight.f[1].x = E.STAGE.width / 2 + 70;
   const got = [];
@@ -188,7 +196,7 @@ test('стойка открывает свои приёмы, ресурс вед
   const def = r.fighter;
   const prep = E.prepareAbilities(def, { 'abilities/h.js': { start(api) { if (api.addResource('heat', 80) >= 50) api.setStance('hot'); } } });
   assert.ok(prep.ok, prep.errors.join('\n'));
-  const fight = E.createFight({ fighters: [def, dummyDef()] });
+  const fight = fightOf({ fighters: [def, dummyDef()] });
   E.stepFight(fight, [{ attack: 'hot_hit' }, {}]);
   assert.notEqual(fight.f[0].state, 'move', 'вне стойки приём недоступен');
   for (let i = 0; i < 40; i++) E.stepFight(fight, [i === 0 ? { attack: 'heat_up' } : {}, {}]);
@@ -272,13 +280,13 @@ test('контроль и урон по времени без попадания
 
 const dotFight = (def, foeAction = () => ({})) => {
   def.movesById.curse.ability.cooldown = 0;
-  const fight = E.createFight({ fighters: [def, dummyDef()] });
+  const fight = fightOf({ fighters: [def, dummyDef()] });
   fight.f[0].x = E.STAGE.width / 2 - 70;
   fight.f[1].x = E.STAGE.width / 2 + 70;
   const dot = [];
   for (let i = 0; i < 600; i++) {
     const act = [fight.f[0].state === 'neutral' ? { attack: 'curse' } : {}, foeAction(i)];
-    for (const e of E.stepFight(fight, fight.freeze || fight.hitstop ? null : act)) if (e.type === 'dot') dot.push({ i, ...e });
+    for (const e of E.stepFight(fight, fight.freeze || fight.hitstop ? null : act)) if (e.type === 'dot') dot.push({ i, guarded: !!fight.f[1].guard || fight.f[1].state === 'blockstun', ...e });
   }
   return { fight, dot };
 };
@@ -303,7 +311,8 @@ test('урон по времени не проходит через блок', (
   const guarded = dotFight(def, (i) => (i >= 200 ? { guard: 'high' } : {}));
   assert.ok(open.dot.some((e) => e.i >= 200), 'без блока урон идёт и после 200-го тика');
   assert.ok(guarded.dot.some((e) => e.i < 200), 'до блока урон шёл');
-  assert.ok(!guarded.dot.some((e) => e.i > 205), 'в блоке урона по времени нет');
+  // (the gauge of blocked boxes breaks the guard now and then — B1; while the guard holds there is no damage over time)
+  assert.ok(!guarded.dot.some((e) => e.i > 205 && e.guarded), 'в блоке урона по времени нет');
 });
 
 test('контроль коробкой: только если коробка касается соперника в пределах досягаемости', () => {
@@ -319,7 +328,7 @@ test('через попадание контроль накладывается,
   const { def } = withAbilities({ jab: { start: (api) => api.hit({ box: [0, 100, 200, 290], damage: 20, effect: { id: 'j', ticks: 40, stop: true } }) } });
   const hit = cast(def, 'jab', { ticks: 120, at: 80 });
   assert.ok(hit.ev.some((e) => e.type === 'effect' && e.stop));
-  const fight = E.createFight({ fighters: [def, dummyDef()] });
+  const fight = fightOf({ fighters: [def, dummyDef()] });
   fight.f[0].x = E.STAGE.width / 2 - 70;
   fight.f[1].x = E.STAGE.width / 2 + 70;
   const ev = [];
@@ -339,7 +348,7 @@ test('в первые 60 тиков раунда контроль не накл�
 test('одна цель стоит не больше 90 тиков за раунд', () => {
   const { def } = withAbilities({ hold: { start: (api) => api.effect('opponent', { id: `h${api.tick}`, ticks: 60, stop: true, box: [0, 0, 200, 290] }) } });
   def.movesById.hold.ability.cooldown = 0;
-  const fight = E.createFight({ fighters: [def, dummyDef()] });
+  const fight = fightOf({ fighters: [def, dummyDef()] });
   fight.f[0].x = E.STAGE.width / 2 - 70;
   fight.f[1].x = E.STAGE.width / 2 + 70;
   let stopped = 0;
@@ -365,40 +374,56 @@ const looper = {
   } }),
 };
 
-test('давление: петля из серий по 4 удара не держит бойца в хитстане дольше предела, потом он вырывается неуязвимым', () => {
-  const { def } = withAbilities({ loop: looper });
-  const fight = E.createFight({ fighters: [def, dummyDef()] });
-  fight.f[0].x = E.STAGE.width / 2 - 70;
-  fight.f[1].x = E.STAGE.width / 2 + 70;
-  let held = 0;
-  let free = 0;
-  let worst = 0;
-  let last = -1;
+test('давление: боец, которого держат в хитстане, через PRESSURE_MAX тиков вырывается неуязвимым', () => {
+  // the hold is forced from outside, so the test does not depend on how an attacker keeps it up
+  const fight = fightOf({ fighters: [dummyDef(), dummyDef()] });
+  const V = fight.f[1];
   const breaks = [];
-  for (let i = 0; i < 340; i++) {
-    const ev = E.stepFight(fight, fight.freeze || fight.hitstop ? null : [i === 0 ? { attack: 'loop' } : {}, {}]);
-    const V = fight.f[1];
-    if (ev.some((e) => e.type === 'breakFree' && e.side === 1)) breaks.push({ i, invuln: V.invuln, state: V.state });
-    if (fight.tick === last) continue; // hit-stop: time stands
-    last = fight.tick;
-    if (['hitstun', 'juggle', 'dizzy'].includes(V.state) && V.invuln === 0) {
-      held++;
-      free = 0;
-    } else if (++free >= E.PRESSURE_BREATHER) held = 0;
-    worst = Math.max(worst, held);
+  let held = 0;
+  for (let i = 0; i < 300 && !breaks.length; i++) {
+    if (V.state === 'neutral' && V.invuln === 0) {
+      V.state = 'hitstun';
+      V.st = 0;
+      V.len = 20;
+    }
+    const ev = E.stepFight(fight, [{}, {}]);
+    if (V.state === 'hitstun') held++;
+    for (const e of ev) if (e.type === 'breakFree' && e.side === 1) breaks.push({ i, invuln: V.invuln, state: V.state });
   }
-  assert.ok(breaks.length >= 1, 'боец вырвался хотя бы раз');
-  assert.ok(worst <= E.PRESSURE_MAX, `подряд в хитстане без передышки ${worst} тиков`);
-  for (const b of breaks) {
-    assert.equal(b.state, 'neutral');
-    assert.ok(b.invuln >= E.BREAK_FREE_INVULN - 1, `после рывка неуязвим ${b.invuln}`);
-  }
+  assert.equal(breaks.length, 1, 'боец вырвался');
+  assert.ok(held <= E.PRESSURE_MAX, `в хитстане ${held} тиков`);
+  assert.equal(breaks[0].state, 'neutral');
+  assert.ok(breaks[0].invuln >= E.BREAK_FREE_INVULN - 1, `после рывка неуязвим ${breaks[0].invuln}`);
+});
+
+test('реакция: мозги видят соперника с опозданием REACTION_TICKS, себя — как есть', () => {
+  const fight = fightOf({ fighters: [dummyDef(), dummyDef()] });
+  for (let i = 0; i < 40; i++) E.stepFight(fight, [{ walk: 1 }, { walk: -1 }]);
+  const v = E.brainView(fight, 0);
+  assert.equal(v.me.x, fight.f[0].x);
+  assert.notEqual(v.opponent.x, fight.f[1].x, 'соперник виден не там, где он сейчас');
+  const live = E.brainView(fight, 0, { live: true });
+  assert.equal(live.opponent.x, fight.f[1].x);
+});
+
+test('R2: удар способности приходит через реакцию + 7 тиков и позже с дальностью, его видно соперникам заранее', () => {
+  const { def } = withAbilities({ poke: { start: (api) => api.hit({ box: [0, 0, 200, 290], damage: 40, zone: 'low' }) } });
+  const { ev } = cast(def, 'poke', { ticks: 60 });
+  const warn = ev.find((e) => e.type === 'strikeWarn');
+  const hit = ev.find((e) => e.type === 'hit' && e.move === 'poke');
+  assert.ok(warn && hit, 'есть предупреждение и попадание');
+  assert.equal(warn.zone, 'low');
+  assert.ok(hit.i - warn.i >= E.REACTION_TICKS + E.TELEGRAPH.base, `между вызовом и попаданием ${hit.i - warn.i} тиков`);
+  assert.equal(warn.ticks, E.telegraphTicks(100));
+  assert.equal(E.telegraphTicks(100), 22, 'в упор: реакция 15 + 7');
+  assert.equal(E.telegraphTicks(975), 48, 'через весь экран: 15 + 7 + ⌈775 / 30⌉');
+  assert.equal(E.telegraphTicks(100, 18), 25, 'задержка идёт за реакцией боя');
 });
 
 test('способность видит соперника таким, каким его видели мозги в начале тика, а не его выбор на этом тике', () => {
   const seen = [];
   const { def } = withAbilities({ watch: { tick: (api) => seen.push([api.tick, api.view().opponent.guard]) } });
-  const fight = E.createFight({ fighters: [def, dummyDef()] });
+  const fight = fightOf({ fighters: [def, dummyDef()] });
   const guardFrom = 20;
   for (let i = 0; i < 40; i++) E.stepFight(fight, fight.freeze || fight.hitstop ? null : [i === 0 ? { attack: 'watch' } : {}, i >= guardFrom ? { guard: 'high' } : {}]);
   const first = seen.find(([, g]) => g === 'high');
@@ -418,7 +443,7 @@ test('после блока удар в другую зону 7 тиков то�
     if (z) a.hit({ box: [rel - 45, op.y - o.y + 40, rel + 45, op.y - o.y + 200], damage: 30, zone: z });
   };
   const { def } = withAbilities({ mix: { start: (api) => api.spawn({ x: 140, y: 400, w: 60, h: 60, life: 60, data: { n: 0 }, tick }) } });
-  const fight = E.createFight({ fighters: [def, dummyDef()] });
+  const fight = fightOf({ fighters: [def, dummyDef()] });
   fight.f[0].x = fight.f[1].x - 140;
   const ev = [];
   for (let i = 0; i < 60; i++) ev.push(...E.stepFight(fight, fight.freeze || fight.hitstop ? null : [i === 0 ? { attack: 'mix' } : {}, { guard: 'high' }]));
@@ -428,11 +453,15 @@ test('после блока удар в другую зону 7 тиков то�
 
 // ---------- ring 2.6: the price ceiling ----------
 
-test('потолок цены: сила выше 550 стоит те же 24 очка, но в бою каст делает только оплаченную долю', () => {
+test('потолок цены: спецприём сильнее запаса эфира (150) стоит как 150 и в бою делает только эту долю; супер — до 24 очков', () => {
   const p = E.abilityPrice({ damage: 4074, control: 1068, buff: 990, shove: 0, objectTicks: 1374 }, 'special');
-  assert.equal(p.cost, 24);
-  assert.equal(p.top, 550);
-  assert.ok(Math.abs(p.scale - 550 / p.power) < 1e-9);
+  assert.equal(p.power, E.ETHER.max);
+  assert.equal(p.cost, 2 + Math.ceil(E.ETHER.max / 25));
+  assert.ok(Math.abs(p.scale - E.ETHER.max / p.measured) < 1e-9);
+  const sp = E.abilityPrice({ damage: 4074, control: 1068, buff: 990, shove: 0, objectTicks: 1374 }, 'super');
+  assert.equal(sp.cost, 24);
+  assert.equal(sp.top, 1100);
+  assert.ok(Math.abs(sp.scale - 1100 / sp.power) < 1e-9);
   assert.equal(E.abilityPrice({ damage: 265, control: 0, buff: 0, shove: 0, objectTicks: 0 }, 'super').scale, 1);
   // a cloud that hits every 6 ticks for its whole life: far above the ceiling
   const cloud = { start: (api) => api.spawn({ x: 140, y: 400, w: 60, h: 60, life: 350, tick: (a, o) => {

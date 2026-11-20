@@ -11,6 +11,7 @@ import { Scene, Rig } from './scene.js';
 import { bodyFit, fitWarnings, fighterPoses, ringJointOnPicture, CHILDREN, OPENING_PARTS, OPEN_LIMIT } from './fit.js';
 import { stageBeds } from './sound.js';
 import { moveDemo, demoGap } from './movedemo.js';
+import { ringFonts } from './text.js';
 
 const q = new URLSearchParams(location.search);
 const mode = q.get('mode') || 'sheet';
@@ -39,13 +40,7 @@ function expand(runs) {
   return out;
 }
 
-async function fonts() {
-  try {
-    await document.fonts.load('700 italic 40px Oswald');
-    await document.fonts.load('500 20px Oswald');
-    await document.fonts.ready;
-  } catch {}
-}
+const fonts = ringFonts;
 
 // ---------- pose sheet ----------
 
@@ -211,7 +206,7 @@ async function clip() {
   scene.setFighters([A, B]);
   const rep = mode === 'replay' ? await (await fetch(q.get('replay'), { cache: 'no-store' })).json() : null;
   const seed = rep?.seed ?? (Number(q.get('seed')) || RING_SEED);
-  const fight = createFight({ fighters: [A.def, B.def], seed });
+  const fight = createFight({ fighters: [A.def, B.def], seed, start: rep?.start });
   const wins = (q.get('wins') || '0-0').split('-').map(Number);
   const round = Number(q.get('round') || 1);
   const firstTo = Number(q.get('firstTo') || 2);
@@ -237,7 +232,7 @@ async function clip() {
   const bc = new Broadcast({
     app, scene, assets: [A, B], fight, source, steps, names, width: W, height: H, vertical,
     show, intro: q.get('intro') === '1', final: q.get('final') === '1', round, rerun: q.get('rerun') === '1', wins, firstTo, ads,
-    banner: mode === 'replay', announcer: ring, totalTicks: lab.info.result?.ticks || 1, seed,
+    banner: mode === 'replay', announcer: ring, totalTicks: lab.info.result?.ticks || 1, seed, start: rep?.start,
     // the judge's record (Node) replayed here must end in the same state, abilities included
     onRecordEnd: (f) => {
       if (!rep?.hash) return;

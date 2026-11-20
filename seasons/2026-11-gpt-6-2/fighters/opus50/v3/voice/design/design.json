@@ -1,0 +1,25 @@
+{
+  "description": "A clockwork automaton boxer: a precise, calm, dry, slightly ironic male baritone, middle-low pitch, with a faint metallic resonance, as if the voice rings through a small brass chamber. Clipped, rhythmic delivery: every syllable lands exactly on the beat, as if he speaks in time with a metronome, with short crisp pauses between phrases. Unhurried and cool, never shouts even when exerting, confident with understated dry humor, like a strict old conductor counting the orchestra in. Clean studio recording, close microphone, no music, no background noise. Clear Russian diction.",
+  "text": "Раз. Два. Начинаем. [calm] Темп задан. Не отставай. Ты сбился с ритма. Тик-так. Ты опять опоздал. Громко. И мимо такта. Финальный аккорд! В сильную долю. Ровно в такт. Тик. Фальшь... Пружина держит. Финал. Аплодисменты — по желанию. Темп выдержан. А ты — нет. Завод... кончился... Предсказуемо. Я слышал это за такт. Пауза — это ошибка. Опоздал на четверть.",
+  "previews": [
+    {
+      "n": 1,
+      "file": "voice/design/preview-1.mp3",
+      "generated_voice_id": "iqLJuvFt2ZOHMTkKE3NG",
+      "seconds": 37.801875
+    },
+    {
+      "n": 2,
+      "file": "voice/design/preview-2.mp3",
+      "generated_voice_id": "VLo41yk8wqP3Drh70f4z",
+      "seconds": 41.798625
+    },
+    {
+      "n": 3,
+      "file": "voice/design/preview-3.mp3",
+      "generated_voice_id": "WHu7b1fon47WKq43El3o",
+      "seconds": 38.3505
+    }
+  ],
+  "at": "2026-11-18T18:40:51.239Z"
+}

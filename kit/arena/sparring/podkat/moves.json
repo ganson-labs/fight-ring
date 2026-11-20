@@ -1,0 +1,49 @@
+{
+  "moves": [
+    {
+      "id": "jab"
+    },
+    {
+      "id": "low"
+    },
+    {
+      "id": "knee"
+    },
+    {
+      "id": "heavy"
+    },
+    {
+      "id": "overhead"
+    },
+    {
+      "id": "sweep"
+    },
+    {
+      "id": "upper"
+    },
+    {
+      "id": "air_kick"
+    },
+    {
+      "id": "fireball"
+    },
+    {
+      "id": "rush"
+    },
+    {
+      "id": "slide"
+    },
+    {
+      "id": "blink"
+    },
+    {
+      "id": "twin"
+    },
+    {
+      "id": "dive"
+    },
+    {
+      "id": "finale"
+    }
+  ]
+}

@@ -1,0 +1,1130 @@
+{
+ "name": "final50",
+ "ring": {
+  "ring": "4.0",
+  "engine": "4.0",
+  "rules": "4.0",
+  "tools": "2.6"
+ },
+ "at": "2026-11-18T20:10:48.758Z",
+ "draws": 8,
+ "starts": [
+  "centre",
+  "close",
+  "far",
+  "wall_left",
+  "wall_right"
+ ],
+ "leagueSeed": "c6a1c2fe2ef5fd00b9bef25b25b292654d446fd9f84fee4300477e194ce3aad9",
+ "fights": 2880,
+ "people": {
+  "astra50": {
+   "id": "astra50",
+   "kind": "build",
+   "model": "GPT-6.2 Astra",
+   "agentModel": "gpt-6.2-astra",
+   "effort": "high",
+   "color": "#10a37f",
+   "name": "Марка Бездны",
+   "motto": "Даже на дне кто-то ждёт письма.",
+   "at": "2026-11-18T20:08:46.709Z",
+   "hash": "e0812557122e4d69c7c423736769f0cea451481cb05667542d26745dd0a9e7a7",
+   "moves": [
+    {
+     "id": "jab",
+     "slot": "normal"
+    },
+    {
+     "id": "low",
+     "slot": "normal"
+    },
+    {
+     "id": "knee",
+     "slot": "normal"
+    },
+    {
+     "id": "heavy",
+     "slot": "normal"
+    },
+    {
+     "id": "overhead",
+     "slot": "normal"
+    },
+    {
+     "id": "sweep",
+     "slot": "normal"
+    },
+    {
+     "id": "upper",
+     "slot": "normal"
+    },
+    {
+     "id": "air_kick",
+     "slot": "normal"
+    },
+    {
+     "id": "slide",
+     "slot": "special"
+    },
+    {
+     "id": "spike",
+     "slot": "special"
+    },
+    {
+     "id": "cross",
+     "slot": "special"
+    },
+    {
+     "id": "breaker",
+     "slot": "special"
+    },
+    {
+     "id": "cyclone",
+     "slot": "special"
+    },
+    {
+     "id": "lance",
+     "slot": "special"
+    },
+    {
+     "id": "finale",
+     "slot": "super"
+    }
+   ]
+  },
+  "sol50": {
+   "id": "sol50",
+   "kind": "build",
+   "model": "GPT-6.2 Sol",
+   "agentModel": "gpt-6.2-sol",
+   "effort": "high",
+   "color": "#f2b84b",
+   "name": "Лоция Ноль",
+   "motto": "Где кончается карта, я ставлю маяк.",
+   "at": "2026-11-18T20:08:48.600Z",
+   "hash": "f40d7585585fa9bd1ee1e09cdbbf511ce1296836e32e6d508be294b87bb3de7c",
+   "moves": [
+    {
+     "id": "jab",
+     "slot": "normal"
+    },
+    {
+     "id": "low",
+     "slot": "normal"
+    },
+    {
+     "id": "knee",
+     "slot": "normal"
+    },
+    {
+     "id": "heavy",
+     "slot": "normal"
+    },
+    {
+     "id": "overhead",
+     "slot": "normal"
+    },
+    {
+     "id": "sweep",
+     "slot": "normal"
+    },
+    {
+     "id": "upper",
+     "slot": "normal"
+    },
+    {
+     "id": "air_kick",
+     "slot": "normal"
+    },
+    {
+     "id": "fireball",
+     "slot": "special"
+    },
+    {
+     "id": "slide",
+     "slot": "special"
+    },
+    {
+     "id": "dive",
+     "slot": "special"
+    },
+    {
+     "id": "cross",
+     "slot": "special"
+    },
+    {
+     "id": "breaker",
+     "slot": "special"
+    },
+    {
+     "id": "cyclone",
+     "slot": "special"
+    },
+    {
+     "id": "finale",
+     "slot": "super"
+    }
+   ]
+  },
+  "opus50": {
+   "id": "opus50",
+   "kind": "build",
+   "model": "Claude Opus 5.5",
+   "agentModel": "claude-opus-5-5",
+   "effort": "high",
+   "color": "#e8825a",
+   "name": "Метроном",
+   "motto": "Каждый тик на счету. А ты — мимо такта.",
+   "at": "2026-11-18T20:08:50.528Z",
+   "hash": "b79e026e75f91997515721367f94db1bd545c0e46de0010cac20c0ca11d8398a",
+   "moves": [
+    {
+     "id": "jab",
+     "slot": "normal"
+    },
+    {
+     "id": "low",
+     "slot": "normal"
+    },
+    {
+     "id": "knee",
+     "slot": "normal"
+    },
+    {
+     "id": "heavy",
+     "slot": "normal"
+    },
+    {
+     "id": "overhead",
+     "slot": "normal"
+    },
+    {
+     "id": "sweep",
+     "slot": "normal"
+    },
+    {
+     "id": "upper",
+     "slot": "normal"
+    },
+    {
+     "id": "air_kick",
+     "slot": "normal"
+    },
+    {
+     "id": "fireball",
+     "slot": "special"
+    },
+    {
+     "id": "rush",
+     "slot": "special"
+    },
+    {
+     "id": "slide",
+     "slot": "special"
+    },
+    {
+     "id": "blink",
+     "slot": "special"
+    },
+    {
+     "id": "flurry",
+     "slot": "special"
+    },
+    {
+     "id": "cyclone",
+     "slot": "special"
+    },
+    {
+     "id": "finale",
+     "slot": "super"
+    }
+   ]
+  },
+  "fable50": {
+   "id": "fable50",
+   "kind": "build",
+   "model": "Claude Fable 5.2",
+   "agentModel": "claude-fable-5-2",
+   "effort": "high",
+   "color": "#c46bd6",
+   "name": "Главбух Зоя Павловна",
+   "motto": "Дебет с кредитом сойдётся. Всегда.",
+   "at": "2026-11-18T20:08:52.623Z",
+   "hash": "c7dd934aebf0004b411fd248c74094fae6a8c3ad0d1bdccf5dbc29c57e7cd686",
+   "moves": [
+    {
+     "id": "jab",
+     "slot": "normal"
+    },
+    {
+     "id": "low",
+     "slot": "normal"
+    },
+    {
+     "id": "knee",
+     "slot": "normal"
+    },
+    {
+     "id": "heavy",
+     "slot": "normal"
+    },
+    {
+     "id": "overhead",
+     "slot": "normal"
+    },
+    {
+     "id": "sweep",
+     "slot": "normal"
+    },
+    {
+     "id": "upper",
+     "slot": "normal"
+    },
+    {
+     "id": "air_kick",
+     "slot": "normal"
+    },
+    {
+     "id": "fireball",
+     "slot": "special"
+    },
+    {
+     "id": "slide",
+     "slot": "special"
+    },
+    {
+     "id": "flurry",
+     "slot": "special"
+    },
+    {
+     "id": "twin",
+     "slot": "special"
+    },
+    {
+     "id": "cyclone",
+     "slot": "special"
+    },
+    {
+     "id": "lance",
+     "slot": "special"
+    },
+    {
+     "id": "finale",
+     "slot": "super"
+    }
+   ]
+  },
+  "carbon50": {
+   "id": "carbon50",
+   "kind": "build",
+   "model": "Gemini 4 Carbon (High)",
+   "agentModel": "gemini-4-carbon-high",
+   "effort": "high",
+   "color": "#4fc3c9",
+   "name": "Барон Фонарь",
+   "motto": "Ночь длинна — гашу лишних по одному.",
+   "at": "2026-11-18T20:08:54.061Z",
+   "hash": "a235056e7266e20958ed318d7b08a84ff774ee82d1daebfcbb5f69265e5a7137",
+   "moves": [
+    {
+     "id": "jab",
+     "slot": "normal"
+    },
+    {
+     "id": "low",
+     "slot": "normal"
+    },
+    {
+     "id": "knee",
+     "slot": "normal"
+    },
+    {
+     "id": "heavy",
+     "slot": "normal"
+    },
+    {
+     "id": "overhead",
+     "slot": "normal"
+    },
+    {
+     "id": "sweep",
+     "slot": "normal"
+    },
+    {
+     "id": "upper",
+     "slot": "normal"
+    },
+    {
+     "id": "air_kick",
+     "slot": "normal"
+    },
+    {
+     "id": "slide",
+     "slot": "special"
+    },
+    {
+     "id": "smash",
+     "slot": "special"
+    },
+    {
+     "id": "dive",
+     "slot": "special"
+    },
+    {
+     "id": "twin",
+     "slot": "special"
+    },
+    {
+     "id": "cyclone",
+     "slot": "special"
+    },
+    {
+     "id": "lance",
+     "slot": "special"
+    },
+    {
+     "id": "finale",
+     "slot": "super"
+    }
+   ]
+  },
+  "shkval": {
+   "id": "shkval",
+   "kind": "ref",
+   "model": "эталон shkval",
+   "name": "Шквал",
+   "motto": "Вплотную и без пауз",
+   "at": "2026-11-18T20:08:55.976Z",
+   "hash": "d033ece1645113b3ca6df131f8d6ea62cf1f430e7147eb20aa6cd91f6b4fbe68",
+   "moves": [
+    {
+     "id": "jab",
+     "slot": "normal"
+    },
+    {
+     "id": "low",
+     "slot": "normal"
+    },
+    {
+     "id": "knee",
+     "slot": "normal"
+    },
+    {
+     "id": "heavy",
+     "slot": "normal"
+    },
+    {
+     "id": "overhead",
+     "slot": "normal"
+    },
+    {
+     "id": "sweep",
+     "slot": "normal"
+    },
+    {
+     "id": "upper",
+     "slot": "normal"
+    },
+    {
+     "id": "air_kick",
+     "slot": "normal"
+    },
+    {
+     "id": "rush",
+     "slot": "special"
+    },
+    {
+     "id": "slide",
+     "slot": "special"
+    },
+    {
+     "id": "ram",
+     "slot": "special"
+    },
+    {
+     "id": "flurry",
+     "slot": "special"
+    },
+    {
+     "id": "twin",
+     "slot": "special"
+    },
+    {
+     "id": "cyclone",
+     "slot": "special"
+    },
+    {
+     "id": "storm",
+     "slot": "super"
+    }
+   ]
+  },
+  "strelok": {
+   "id": "strelok",
+   "kind": "ref",
+   "model": "эталон strelok",
+   "name": "Стрелок",
+   "motto": "Не подходи",
+   "at": "2026-11-18T20:08:57.362Z",
+   "hash": "c304f5f0ddd0bc8fbdf8f2d6f4e919f55406fe65d379adc8399fff6c8849e87f",
+   "moves": [
+    {
+     "id": "jab",
+     "slot": "normal"
+    },
+    {
+     "id": "low",
+     "slot": "normal"
+    },
+    {
+     "id": "knee",
+     "slot": "normal"
+    },
+    {
+     "id": "heavy",
+     "slot": "normal"
+    },
+    {
+     "id": "overhead",
+     "slot": "normal"
+    },
+    {
+     "id": "sweep",
+     "slot": "normal"
+    },
+    {
+     "id": "upper",
+     "slot": "normal"
+    },
+    {
+     "id": "air_kick",
+     "slot": "normal"
+    },
+    {
+     "id": "fireball",
+     "slot": "special"
+    },
+    {
+     "id": "wave",
+     "slot": "special"
+    },
+    {
+     "id": "smash",
+     "slot": "special"
+    },
+    {
+     "id": "spike",
+     "slot": "special"
+    },
+    {
+     "id": "retreat",
+     "slot": "special"
+    },
+    {
+     "id": "lance",
+     "slot": "special"
+    },
+    {
+     "id": "barrage",
+     "slot": "super"
+    }
+   ]
+  },
+  "skala": {
+   "id": "skala",
+   "kind": "ref",
+   "model": "эталон skala",
+   "name": "Скала",
+   "motto": "Ошибись первым",
+   "at": "2026-11-18T20:08:58.741Z",
+   "hash": "689eee59d4c8d08b4faeea2f46709f32e7dabb250749104bd8c7203bbbe711ff",
+   "moves": [
+    {
+     "id": "jab",
+     "slot": "normal"
+    },
+    {
+     "id": "low",
+     "slot": "normal"
+    },
+    {
+     "id": "knee",
+     "slot": "normal"
+    },
+    {
+     "id": "heavy",
+     "slot": "normal"
+    },
+    {
+     "id": "overhead",
+     "slot": "normal"
+    },
+    {
+     "id": "sweep",
+     "slot": "normal"
+    },
+    {
+     "id": "upper",
+     "slot": "normal"
+    },
+    {
+     "id": "air_kick",
+     "slot": "normal"
+    },
+    {
+     "id": "fireball",
+     "slot": "special"
+    },
+    {
+     "id": "ram",
+     "slot": "special"
+    },
+    {
+     "id": "smash",
+     "slot": "special"
+    },
+    {
+     "id": "retreat",
+     "slot": "special"
+    },
+    {
+     "id": "twin",
+     "slot": "special"
+    },
+    {
+     "id": "breaker",
+     "slot": "special"
+    },
+    {
+     "id": "finale",
+     "slot": "super"
+    }
+   ]
+  },
+  "mekhanik": {
+   "id": "mekhanik",
+   "kind": "ref",
+   "model": "эталон mekhanik",
+   "name": "Механик",
+   "motto": "Поле — моё",
+   "at": "2026-11-18T20:09:00.148Z",
+   "hash": "f88aaaa18ef94fc803004b49419aa88b55a949f11afcae7260b34f3b23731a6a",
+   "moves": [
+    {
+     "id": "jab",
+     "slot": "normal"
+    },
+    {
+     "id": "low",
+     "slot": "normal"
+    },
+    {
+     "id": "knee",
+     "slot": "normal"
+    },
+    {
+     "id": "heavy",
+     "slot": "normal"
+    },
+    {
+     "id": "overhead",
+     "slot": "normal"
+    },
+    {
+     "id": "sweep",
+     "slot": "normal"
+    },
+    {
+     "id": "upper",
+     "slot": "normal"
+    },
+    {
+     "id": "air_kick",
+     "slot": "normal"
+    },
+    {
+     "id": "fireball",
+     "slot": "special"
+    },
+    {
+     "id": "slide",
+     "slot": "special"
+    },
+    {
+     "id": "blink",
+     "slot": "special"
+    },
+    {
+     "id": "smash",
+     "slot": "special"
+    },
+    {
+     "id": "dive",
+     "slot": "special"
+    },
+    {
+     "id": "cross",
+     "slot": "special"
+    },
+    {
+     "id": "ambush",
+     "slot": "super"
+    }
+   ]
+  }
+ },
+ "table": {
+  "entries": [
+   {
+    "id": "astra50",
+    "kind": "build",
+    "model": "GPT-6.2 Astra",
+    "name": "Марка Бездны",
+    "rating": 2476,
+    "range": [
+     2378,
+     2627
+    ],
+    "fights": 640,
+    "share": 0.93828125,
+    "kos": 506
+   },
+   {
+    "id": "opus50",
+    "kind": "build",
+    "model": "Claude Opus 5.5",
+    "name": "Метроном",
+    "rating": 2332,
+    "range": [
+     2242,
+     2470
+    ],
+    "fights": 640,
+    "share": 0.865625,
+    "kos": 510
+   },
+   {
+    "id": "fable50",
+    "kind": "build",
+    "model": "Claude Fable 5.2",
+    "name": "Главбух Зоя Павловна",
+    "rating": 2200,
+    "range": [
+     2109,
+     2328
+    ],
+    "fights": 640,
+    "share": 0.79375,
+    "kos": 467
+   },
+   {
+    "id": "carbon50",
+    "kind": "build",
+    "model": "Gemini 4 Carbon (High)",
+    "name": "Барон Фонарь",
+    "rating": 1766,
+    "range": [
+     1679,
+     1882
+    ],
+    "fights": 640,
+    "share": 0.57578125,
+    "kos": 367
+   },
+   {
+    "id": "sol50",
+    "kind": "build",
+    "model": "GPT-6.2 Sol",
+    "name": "Лоция Ноль",
+    "rating": 1733,
+    "range": [
+     1646,
+     1846
+    ],
+    "fights": 640,
+    "share": 0.559375,
+    "kos": 358
+   },
+   {
+    "id": "skala",
+    "kind": "ref",
+    "model": "эталон skala",
+    "name": "Скала",
+    "rating": 1191,
+    "range": [
+     1163,
+     1223
+    ],
+    "fights": 640,
+    "share": 0.30078125,
+    "kos": 191
+   },
+   {
+    "id": "mekhanik",
+    "kind": "ref",
+    "model": "эталон mekhanik",
+    "name": "Механик",
+    "rating": 1155,
+    "range": [
+     1113,
+     1196
+    ],
+    "fights": 640,
+    "share": 0.28046875,
+    "kos": 178
+   },
+   {
+    "id": "strelok",
+    "kind": "ref",
+    "model": "эталон strelok",
+    "name": "Стрелок",
+    "rating": 853,
+    "range": [
+     822,
+     878
+    ],
+    "fights": 640,
+    "share": 0.10625,
+    "kos": 68
+   },
+   {
+    "id": "shkval",
+    "kind": "ref",
+    "model": "эталон shkval",
+    "name": "Шквал",
+    "rating": 802,
+    "range": [
+     757,
+     842
+    ],
+    "fights": 640,
+    "share": 0.0796875,
+    "kos": 51
+   }
+  ],
+  "models": [
+   {
+    "group": "m:GPT-6.2 Astra",
+    "kind": "build",
+    "model": "GPT-6.2 Astra",
+    "builds": [
+     "astra50"
+    ],
+    "rating": 2476,
+    "range": [
+     2378,
+     2627
+    ],
+    "firstChance": 0.99,
+    "points": [
+     2476
+    ],
+    "place": 1
+   },
+   {
+    "group": "m:Claude Opus 5.5",
+    "kind": "build",
+    "model": "Claude Opus 5.5",
+    "builds": [
+     "opus50"
+    ],
+    "rating": 2332,
+    "range": [
+     2242,
+     2470
+    ],
+    "firstChance": 0,
+    "points": [
+     2332
+    ],
+    "place": 1
+   },
+   {
+    "group": "m:Claude Fable 5.2",
+    "kind": "build",
+    "model": "Claude Fable 5.2",
+    "builds": [
+     "fable50"
+    ],
+    "rating": 2200,
+    "range": [
+     2109,
+     2328
+    ],
+    "firstChance": 0,
+    "points": [
+     2200
+    ],
+    "place": 2
+   },
+   {
+    "group": "m:Gemini 4 Carbon (High)",
+    "kind": "build",
+    "model": "Gemini 4 Carbon (High)",
+    "builds": [
+     "carbon50"
+    ],
+    "rating": 1766,
+    "range": [
+     1679,
+     1882
+    ],
+    "firstChance": 0,
+    "points": [
+     1766
+    ],
+    "place": 4
+   },
+   {
+    "group": "m:GPT-6.2 Sol",
+    "kind": "build",
+    "model": "GPT-6.2 Sol",
+    "builds": [
+     "sol50"
+    ],
+    "rating": 1733,
+    "range": [
+     1646,
+     1846
+    ],
+    "firstChance": 0,
+    "points": [
+     1733
+    ],
+    "place": 4
+   },
+   {
+    "group": "e:skala",
+    "kind": "ref",
+    "model": "эталон skala",
+    "builds": [
+     "skala"
+    ],
+    "rating": 1191,
+    "range": [
+     1163,
+     1223
+    ],
+    "firstChance": null,
+    "points": [
+     1191
+    ],
+    "place": 1
+   },
+   {
+    "group": "e:mekhanik",
+    "kind": "ref",
+    "model": "эталон mekhanik",
+    "builds": [
+     "mekhanik"
+    ],
+    "rating": 1155,
+    "range": [
+     1113,
+     1196
+    ],
+    "firstChance": null,
+    "points": [
+     1155
+    ],
+    "place": 1
+   },
+   {
+    "group": "e:strelok",
+    "kind": "ref",
+    "model": "эталон strelok",
+    "builds": [
+     "strelok"
+    ],
+    "rating": 853,
+    "range": [
+     822,
+     878
+    ],
+    "firstChance": null,
+    "points": [
+     853
+    ],
+    "place": 3
+   },
+   {
+    "group": "e:shkval",
+    "kind": "ref",
+    "model": "эталон shkval",
+    "builds": [
+     "shkval"
+    ],
+    "rating": 802,
+    "range": [
+     757,
+     842
+    ],
+    "firstChance": null,
+    "points": [
+     802
+    ],
+    "place": 3
+   }
+  ],
+  "boot": 1000
+ },
+ "passport": {
+  "all": {
+   "fights": 2400,
+   "loserRatio": 0.2900197628458498,
+   "leadChange": 0.49583333333333335,
+   "duration": 74.59166666666667,
+   "timeouts": 0.07541666666666667,
+   "far": 0.0012908791151858047,
+   "blockShare": 0.1364278494270091
+  },
+  "close": {
+   "fights": 240,
+   "loserRatio": 0.553435357319573,
+   "leadChange": 0.8333333333333334,
+   "duration": 160.83333333333331,
+   "timeouts": 0.4791666666666667,
+   "far": 0.0005463295949927213,
+   "blockShare": 0.36888717751251443
+  },
+  "closePairs": 3,
+  "slice": "близкие пары",
+  "builds": [
+   {
+    "id": "astra50",
+    "topMove": "sweep",
+    "topShare": 0.42589598540145984,
+    "throwDmg": 27962,
+    "moves": {
+     "spike": 0.018,
+     "upper": 0.027,
+     "sweep": 0.426,
+     "slide": 0.367,
+     "heavy": 0.023,
+     "cyclone": 0.024,
+     "throw": 0.026,
+     "breaker": 0.003,
+     "jab": 0,
+     "lance": 0.067,
+     "finale": 0.011,
+     "cross": 0.004,
+     "low": 0,
+     "?": 0.005,
+     "stage": 0
+    }
+   },
+   {
+    "id": "sol50",
+    "topMove": "sweep",
+    "topShare": 0.26000934331637227,
+    "throwDmg": 52767,
+    "moves": {
+     "upper": 0.074,
+     "heavy": 0.219,
+     "slide": 0.072,
+     "sweep": 0.26,
+     "breaker": 0.051,
+     "cyclone": 0.023,
+     "knee": 0.039,
+     "fireball": 0.007,
+     "finale": 0.176,
+     "dive": 0.006,
+     "throw": 0.061,
+     "overhead": 0.003,
+     "jab": 0.002,
+     "cross": 0.003,
+     "low": 0.001,
+     "?": 0.003,
+     "stage": 0
+    }
+   },
+   {
+    "id": "opus50",
+    "topMove": "cyclone",
+    "topShare": 0.2382642916544677,
+    "throwDmg": 47143,
+    "moves": {
+     "throw": 0.042,
+     "cyclone": 0.238,
+     "slide": 0.14,
+     "sweep": 0.117,
+     "knee": 0.016,
+     "low": 0.098,
+     "finale": 0.206,
+     "jab": 0.045,
+     "upper": 0.059,
+     "fireball": 0.024,
+     "flurry": 0.005,
+     "rush": 0.004,
+     "heavy": 0.003,
+     "stage": 0.002,
+     "overhead": 0.001,
+     "?": 0.001
+    }
+   },
+   {
+    "id": "fable50",
+    "topMove": "heavy",
+    "topShare": 0.22779859504292924,
+    "throwDmg": 86997,
+    "moves": {
+     "overhead": 0.003,
+     "jab": 0.02,
+     "twin": 0.034,
+     "lance": 0.106,
+     "sweep": 0.05,
+     "throw": 0.081,
+     "heavy": 0.228,
+     "knee": 0.008,
+     "low": 0.077,
+     "finale": 0.157,
+     "cyclone": 0.072,
+     "fireball": 0.014,
+     "upper": 0.012,
+     "slide": 0.114,
+     "?": 0.005,
+     "stage": 0.011,
+     "flurry": 0.009
+    }
+   },
+   {
+    "id": "carbon50",
+    "topMove": "low",
+    "topShare": 0.20645320575422735,
+    "throwDmg": 97813,
+    "moves": {
+     "cyclone": 0.166,
+     "low": 0.206,
+     "slide": 0.009,
+     "throw": 0.107,
+     "overhead": 0.019,
+     "jab": 0.06,
+     "upper": 0.066,
+     "knee": 0.114,
+     "?": 0.014,
+     "twin": 0.028,
+     "lance": 0.011,
+     "finale": 0.189,
+     "dive": 0.007,
+     "smash": 0.003,
+     "stage": 0.001
+    }
+   }
+  ],
+  "spearman": 0.9833333333333333,
+  "spread": 0.9863065799511996,
+  "checks": {
+   "loserRatio": true,
+   "leadChange": true,
+   "duration": false,
+   "timeouts": false,
+   "far": true,
+   "blockShare": true,
+   "topMove": true,
+   "throws": true,
+   "spearman": true,
+   "spread": true
+  },
+  "pass": false
+ }
+}

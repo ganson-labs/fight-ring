@@ -42,6 +42,7 @@ export function animFor(F, fight, sub = 0) {
       return { anim: A.dizzy, t: st };
     case 'throw':
     case 'throwing':
+    case 'use': // grabs a stage object and hurls it
       return { anim: A.throw, t: st };
     case 'grabbed':
     case 'thrown':

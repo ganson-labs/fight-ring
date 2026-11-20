@@ -6,7 +6,7 @@ import { AdvancedBloomFilter, GlowFilter, ShockwaveFilter } from 'pixi-filters';
 import { BONE, DEFAULT_Z, solvePose } from '../engine/skeleton.js';
 import { solveBody, buildMesh, skinMesh } from '../engine/body.js';
 import { drawOrder, placeBones } from './fit.js';
-import { STAGE, METER_MAX, METER_BAR, STUN_MAX, TICK_RATE, PROJECTILE } from '../engine/constants.js';
+import { STAGE, METER_MAX, METER_BAR, STUN_MAX, TICK_RATE, PROJECTILE, ETHER, GUARD_GAUGE } from '../engine/constants.js';
 import { debugBoxes } from '../engine/sim.js';
 import { poseFor } from './animstate.js';
 import { Ambient } from './ambient.js';
@@ -550,6 +550,20 @@ export class Scene {
         case 'dizzy':
           this.popup(e.side, 'ОГЛУШЁН', 0xfff07a);
           break;
+        case 'guardCrush':
+          this.cam.shake = Math.max(this.cam.shake, 22);
+          this.ring(e.x, e.y, { color: 0xff3b2f, size: 2.4, life: 0.45 });
+          this.burst(e.x, e.y, { count: 34, color: 0xff6a3c, color2: 0xffffff, speed: 1200, size: 1.2, seed: fight.tick });
+          this.popup(e.side, 'ЗАЩИТА СЛОМАНА', 0xff6a3c);
+          break;
+        case 'wallBreak':
+          this.cam.shake = Math.max(this.cam.shake, 26);
+          this.burst(e.x, e.y, { count: 40, color: hexNum(e.color), color2: 0xd9d9d9, speed: 1300, size: 1.4, seed: fight.tick + 5, up: true });
+          this.popup(1 - e.side, 'СТЕНА ПРОБИТА', 0xd9d9d9);
+          break;
+        case 'passive':
+          this.popup(e.side, 'ПАССИВНОСТЬ', 0x9aa0b4);
+          break;
         case 'comboLimit':
           break;
         case 'breakFree':
@@ -843,6 +857,11 @@ export class Scene {
       g.rect(sx, sy, sw, 5 * k).fill({ color: 0x000000, alpha: 0.6 });
       const sf = Math.min(1, F.stun / STUN_MAX);
       g.rect(left ? sx + sw - sw * sf : sx, sy, sw * sf, 5 * k).fill({ color: F.state === 'dizzy' ? 0xfff07a : 0xb0b6c8 });
+      // ring 3.0: guard gauge under the stun — orange, red and blinking close to a guard crush
+      const gy = sy + 9 * k;
+      const gf = Math.min(1, (F.guardGauge || 0) / GUARD_GAUGE.max);
+      g.rect(sx, gy, sw, 5 * k).fill({ color: 0x000000, alpha: 0.6 });
+      if (gf > 0) g.rect(left ? sx + sw - sw * gf : sx, gy, sw * gf, 5 * k).fill({ color: gf > 0.7 ? 0xff3b2f : 0xff9a3c, alpha: gf > 0.7 ? 0.65 + 0.35 * Math.sin(this.time * 14) : 1 });
       // meter
       const mw = (this.vertical ? 300 : 420) * k;
       const mh = 18 * k;
@@ -858,6 +877,11 @@ export class Scene {
         const part = clamp((F.meter - b * METER_BAR) / METER_BAR, 0, 1);
         if (part > 0) g.rect(left ? bx : bx + seg * (1 - part), my, seg * part, mh).fill({ color: part >= 1 ? accent : 0x6d7385 });
       }
+      // ring 3.0: ether, the pool of special abilities, a thin bar over the super meter
+      const ey = my - 14 * k;
+      const ef = Math.min(1, (F.ether || 0) / ETHER.max);
+      g.rect(mx - 2 * k, ey - 2 * k, mw + 4 * k, 8 * k).fill({ color: 0x000000, alpha: 0.7 });
+      if (ef > 0) g.rect(left ? mx : mx + mw * (1 - ef), ey, mw * ef, 4 * k).fill({ color: 0x5fd3ff });
       const full = F.meter >= METER_MAX;
       const sup = this.hudText[side].sup;
       sup.visible = full;

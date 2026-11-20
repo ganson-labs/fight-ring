@@ -9,7 +9,7 @@ import { buildVersions } from '../judge/gamedata.js';
 import { lockerReplyIn } from '../judge/contestants.js';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
-const KIT = join(root, 'kit', 'fighter');
+const KIT = join(root, 'tests', 'fixtures', 'ring3', 'fighter');
 
 test('версии бойца: одинаковые снимки — одна версия, изменённый — следующая с разбором, путей наружу нет', () => {
   const base = mkdtempSync(join(tmpdir(), 'ring-ver-'));
@@ -93,7 +93,7 @@ test('игрок: команда кнопкой запускает приём, �
   const { readFighterDir } = await import('../kit/arena/tools/load.js');
   const { Controls, moveList } = await import('../viewer/game/input.js');
   const me = readFighterDir(KIT).fighter;
-  const dummy = readFighterDir(join(root, 'kit', 'arena', 'sparring', 'dummy')).fighter;
+  const dummy = readFighterDir(join(root, 'tests', 'fixtures', 'ring3', 'dummy')).fighter;
   const first = me.moves.find((m) => m.slot === 'normal' && m.posture === 'stand');
   assert.equal(first.command, 'LP');
   assert.equal(moveList(me).filter((m) => m.slot === 'super').length, 1);
@@ -125,7 +125,7 @@ test('игрок: каждая команда набора вызывает св
   const input = JSON.parse(JSON.stringify(Object.fromEntries(['fighter', 'body', 'moves', 'voice'].map((f) => [f, JSON.parse(readFileSync(join(KIT, `${f}.json`), 'utf8'))]))));
   const base = input.moves.moves[0];
   const sup = input.moves.moves[1];
-  const strike = (id, slot, posture, zone, command) => ({ ...JSON.parse(JSON.stringify(base)), id, name: id, slot, posture, ...(command ? { command } : {}), blocks: [{ ...base.blocks[0], zone, damage: 20, recovery: 12 }] });
+  const strike = (id, slot, posture, zone, command) => ({ ...JSON.parse(JSON.stringify(base)), id, name: id, slot, posture, ...(command ? { command } : {}), blocks: [{ ...base.blocks[0], zone, damage: 20, recovery: 18 }] });
   input.moves.moves = [
     strike('jab', 'normal', 'stand', 'mid'),
     strike('fwd', 'normal', 'stand', 'mid', '6HK'),
@@ -138,7 +138,7 @@ test('игрок: каждая команда набора вызывает св
   const r = E.checkFighter(input);
   assert.ok(r.ok, r.errors.join('\n'));
   const me = r.fighter;
-  const dummy = E.checkFighter(Object.fromEntries(['fighter', 'body', 'moves', 'voice'].map((f) => [f, JSON.parse(readFileSync(join(root, 'kit', 'arena', 'sparring', 'dummy', `${f}.json`), 'utf8'))]))).fighter;
+  const dummy = E.checkFighter(Object.fromEntries(['fighter', 'body', 'moves', 'voice'].map((f) => [f, JSON.parse(readFileSync(join(root, 'tests', 'fixtures', 'ring3', 'dummy', `${f}.json`), 'utf8'))]))).fighter;
   // the input of a command, tick by tick: { dir (numpad, facing right), press }
   const BTN = { P: 'LP', K: 'LK', PP: ['LP', 'HP'], KK: ['LK', 'HK'] };
   const framesOf = (cmd, posture) => {

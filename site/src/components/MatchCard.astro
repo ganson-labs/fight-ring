@@ -1,0 +1,62 @@
+---
+// One match: both sides with the score, then every round with its outcome and a link into the game.
+import type { Match, Season } from '../data/ring';
+import { fighterIn, roundOutcome, roundTitle, watchRound } from '../data/ring';
+import { to } from '../lib/paths';
+import Portrait from './Portrait.astro';
+
+interface Props { season: Season; match: Match; heading?: 'h2' | 'h3' }
+const { season, match, heading: H = 'h3' } = Astro.props;
+const path = Astro.url.pathname;
+const name = (cid: string) => fighterIn(season, cid)?.name ?? cid;
+const sides = match.sides.map((cid, i) => ({ cid, fighter: fighterIn(season, cid), score: match.score[i] ?? 0, won: match.winner === cid }));
+---
+<article class="match" id={match.id}>
+  <H class="slab match-title">{match.title}</H>
+  <div class="sides">
+    {sides.map((s) => (
+      <div class:list={['side', { lost: match.winner !== null && !s.won }]} style={`--c:${s.fighter?.color ?? 'var(--line)'}`}>
+        {s.fighter && <a class="thumb" href={to(path, `fighters/${s.fighter.id}/`)} tabindex="-1" aria-hidden="true"><Portrait fighter={s.fighter} width={56} alt="" /></a>}
+        <div class="side-who">
+          {s.fighter ? <a class="side-name slab" href={to(path, `fighters/${s.fighter.id}/`)}>{s.fighter.name}</a> : <span class="side-name slab">{s.cid}</span>}
+          {s.fighter && <span class="side-model">{s.fighter.model}</span>}
+        </div>
+        <span class="score slab" aria-label={`побед в раундах: ${s.score}`}>{s.score}</span>
+      </div>
+    ))}
+  </div>
+  <ol class="rounds">
+    {match.rounds.map((r) => (
+      <li>
+        <span class="round-title">{roundTitle(r)}</span>
+        <span class="round-out">{roundOutcome(r, name)}{r.seconds !== null && <span class="dim">, {Math.round(r.seconds)}&nbsp;с</span>}</span>
+        <a class="watch" href={to(path, watchRound(match, r))} aria-label={`Смотреть раунд: ${match.title}, ${roundTitle(r).toLowerCase()}`}>Смотреть раунд</a>
+      </li>
+    ))}
+  </ol>
+</article>
+
+<style>
+  .match { background: var(--panel); border-top: 3px solid var(--gold2); padding: 20px 22px 8px; min-width: 0; }
+  .match-title { font-size: 20px; color: var(--gold); margin: 0 0 14px; }
+  .sides { display: grid; gap: 10px; }
+  .side { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; }
+  .thumb { width: 56px; flex: none; }
+  .thumb :global(.frame) { padding: 2px; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%); }
+  .thumb :global(img) { clip-path: none; }
+  .side-who { display: flex; flex-direction: column; min-width: 0; }
+  .side-name { font-size: 21px; line-height: 1.1; text-decoration: none; overflow-wrap: anywhere; }
+  a.side-name:hover { color: var(--gold); }
+  .side-model { font-size: 14px; font-weight: 500; color: var(--c); }
+  .score { font-size: 40px; min-width: 1ch; text-align: right; }
+  .side.lost .score, .side.lost .side-name { color: var(--mute); }
+  .rounds { list-style: none; margin: 18px 0 0; padding: 0; }
+  .rounds li { display: grid; grid-template-columns: 1fr auto; gap: 0 16px; align-items: baseline; padding: 11px 0; border-top: 1px solid var(--line); font-size: 15.5px; line-height: 1.4; }
+  .round-title { font-weight: 600; }
+  .round-out { grid-column: 1; color: #d6d9e3; }
+  .watch { grid-column: 2; grid-row: 1 / span 2; align-self: center; padding: 8px 0; font: italic 700 15px/1.1 var(--display); text-transform: uppercase; letter-spacing: .06em; color: var(--gold); white-space: nowrap; }
+  @media (max-width: 400px) {
+    .match { padding: 18px 16px 6px; }
+    .side-name { font-size: 19px; }
+  }
+</style>

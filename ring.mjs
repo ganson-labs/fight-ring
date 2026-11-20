@@ -11,18 +11,32 @@ const HELP = `Ринг моделей — судья. Запуск из папк
 
 Участники
   new <id> --agent claude|codex|gemini --model "Название для экрана" [--agent-model id] [--effort high] [--color #hex] [--root путь]
-                                    папка участника вне ринга (по умолчанию contestRoot из ring.config.json) и скрипт запуска launch/<id>.ps1
+                                    папка участника вне ринга (--root, иначе contestRoot из ring.config.json, иначе ~/ring-contest/<id>,
+                                    в Windows C:/ring-contest-<id>) и скрипт запуска launch/<id>.sh (в Windows launch/<id>.ps1)
   list                              участники, их корни и как запускать
-  launch-script <id>                пересоздать launch/<id>.ps1
+  launch-script <id>                пересоздать скрипт запуска участника
   claude-account <id> <имя>|--off  бой Claude-участника на другой подписке: токен claude setup-token в ~/.config/fight-ring/claude-<имя>.token
-  codex-home <id> [--back]          чистый профиль Codex участника (вызывается из launch/<id>.ps1)
+  codex-home <id> [--back]          чистый профиль Codex участника (вызывается из скрипта запуска)
   audit <id>                        журналы агента: обращался ли он к папке ринга или другого участника
   run <id> --prompt prompts/fighter.md [--minutes 90] [--resume] [--vars N=1,M=20] [--label build]
-                                    без человека: промпт слово в слово через launch/<id>.ps1, лимит времени, журнал
+                                    без человека: промпт слово в слово через скрипт запуска, лимит времени, журнал
                                     в ledger/runs/, учёт в ledger/runs.json; --resume — продолжить прошлую сессию
 
+Сезон и сайт
+  publish <сезон> --matches a,b,c [--title "…"]   законченный турнир в репозиторий: seasons/<сезон>/ (бойцы по версиям, записи раундов)
+  site [папка] [--no-pages]         сайт обычными файлами (по умолчанию dist/): страницы (site/, Astro) в корне, игра в play/,
+                                    рядом набор, сцены и опубликованные сезоны; --no-pages — одна игра, без npm
+
 Матч
-  match new <match> --red <id> --blue <id> [--stage rooftop[,server,...]] [--minutes 20] [--first-to 2]
+  league run <name> --ids a,b,c [--seeds 3] [--jobs N]   все со всеми: 5 стартов × 2 стороны × зёрна, таблица, рейтинг, тиры → leagues/<name>/
+  league show <name> | league list   (лига 2.x)
+  bench run <name> --ids a,b,ref:shkval,dir:<папка> [--draws 8] [--jobs N]
+                                    лига 3.0: 5 стартов × розыгрыши шума × 2 стороны, рейтинг БТ с эталонами, бутстрэп,
+                                    паспорт зрелищности → leagues/<name>/
+  bench show <name> | bench invariants <name> [--every N] | bench ablate <name> [--draws 1]
+  voices [--sweep] [--dry]          голоса «Ринг · <id> · …» на аккаунте озвучки: какие можно освободить (--sweep — удалить);
+                                    другие голоса не трогаются. Судья сам освобождает голос после каждого запуска агента
+  match new <match> --red <id> --blue <id> [--stage rooftop[,server,...]] [--minutes 20] [--first-to 2] [--starts draw|centre,far,…]
   match round <match> [--no-render] [--vertical] [--ads]
                                     следующий раунд: снимок бойцов, бой, запись, ролики, раздевалка участникам
   match render <match> --round N [--vertical] [--ads] [--no-intro]
@@ -37,16 +51,16 @@ const HELP = `Ринг моделей — судья. Запуск из папк
                                     первая дорожка без неё, вторая с ней; в ролик матча — reel --comment
   match reel <match> [--shorts 3] [--no-captions] [--comment] [--model claude-opus-5-5 | --no-model] [--studio [проект]]
                                     ролик матча 16:9 с подписями ключевых моментов (без них — match-16x9-clean.mp4), шортсы 9:16,
-                                    шпаргалка для озвучки notes-for-pasha.md и папка для монтажа (reel/: pieces, moments.json, moments.md);
+                                    шпаргалка для озвучки notes-for-voice.md и папка для монтажа (reel/: pieces, moments.json, moments.md);
                                     --comment — со звуком озвучки раундов; --no-model — подписи и шпаргалка словами судьи;
-                                    --studio — ещё и новым роликом «гансон: Студии» с этими материалами (проект ring, создаётся сам)
+                                    --studio — ещё и новым роликом в программе монтажа автора (vagent, в репозиторий не входит)
   match ghost <match> --round N --cid <id> [--tick T | --moment super|last|combo|new] [--seconds 4]
                                     призрак: кусок раунда N, поверх — версия бойца до раздевалки полупрозрачно в холодном цвете,
                                     от состояния того тика её мозги играют дальше против того же соперника; 16:9 и 9:16
   match pack <match> [--studio <id ролика>] [--no-render]
                                     пакет для монтажа в matches/<match>/pack/: раунды 1080p60 чистые и с подписями, экраны VS,
                                     итогов, раздевалок и финала, фигуры бойцов PNG каждой версии, листы поз и частей, правки
-                                    и слова моделей, цифры CSV, мысли бойцов (SRT); --studio — материалами в ролик Студии
+                                    и слова моделей, цифры CSV, мысли бойцов (SRT); --studio — материалами в ролик программы монтажа автора
   match locker <match> [--round N]  раздевалка раунда заново из его папки (её делает пульт турнира после ролика)`;
 
 function parse(argv) {
@@ -81,7 +95,7 @@ async function main() {
     const id = sub;
     const r = createContestant(id, { model: o.model, agent: o.agent, color: o.color, root: o.root, agentModel: o['agent-model'], effort: o.effort });
     console.log(`Готово: участник «${id}» в ${r.root}`);
-    console.log(`Запуск агента с чистого листа: powershell -ExecutionPolicy Bypass -File ${r.script}`);
+    console.log(`Запуск агента с чистого листа: ${process.platform === 'win32' ? 'powershell -ExecutionPolicy Bypass -File' : 'bash'} ${r.script}`);
     return;
   }
   if (cmd === 'list') {
@@ -89,7 +103,9 @@ async function main() {
       const cmdl = launchCommand(id);
       const res = readFighterDir(join(c.root, 'fighter'));
       console.log(`${id}: ${c.model} (${c.agent}${c.agentModel ? `, ${c.agentModel}` : ''}) — ${c.root}; боец ${res.ok ? `«${res.fighter.card.name}» проходит проверку` : 'не проходит проверку'}`);
-      console.log(`   ${Object.entries(cmdl.env).map(([k, v]) => `$env:${k}='${v}'; `).join('')}cd '${cmdl.root}'; ${cmdl.exe} ${cmdl.args.join(' ')}`);
+      const env = Object.entries(cmdl.env);
+      if (process.platform === 'win32') console.log(`   ${env.map(([k, v]) => `$env:${k}='${v}'; `).join('')}cd '${cmdl.root}'; ${cmdl.exe} ${cmdl.args.join(' ')}`);
+      else console.log(`   cd '${cmdl.root}'; ${env.map(([k, v]) => `${k}='${v}' `).join('')}${cmdl.exe} ${cmdl.args.join(' ')}`);
     }
     return;
   }
@@ -109,7 +125,7 @@ async function main() {
     const { runAgent } = await import('./judge/run.js');
     if (typeof o.prompt !== 'string') throw new Error('нужен --prompt prompts/<файл>.md');
     const vars = Object.fromEntries(String(o.vars || '').split(',').filter(Boolean).map((kv) => kv.split('=')));
-    const r = await runAgent(sub, { prompt: resolve(o.prompt), vars, minutes: Number(o.minutes || 90), label: typeof o.label === 'string' ? o.label : o.resume ? 'locker' : 'build', resume: o.resume || false });
+    const r = await runAgent(sub, { prompt: resolve(o.prompt), vars, minutes: Number(o.minutes || 90), label: typeof o.label === 'string' ? o.label : o.resume ? 'locker' : 'build', resume: o.resume || false, ...(o.stall !== undefined ? { stall: Number(o.stall) } : {}) });
     if (r.exit && !r.timedOut) process.exitCode = 1;
     return;
   }
@@ -123,11 +139,66 @@ async function main() {
     process.exitCode = 1;
     return;
   }
+  if (cmd === 'league') {
+    const L = await import('./judge/league.js');
+    if (sub === 'run') {
+      const ids = String(o.ids || '').split(',').map((x) => x.trim()).filter(Boolean);
+      const league = await L.runLeague(arg, { ids, seeds: Number(o.seeds || 3), ...(o.jobs ? { jobs: Number(o.jobs) } : {}) });
+      console.log(`\nГотово: leagues/${arg}/README.md (${league.fights.length} боёв${league.errors.length ? `, ошибок ${league.errors.length}` : ''})`);
+      return;
+    }
+    if (sub === 'show') return void console.log(L.leagueMarkdown(L.loadLeague(arg)));
+    if (sub === 'list') return void console.log(L.listLeagues().join('\n') || 'лиг нет');
+    throw new Error('league run <имя> --ids a,b,c [--seeds 3] [--jobs N] | league show <имя> | league list');
+  }
+  if (cmd === 'voices') {
+    const V = await import('./judge/voices.js');
+    const { runs } = await import('./judge/run.js');
+    const active = V.activeContestants(runs());
+    const s = await V.sweepVoices({ active, dry: !o.sweep || !!o.dry });
+    console.log(`Голоса на аккаунте озвучки: занято ${s.used} из ${s.limit}.`);
+    console.log(`Голоса участников ринга ${o.sweep && !o.dry ? 'удалены' : 'к удалению (--sweep удалит)'}: ${s.deleted.length ? s.deleted.join('; ') : 'нет'}`);
+    if (s.kept.length) console.log(`Оставлены (участник работает сейчас): ${s.kept.join('; ')}`);
+    return;
+  }
+  if (cmd === 'bench') {
+    const B = await import('./judge/bench.js');
+    if (sub === 'run') {
+      const specs = String(o.ids || '').split(',').map((x) => x.trim()).filter(Boolean);
+      const league = await B.runBench(arg, { specs, draws: Number(o.draws || 8), ...(o.jobs ? { jobs: Number(o.jobs) } : {}) });
+      console.log(`\nГотово: leagues/${arg}/README.md (${league.fights.length} боёв${league.errors.length ? `, ошибок ${league.errors.length}` : ''}, ${league.seconds} с). Паспорт ${league.passport.pass ? 'пройден' : 'не пройден'}.`);
+      return;
+    }
+    if (sub === 'show') return void console.log(B.benchMarkdown(B.loadBench(arg)));
+    if (sub === 'invariants') {
+      const r = await B.verifyInvariants(arg, { every: Number(o.every || 1) });
+      console.log(`Инварианты правил на ${r.fights} записях лиги «${arg}»: ${r.ok ? 'все соблюдены' : 'НАРУШЕНЫ'}`);
+      for (const [k, v] of Object.entries(r.bad)) console.log(`  ${k}: ${v.length ? `${v.length} — ${v.slice(0, 3).join('; ')}` : 'ок'}`);
+      if (!r.ok) process.exitCode = 1;
+      return;
+    }
+    if (sub === 'ablate') {
+      const r = await B.ablateMoves(arg, { draws: Number(o.draws || 1), ...(o.jobs ? { jobs: Number(o.jobs) } : {}) });
+      for (const x of r.rows) console.log(`  ${x.flagged ? '!' : ' '} ${x.id} без ${x.move} (${x.slot}): ${Math.round(x.base * 100)} % → ${Math.round(x.off * 100)} %`);
+      console.log(`Отмечено: ${r.rows.filter((x) => x.flagged).length} из ${r.rows.length}; leagues/${arg}/ablation.json`);
+      return;
+    }
+    throw new Error('bench run <имя> --ids a,b,ref:shkval,dir:<папка> [--draws 8] [--jobs N] | bench show <имя> | bench invariants <имя> [--every N] | bench ablate <имя> [--draws 1]');
+  }
+  if (cmd === 'publish') {
+    if (!sub || !o.matches) throw new Error('node ring.mjs publish <сезон> --matches a,b,c [--title "…"]');
+    const { publishSeason } = await import('./judge/publish.js');
+    return void publishSeason(sub, { matches: String(o.matches).split(','), title: o.title || null });
+  }
+  if (cmd === 'site') {
+    const { buildSite } = await import('./judge/site.js');
+    return void buildSite(resolve(sub || 'dist'), { pages: !process.argv.includes('--no-pages') });
+  }
   if (cmd === 'match') {
     if (sub === 'new') {
       const stage = typeof o.stage === 'string' ? o.stage.split(',') : ['rooftop'];
       for (const s of stage) if (!existsSync(join(RING, 'stages', s, 'stage.json'))) throw new Error(`нет сцены stages/${s}`);
-      const m = newMatch(arg, { red: o.red, blue: o.blue, stage, minutes: Number(o.minutes || 20), firstTo: Number(o['first-to'] || 2) });
+      const m = newMatch(arg, { red: o.red, blue: o.blue, stage, minutes: Number(o.minutes || 20), firstTo: Number(o['first-to'] || 2), starts: o.starts === 'draw' ? 'draw' : typeof o.starts === 'string' ? o.starts.split(',') : null });
       return printStatus(m);
     }
     if (sub === 'status') return printStatus(loadMatch(arg));
@@ -203,7 +274,7 @@ async function main() {
     }
     if (sub === 'pack') {
       const r = await (await import('./judge/pack.js')).buildPack(arg, { studio: typeof o.studio === 'string' ? o.studio : null, render: !o['no-render'] });
-      return console.log(`Готово: ${r.dir}${r.studio ? `; в Студии ролик ${r.studio.video}: ${r.studio.added} материалов` : ''}`);
+      return console.log(`Готово: ${r.dir}${r.studio ? `; в программе монтажа ролик ${r.studio.video}: ${r.studio.added} материалов` : ''}`);
     }
     if (sub === 'reel') {
       const r = await (await import('./judge/reel.js')).buildReel(arg, { studio: o.studio || false, shorts: Number(o.shorts ?? 3), captions: !o['no-captions'], comment: !!o.comment, model: o['no-model'] ? null : typeof o.model === 'string' ? o.model : 'claude-opus-5-5' });

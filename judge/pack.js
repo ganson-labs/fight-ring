@@ -8,7 +8,8 @@
 //   05-stats     time, tokens, money, pictures and voice per model and period; health over time; round counters
 //   06-thoughts  what each fighter decided moment by moment, in short words, for pop-ups (JSON, CSV, SRT)
 //   07-reel      the match reel, its shorts and the moments list, when `match reel` made them
-// With --studio <video> the files go into that video of «гансон: Студия» as its materials (vagent video add).
+// With --studio <video> the files go into that video of the author's own montage program as its materials (vagent video
+// add; the program is not part of this repository).
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { basename, extname, join, relative } from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -346,7 +347,7 @@ export async function buildPack(id, { studio = null, log = console.log, render =
     for (const f of readdirSync(reel).filter((x) => /\.(mp4|md|json)$/.test(x))) {
       copyFileSync(join(reel, f), join(rd, f));
       if (f.endsWith('.mp4')) add(join(rd, f), 'recording', f.startsWith('match') ? `Ролик матча${f.includes('clean') ? ' без подписей' : ' с подписями'}` : `Шортс ${f}`);
-      else if (f.endsWith('.md')) add(join(rd, f), 'note', f === 'notes-for-pasha.md' ? 'Шпаргалка к озвучке ролика матча' : 'Моменты матча с таймкодами');
+      else if (f.endsWith('.md')) add(join(rd, f), 'note', ['notes-for-voice.md', 'notes-for-pasha.md'].includes(f) ? 'Шпаргалка к озвучке ролика матча' : 'Моменты матча с таймкодами');
     }
   }
 
@@ -393,7 +394,7 @@ function packReadme(id, m, files, dir) {
   return L.join('\n');
 }
 
-// the pack into a video of «гансон: Студия» as its materials, by kind; the Studio copies files in
+// the pack into a video of the author's montage program as its materials, by kind; the program copies files in
 export function toStudioPack(video, files, log = console.log) {
   const run = (args) => execFileSync('vagent', args, { encoding: 'utf8', shell: process.platform === 'win32' });
   const q = (s) => `"${String(s).replace(/"/g, "'")}"`;
@@ -402,7 +403,7 @@ export function toStudioPack(video, files, log = console.log) {
     run(['video', 'add', video, q(f.file), '--as', f.as, '--what', q(f.what)]);
     n++;
   }
-  log(`В Студии: ${n} материалов в ролике ${video}`);
+  log(`В программе монтажа: ${n} материалов в ролике ${video}`);
   return { video, added: n };
 }
 

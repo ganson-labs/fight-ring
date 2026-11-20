@@ -185,7 +185,7 @@ export async function replayRound(dir, r, onStep = null) {
   const replay = readJSON(join(rd, 'replay.json'));
   const fighters = [];
   for (const cid of [r.left, r.right]) fighters.push(await loadWith(E, I, join(rd, cid, 'fighter')));
-  const fight = E.createFight({ fighters, seed: replay.seed ?? E.RING_SEED });
+  const fight = E.createFight({ fighters, seed: replay.seed ?? E.RING_SEED, start: replay.start });
   for (const acts of expandSteps(replay.steps)) {
     const ev = E.stepFight(fight, acts);
     if (onStep) onStep(fight, acts, ev, E);
@@ -209,7 +209,7 @@ export async function verifyDir(dir) {
     const replay = readJSON(join(rd, 'replay.json'));
     const fighters = [];
     for (const cid of [r.left, r.right]) fighters.push(await loadWith(E, I, join(rd, cid, 'fighter')));
-    const fight = E.createFight({ fighters, seed: replay.seed ?? E.RING_SEED });
+    const fight = E.createFight({ fighters, seed: replay.seed ?? E.RING_SEED, start: replay.start });
     for (const acts of expandSteps(replay.steps)) E.stepFight(fight, acts);
     const hash = E.fightHash(fight);
     out.push({ n: r.n, engine: folderHash(engineDir), recorded: replay.hash || r.hash, replayed: hash, same: hash === (replay.hash || r.hash) });

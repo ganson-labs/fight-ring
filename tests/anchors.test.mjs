@@ -8,7 +8,7 @@ import * as E from '../kit/arena/engine/index.js';
 import { placeBones, pictureFrame, findOpenings, bodyFit, fitWarnings, suggestAnchors, crotch, ANCHOR_MAX } from '../kit/arena/render/fit.js';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
-const KIT = join(root, 'kit', 'fighter');
+const KIT = join(root, 'tests', 'fixtures', 'ring3', 'fighter');
 const raw = () => Object.fromEntries(['fighter', 'body', 'moves', 'voice'].map((f) => [f, JSON.parse(readFileSync(join(KIT, `${f}.json`), 'utf8'))]));
 const rest = { root: [0, 0], bones: {} };
 

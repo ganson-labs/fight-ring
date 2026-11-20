@@ -3,8 +3,8 @@
 // «Нажми любую клавишу». The contestants' fighters stand in the shots as silhouettes in back light; the sparring
 // dummy never appears. Driven by its own clock: play() in real time, or step(dt) frame by frame for a recording.
 import * as PIXI from 'pixi.js';
-import * as E from '/kit/arena/engine/index.js';
-import { Scene } from '/kit/arena/render/scene.js';
+import * as E from '../../kit/arena/engine/index.js';
+import { Scene } from '../../kit/arena/render/scene.js';
 
 const lerp = (a, b, k) => a + (b - a) * k;
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);

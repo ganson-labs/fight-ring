@@ -3,6 +3,16 @@
 // room around the glyphs (style.padding by the font size); fitText shrinks a text to a width (long names).
 import * as PIXI from 'pixi.js';
 
+// The ring's font is ready before the first text is drawn: every file of it, the Cyrillic ones included. A canvas text
+// drawn before its letters arrived keeps the fallback font for good, and document.fonts.load('… Oswald') alone
+// fetches only the Latin file (a clip came out with other letters now and then).
+export async function ringFonts() {
+  try {
+    await Promise.all([...document.fonts].filter((f) => f.family.replace(/["']/g, '') === 'Oswald').map((f) => f.load()));
+    await document.fonts.ready;
+  } catch {}
+}
+
 export function ringText({ text, style = {}, ...rest }) {
   const size = Number(style.fontSize) || 26;
   const stroke = typeof style.stroke === 'object' ? style.stroke?.width || 0 : 0;

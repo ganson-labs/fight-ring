@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Боец на прозрачном фоне</title>
+<!-- One fighter alone in the frame, for the montage: its assembly from parts, its idle loop, its entrance, victory, or
+     one of its moves. ?id=<contestant>&do=reveal|idle|intro|victory|move:<id>&bg=0|1. The clock is the caller's: the page
+     moves only when window.__step(ms) is called, so every frame of an export is the same on any machine. -->
+<style>html{background:#07080c;height:100%;overflow:hidden}body{margin:0;width:1920px;height:1080px;overflow:hidden;background:transparent;position:absolute;left:50%;top:50%;transform-origin:0 0}html.clear{background:transparent}body.bg{background:radial-gradient(ellipse at 50% 0%,#232a3d,#0a0c12 70%)}#st{position:absolute;inset:0}</style>
+<script>
+// ?live=1 — the real clock: the page plays by itself (a step of the show); without it the caller steps the clock
+if (new URLSearchParams(location.search).get('live') !== '1') {
+  let now = 0; const q = [];
+  performance.now = () => now;
+  window.requestAnimationFrame = (f) => { q.push(f); return q.length; };
+  window.__step = (ms) => { now += ms; for (const f of q.splice(0)) f(now); };
+}
+const fit = () => { const k = Math.min(innerWidth / 1920, innerHeight / 1080); document.body.style.transform = 'scale(' + k + ') translate(-50%,-50%)'; };
+addEventListener('resize', fit); addEventListener('DOMContentLoaded', fit);
+addEventListener('keydown', (e) => { if (['ArrowRight', 'ArrowLeft', 'f', 'F'].includes(e.key)) parent.postMessage({ key: e.key }, '*'); });
+</script>
+<script type="importmap">{ "imports": { "pixi.js": "../../kit/arena/vendor/pixi.mjs", "pixi-filters": "../../kit/arena/vendor/pixi-filters.mjs" } }</script>
+</head>
+<body>
+<div id="st"></div>
+<script type="module">
+import { FigureView, revealDuration } from '../game/figure.js';
+import { loadFighterAssets } from '../../kit/arena/render/assets.js';
+const p = new URLSearchParams(location.search);
+if (p.get('bg') === '1') document.body.classList.add('bg');
+else document.documentElement.classList.add('clear');
+const what = p.get('do') || 'reveal';
+window.ready = (async () => {
+  const assets = await loadFighterAssets(new URL(`../../c/${p.get('id')}/fighter/`, import.meta.url).href);
+  const view = new FigureView(document.getElementById('st'));
+  view.noIntro = true;
+  await view.init();
+  view.set(assets);
+  const def = assets.def;
+  let seconds = 4;
+  if (what === 'reveal') {
+    // in the show the fighter says its entrance line when the assembly is done
+    const line = assets.def.voice.lines.find((l) => l.kind === 'intro');
+    view.reveal({ onBeat: (kind) => { if (p.get('live') === '1' && line && kind === 'end') { new Audio(new URL(`../../c/${p.get('id')}/fighter/voice/${line.id}.mp3`, import.meta.url).href).play().catch(() => {}); } } });
+    seconds = revealDuration(false) + (def.anims.intro ? def.anims.intro.length / 60 : 0) + 1.5;
+  } else if (what === 'idle') seconds = Math.max(2, (def.anims.idle.length / 60) * 2);
+  else if (what.startsWith('move:')) {
+    const m = def.movesById[what.slice(5)];
+    view.cur = { anim: m.anim, len: m.duration + 18, loop: false };
+    view.t = 0;
+    seconds = (m.duration + 40) / 60;
+  } else {
+    view.play(what);
+    seconds = (def.anims[what]?.length || 60) / 60 + 1;
+  }
+  window.__seconds = seconds;
+  return true;
+})();
+</script>
+</body>
+</html>

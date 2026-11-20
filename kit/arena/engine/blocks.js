@@ -2,13 +2,16 @@
 // and runtime behaviour in sim.js. "action" blocks run one after another on the move's timeline;
 // "modifier" blocks change the move as a whole. New blocks are added here (plus their runtime in sim.js):
 // the checker, the cost table in `arena check` and the docs read this registry.
-import { ABILITY, ABILITY_PRICE } from './constants.js';
+import { ABILITY, ABILITY_PRICE, ETHER, REACTION_TICKS, TELEGRAPH } from './constants.js';
 
 const int = (min, max, extra = {}) => ({ type: 'int', min, max, ...extra });
 const num = (min, max, extra = {}) => ({ type: 'number', min, max, ...extra });
 const oneOf = (values, extra = {}) => ({ type: 'enum', values, ...extra });
 const bool = (extra = {}) => ({ type: 'bool', ...extra });
 const path = (extra = {}) => ({ type: 'path', ...extra });
+
+// R3: a move shorter than 24 ticks costs ⌈(24 − ticks) / 4⌉ more
+const shortSurcharge = (ticks) => (ticks < 24 ? Math.ceil((24 - ticks) / 4) : 0);
 
 // Damage cost: per-hit damage outside supers, the whole damage of the move in a super.
 function damageCost(p, slot, mul = 1) {
@@ -32,15 +35,25 @@ export const BLOCKS = {
       zone: oneOf(['high', 'mid', 'low', 'overhead', 'air'], { required: true }),
       launch: bool({ default: false }),
       push: oneOf(['light', 'heavy'], { default: 'light' }),
+      // ring 4: the fighter travels this many units forward during the startup (a slide, a dash punch, a flying knee);
+      // it stops at the opponent and at the wall like a walk
+      advance: int(0, 300, { default: 0 }),
     },
     cost(p, slot, mods) {
-      let c = 1 + damageCost(p, slot, mods.chargeMul);
+      let c = 1 + damageCost(p, slot, mods.chargeMul) + Math.ceil((p.advance || 0) / 100);
       c += p.startup <= 4 ? 3 : p.startup <= 6 ? 2 : p.startup <= 9 ? 1 : 0;
       c += { short: 0, mid: 1, long: 2 }[p.reach];
       c += p.zone === 'low' || p.zone === 'overhead' ? 1 : 0;
       c += p.launch ? 2 : 0;
       c += p.push === 'heavy' ? 1 : 0;
       if (p.recovery >= 25) c -= 1;
+      // ring 3.0 (R3): a strike shorter than 24 ticks in all can be neither blocked on sight nor punished after a whiff
+      // (the brains see the opponent 15 ticks late), so it costs more; a launcher with a startup of 5 or less even more
+      // (pilot 3.0 v2: three models hid a 3-tick startup and a 9-tick recovery behind 12 active ticks — active counts up
+      // to 4 here, and every 3 active ticks over 6 cost a point: a long active strike covers the approach)
+      c += shortSurcharge(p.startup + Math.min(p.active, 4) + p.recovery);
+      if (p.active > 6) c += Math.ceil((p.active - 6) / 3);
+      if (p.launch && p.startup <= 5) c += 2;
       return Math.max(1, c);
     },
     check(p, move) {
@@ -71,6 +84,8 @@ export const BLOCKS = {
       c += { slow: 0, mid: 1, fast: 2 }[p.speed];
       c += p.startup <= 10 ? 1 : 0;
       c += p.zone === 'low' ? 1 : 0;
+      // R3 for projectiles too (pilot 3.0 v2): a throw shorter than 24 ticks cannot be punished on sight either
+      c += shortSurcharge(p.startup + 1 + p.recovery);
       return c;
     },
     check(p, move) {
@@ -158,11 +173,21 @@ const SCRIPT_PATH = /^[A-Za-z0-9_\-][A-Za-z0-9_\-./]*\.m?js$/;
 // Price of an ability from its measurement. Monotonic: more power — longer cooldown and higher cost.
 export function abilityPower(m) {
   const w = ABILITY_PRICE.weights;
-  return m.damage * w.damage + m.control * w.control + m.buff * w.buff + m.shove * w.shove + m.objectTicks * w.objectTicks;
+  return m.damage * w.damage + m.control * w.control + m.buff * w.buff + m.shove * w.shove + m.objectTicks * w.objectTicks + (m.refusal || 0) * w.refusal;
+}
+
+// P3: a special ability costs this much ether a cast (its power, at most the whole pool)
+export function etherCost(move) {
+  if (!move?.ability || move.slot === 'super') return 0;
+  return Math.min(ETHER.max, Math.ceil(move.ability.power || 0));
 }
 
 export function abilityPrice(m, slot) {
-  const power = abilityPower(m);
+  const measured = abilityPower(m);
+  // ring 3.0 (P3): a special casts on ether, and the pool holds ETHER.max; above it a cast does only that share of the
+  // measurement and is priced for what it does
+  const power = slot === 'super' ? measured : Math.min(measured, ETHER.max);
+  const etherScale = measured > power ? power / measured : 1;
   const cd = ABILITY_PRICE.cooldown;
   const c = ABILITY_PRICE.cost;
   const cooldown = slot === 'super' ? 0 : Math.min(cd.max, Math.max(cd.min, Math.round(cd.base + power * cd.perPower)));
@@ -171,17 +196,18 @@ export function abilityPrice(m, slot) {
   // the price stops at c.max, so does the power it pays for: above it a cast does only its share of the measurement
   // (found 17.11.2026: an ability of power 6446 cost the same 24 points as one of 550)
   const top = (c.max - c.base) * per;
-  const scale = power > top ? top / power : 1;
-  return { power, cooldown, cost, top, scale };
+  const scale = (power > top ? top / power : 1) * etherScale;
+  return { power, measured, cooldown, cost, top, scale };
 }
 
 // What the ability code can call. Printed by `arena blocks`; the rules in detail are in ARENA.md.
 export const ABILITY_PRIMITIVES = [
-  ['api.hit({ box, damage, zone, launch, push, effect })', `удар по коробке [x0, y0, x1, y1] от источника (x вперёд): общий путь попаданий — блок, парирование, броня, серия ×0.8, 8 % / 25 %, шкалы. damage до ${ABILITY.hitDamageMax} (в супере до ${ABILITY.hitDamageMaxSuper}), один источник бьёт не чаще раза в ${ABILITY.hitEvery} тиков. effect — эффект на соперника при чистом попадании. Ответ: hit, block, parry, armor, miss, wait, cut`],
+  ['api.hit({ box, damage, zone, launch, push, effect })', `удар по коробке [x0, y0, x1, y1] от источника (x вперёд). Коробка и зона фиксируются при вызове, удар приходит через реакцию + ${TELEGRAPH.base} тиков (${REACTION_TICKS + TELEGRAPH.base} при реакции ${REACTION_TICKS}) и ещё тик за каждые ${TELEGRAPH.perUnits} ед. дальше ${TELEGRAPH.freeRange} ед. от источника до центра коробки, и мозги соперника видят его заранее (strikes). Дальше общий путь попаданий — блок (10 % урона сквозь блок), парирование, броня, серия ×0.8, 8 % / 25 %, шкалы. damage до ${ABILITY.hitDamageMax} (в супере до ${ABILITY.hitDamageMaxSuper}), один источник бьёт не чаще раза в ${ABILITY.hitEvery} тиков. effect — эффект на соперника при чистом попадании. Ответ — id удара`],
+  ['api.hitResult(id)', 'как прошёл удар api.hit: pending (ещё летит), hit, block, parry, armor, miss, wait, cut'],
   ['api.effect(target, { id, ticks, speed, taken, dot, stop, drift, label, color, icon, particles })', `эффект на "opponent" или "me": до ${ABILITY.effectTicks} тиков (stop до ${ABILITY.stopTicks}, замедление до ${ABILITY.slowTicks}); speed ${ABILITY.speed.join('…')}, taken ${ABILITY.taken.join('…')} (итог всех эффектов в тех же рамках), dot до ${ABILITY.dotMax} урона в секунду, drift до ${ABILITY.driftMax} ед./тик; повторный контроль за ${ABILITY.controlWindow} тиков слабее: ${ABILITY.controlDecay.map((k) => `×${k}`).join(', ')}; не больше ${ABILITY.effectsMax} эффектов на цели`],
-  ['api.spawn({ x, y, w, h, vx, vy, life, tick, touch, solid, image, color, particles, label, data })', `объект на поле, не больше ${ABILITY.objectsMax} своих сразу, живёт до ${ABILITY.objectLife} тиков, скорость до ${ABILITY.objectSpeed} ед./тик; tick(api, o) — поведение каждый тик; touch — удар при касании; solid — стена шириной до ${ABILITY.solidWidthMax}`],
+  ['api.spawn({ x, y, w, h, vx, vy, life, tick, touch, solid, image, color, particles, label, data })', `объект на поле, не больше ${ABILITY.objectsMax} своих сразу, живёт до ${ABILITY.objectLife} тиков и не дольше ${ABILITY.castLife} тиков от начала каста, скорость до ${ABILITY.objectSpeed} ед./тик; tick(api, o) — поведение каждый тик; touch — удар при касании (с возраста реакция + ${TELEGRAPH.base}); solid — стена на полу до ${ABILITY.solidWidthMax}×${ABILITY.solidHeightMax}, одна у бойца, ${ABILITY.solidHp} прочности, ход до ${ABILITY.solidSpeed} ед./тик`],
   ['api.remove(id?)', 'убрать свой объект (в поведении объекта без id — этот)'],
-  ['api.shove(target, dx)', `сдвинуть "me" или "opponent" по x (вперёд от себя), не больше ${ABILITY.shovePerTick} ед. на цель за тик, стены держат`],
+  ['api.shove(target, dx)', `сдвинуть "me" или "opponent" по x (вперёд от себя), не больше ${ABILITY.shovePerTick} ед. на цель за тик, стены держат; себя — только в нейтрали и в приёме этого каста`],
   ['api.resource(id) / api.addResource(id, delta)', 'свой ресурс из fighter.json → resources: прочитать и изменить в пределах 0…max'],
   ['api.setStance(id | null)', 'стойка из fighter.json → stances; приём с полем stance доступен только в ней'],
   ['api.view()', 'всё о бою, как видят мозги'],

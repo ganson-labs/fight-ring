@@ -3,16 +3,22 @@
 import { ringVersionText } from './engine/version.js';
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
-import { loadFighter, resolveFighterDir, runFight, KIT_DIR, ARENA_DIR, BRAIN_TICK_MS } from './tools/load.js';
-import { BLOCKS, STAT_POINTS, MOVE_BUDGET, deriveStats, TICK_RATE, ROUND_TICKS, ABILITY_PRIMITIVES, ABILITY_PRICE, MEASURE } from './engine/index.js';
+import { loadFighter, resolveFighterDir, runFight, KIT_DIR, ARENA_DIR, BRAIN_STEPS } from './tools/load.js';
+import { BLOCKS, STAT_POINTS, MOVE_BUDGET, deriveStats, TICK_RATE, ROUND_TICKS, ABILITY_PRIMITIVES, ABILITY_PRICE, MEASURE, STARTS, ETHER, noisyStart } from './engine/index.js';
+
+// the ring's sparring partners, different styles: --vs all
+// four with a style (the shared brain of sparring/_core) and nine with one habit each: a brain that has no answer to a habit loses to it
+const SPARRING = ['shkval', 'strelok', 'skala', 'mekhanik', 'brosok', 'zalp', 'podkat', 'taran', 'prygun', 'pryamoy', 'krug', 'ten', 'cherepaha'];
 
 const HELP = `Ринг моделей — мастерская бойца. Запуск из папки участника: node arena/cli.mjs <команда>
 
   check  [папка]                         проверить бойца (по умолчанию fighter/)
   blocks                                 блоки конструктора, их параметры и стоимость, примитивы способности
   sounds                                 звуки ринга по имени для moves.json → sounds
-  spar   [папка] [--vs dummy|<папка бойца>[,<папка>…]] [--side left|right] [--dummy stand|block|crouch|jump|walk|parry|throw] [--seconds <длина раунда>]
+  spar   [папка] [--vs dummy|all|shkval|strelok|skala|mekhanik|<папка бойца>[,…]] [--start centre|close|far|wall_left|wall_right|all] [--seed N] [--noise N] [--side left|right] [--dummy stand|block|crouch|jump|walk|parry|throw] [--seconds <длина раунда>]
                                          бой мозгов бойца с соперником в Node, итог и запись боя
+  league [папка] [--vs all|имя|папка[,…]] [--draws 1]
+                                         мини-лига: боец против всех партнёров ринга и своих прошлых версий, одна таблица
   preview [--move id] [--sheet] [--fight] [--vertical] [--debug] [--dummy block] [--gap 300] [--stage папка]
                                          лист поз PNG и ролики MP4 приёмов в out/preview/
   paint  "<описание>" --out art/x.png [--ref файл]... [--aspect square|portrait|landscape] [--transparent]
@@ -60,14 +66,21 @@ function printCheck(dir, res) {
   }
   if (res.budget) {
     console.log(`\nБюджет приёмов: ${res.budget.used} из ${res.budget.max}`);
-    for (const m of res.budget.moves) console.log(`  ${m.id.padEnd(24)} ${m.slot.padEnd(8)} ${String(m.cost).padStart(3)} очк.  ${String(m.duration).padStart(3)} тиков  команда ${res.fighter.movesById[m.id].command}${res.fighter.movesById[m.id].ownCommand ? '' : ' (ринг)'}`);
+    for (const m of res.budget.moves) console.log(`  ${m.id.padEnd(24)} ${m.slot.padEnd(8)} ${String(m.cost).padStart(3)} очк.  ${String(m.duration).padStart(3)} тиков  ${res.fighter ? `команда ${res.fighter.movesById[m.id].command}${res.fighter.movesById[m.id].ownCommand ? '' : ' (ринг)'}` : ''}`);
   }
   if (res.abilities?.length) printAbilities(res.abilities);
   if (res.ok) {
     const f = res.fighter;
     const d = f.derived;
-    console.log(`\nХарактеристики: здоровье ${f.stats.health}, сила ${f.stats.power}, скорость ${f.stats.speed}, защита ${f.stats.defense} (из ${STAT_POINTS})`);
-    console.log(`  здоровье ${d.maxHp}, урон ×${d.damageMul.toFixed(2)}, шаг ${d.walk.toFixed(1)} ед./тик, рывок ${d.dashDistance}, получаемый урон ×${d.takenMul.toFixed(2)}`);
+    if (f.ruleset === 'standard') {
+      console.log(`\nНабор ринга, механика у всех одна: здоровье ${d.maxHp}, шаг ${d.walk.toFixed(1)} ед./тик, рывок ${d.dashDistance}`);
+      console.log(`  спецприёмы: ${f.moves.filter((m) => m.slot === 'special').map((m) => `${m.id} «${m.name}»`).join(', ')}`);
+      console.log(`  суперприём: ${f.moves.filter((m) => m.slot === 'super').map((m) => `${m.id} «${m.name}»`).join(', ')}`);
+      for (const m of f.moves) console.log(`  ${m.id.padEnd(10)} ${String(m.duration).padStart(3)} тиков  команда ${m.command}${m.ownCommand ? '' : ' (ринг)'}`);
+    } else {
+      console.log(`\nХарактеристики: здоровье ${f.stats.health}, сила ${f.stats.power}, скорость ${f.stats.speed}, защита ${f.stats.defense} (из ${STAT_POINTS})`);
+      console.log(`  здоровье ${d.maxHp}, урон ×${d.damageMul.toFixed(2)}, шаг ${d.walk.toFixed(1)} ед./тик, рывок ${d.dashDistance}, получаемый урон ×${d.takenMul.toFixed(2)}`);
+    }
     console.log(`\n✓ Боец проходит проверку: ${f.card.name}`);
   } else console.log('\n✗ Боец не допускается к бою, пока есть ошибки.');
   console.log(`Версия: ${ringVersionText()}`);
@@ -80,16 +93,18 @@ function printAbilities(list) {
   const cd = ABILITY_PRICE.cooldown;
   const c = ABILITY_PRICE.cost;
   const res = MEASURE.resources.length;
-  console.log(`\nСпособности: ринг сам прогнал каждую на манекене (${MEASURE.gaps.join(', ')} ед.; ${MEASURE.modes.join(', ')}; ресурс как в fighter.json и полный; зёрна ${MEASURE.seeds.join(', ')}) и взял лучший замер по каждой мере.`);
+  console.log(`\nСпособности: ринг сам прогнал каждую на манекене (${MEASURE.gaps.join(', ')} ед.; ${MEASURE.modes.join(', ')}; ресурс как в fighter.json и полный; ты слева и справа) и взял лучший замер по каждой мере. Манекен каждый раз другой: характеристики, здоровье, шкалы и момент раунда.`);
   for (const a of list) {
     const m = a.measured;
     const at = (k) => (a.where[k] ? ` (${a.where[k].gap} ед., ${a.where[k].mode})` : '');
     console.log(`\n  ${a.id} — ${a.script}, ${a.runs} прогонов`);
-    console.log(`    урон ${f1(m.damage)}${at('damage')}, контроль ${f1(m.control)} тик.${at('control')}, усиление ${f1(m.buff)}, сдвиг ${f1(m.shove)} ед., объекты ${f1(m.objectTicks)} тик.`);
-    console.log(`    сила = ${f1(m.damage)}·${w.damage} + ${f1(m.control)}·${w.control} + ${f1(m.buff)}·${w.buff} + ${f1(m.shove)}·${w.shove} + ${f1(m.objectTicks)}·${w.objectTicks} = ${f1(a.power)}`);
+    console.log(`    урон ${f1(m.damage)}${at('damage')}, контроль ${f1(m.control)} тик.${at('control')}, усиление ${f1(m.buff)}, сдвиг ${f1(m.shove)} ед.${at('shove')}, объекты ${f1(m.objectTicks)} тик., отказ ${f1(m.refusal || 0)}${at('refusal')}`);
+    const full = m.damage * w.damage + m.control * w.control + m.buff * w.buff + m.shove * w.shove + m.objectTicks * w.objectTicks + (m.refusal || 0) * w.refusal;
+    console.log(`    сила = ${f1(m.damage)}·${w.damage} + ${f1(m.control)}·${w.control} + ${f1(m.buff)}·${w.buff} + ${f1(m.shove)}·${w.shove} + ${f1(m.objectTicks)}·${w.objectTicks} + ${f1(m.refusal || 0)}·${w.refusal} = ${f1(full)}${full > a.power + 1e-9 ? ` → ${f1(a.power)} (больше запаса эфира ${ETHER.max})` : ''}`);
+    if (a.slot !== 'super') console.log(`    каст стоит ${Math.min(ETHER.max, Math.ceil(a.power))} эфира (запас ${ETHER.max}, старт ${ETHER.start}, +${ETHER.regen} за тик и +${ETHER.perDamage} за единицу полученного урона)`);
     if (a.slot === 'super') console.log(`    суперприём: перезарядки нет (нужна шкала), стоимость ${c.base} + ⌈${f1(a.power)}/${c.perPowerSuper}⌉ = ${a.cost} очк.`);
     else console.log(`    перезарядка ${cd.base} + ${f1(a.power)}·${cd.perPower} = ${a.cooldown} тиков (${(a.cooldown / TICK_RATE).toFixed(1)} с, рамки ${cd.min}…${cd.max}), стоимость ${c.base} + ⌈${f1(a.power)}/${c.perPower}⌉ = ${a.cost} очк.`);
-    if (a.scale < 1) console.log(`    потолок цены оплачивает силу ${a.top}: в бою каст делает не больше ×${a.scale.toFixed(3)} замеренного (урон, контроль, усиление и сдвиг)`);
+    if (a.scale < 1) console.log(`    в бою каст делает не больше ×${a.scale.toFixed(3)} замеренного (урон, контроль, усиление, сдвиг и время объектов): ${a.slot === 'super' ? `потолок цены оплачивает силу ${a.top}` : `запас эфира ${ETHER.max}`}`);
     console.log(`    хуки: ${a.ms.calls} вызовов, в среднем ${a.ms.avg.toFixed(3)} мс, самый долгий ${a.ms.max.toFixed(2)} мс`);
     const cuts = Object.entries(a.cuts);
     if (cuts.length) {
@@ -97,7 +112,7 @@ function printAbilities(list) {
       for (const [msg, n] of cuts) console.log(`      - ${msg} ×${n}`);
     }
   }
-  console.log('\n  В бою каст не сделает больше замеренного (×1.25 с запасом): лишний урон, контроль и сдвиг ринг срежет.');
+  console.log('\n  В бою каст не сделает больше замеренного (×1.25 с запасом): лишний урон, контроль, сдвиг и время объектов ринг срежет.');
 }
 
 function fighterDir(opts) {
@@ -152,25 +167,32 @@ async function cmdSpar(opts) {
   const me = { dir: meDir, def: await loadOk(meDir) };
   // any fighter folder (several, comma-separated) or a training partner of the ring by name
   const foes = [];
-  for (const spec of String(opts.vs || 'dummy').split(',').map((x) => x.trim()).filter(Boolean)) {
+  const specs = String(opts.vs || 'dummy').split(',').map((x) => x.trim()).filter(Boolean).flatMap((x) => (x === 'all' ? SPARRING : [x]));
+  for (const spec of specs) {
     const dir = resolveFighterDir(spec, here);
     foes.push({ dir, spec, def: await loadOk(dir) });
   }
   const sides = opts.side === 'left' ? [0] : opts.side === 'right' ? [1] : [0, 1];
   const seconds = Number(opts.seconds || ROUND_TICKS / TICK_RATE);
-  const options = { dummy: opts.dummy || 'stand' };
+  const startNames = opts.start === 'all' ? Object.keys(STARTS) : String(opts.start || 'centre').split(',').map((x) => x.trim());
+  for (const n of startNames) if (!STARTS[n]) throw new Error(`старт «${n}» не знаю: ${Object.keys(STARTS).join(', ')} или all`);
+  const seed = opts.seed !== undefined ? Number(opts.seed) >>> 0 : undefined;
+  const baseOptions = { dummy: opts.dummy || 'stand' };
   const outDir = join(here, 'out', 'spar');
   mkdirSync(outDir, { recursive: true });
   const rows = [];
   let last = null;
   let round = 0;
   for (const foe of foes) {
-    for (const side of sides) {
+    for (const startName of startNames) for (const side of sides) {
       round++;
+      // --noise N: the start shaken as in the tournament (draw N), the same draw on both sides
+      const start = opts.noise !== undefined ? noisyStart(startName, Number(opts.noise) >>> 0) : startName;
+      const options = { ...baseOptions, start, ...(seed !== undefined ? { seed } : {}) };
       const r = await sparOnce(me, foe, side, round, seconds, options);
       const { f, M, O } = r;
-      const where = side === 0 ? 'слева' : 'справа';
-      console.log(`\n${me.def.card.name} (${where}) против ${foe.def.card.name}${foe.dir.includes('sparring') ? ` (режим «${options.dummy}»)` : ''} (${rel(foe.dir)}), до ${seconds} с`);
+      const where = (side === 0 ? 'слева' : 'справа') + (startName !== 'centre' ? `, старт ${startName}` : '');
+      console.log(`\n${me.def.card.name} (${where}) против ${foe.def.card.name}${foe.spec === 'dummy' ? ` (режим «${options.dummy}»)` : ''} (${rel(foe.dir)}), до ${seconds} с`);
       console.log(`Итог: ${r.result}${f.endReason === 'ko' ? ' нокаутом' : ''}, ${r.seconds.toFixed(1)} с. Здоровье: ${Math.ceil(M.hp)}/${M.maxHp} против ${Math.ceil(O.hp)}/${O.maxHp}`);
       for (const F of [M, O]) {
         const t = F.tally;
@@ -187,8 +209,8 @@ async function cmdSpar(opts) {
       console.log(`  События: ${Object.entries(counts).map(([k, v]) => `${k} ${v}`).join(', ')}`);
       const s = r.run.stats[side];
       const avg = s.calls ? s.msSum / s.calls : 0;
-      console.log(`  Мозги ${me.def.card.name}: ход в среднем ${avg.toFixed(3)} мс, максимум ${s.msMax.toFixed(2)} мс, пропущено ${s.slow} (дольше ${BRAIN_TICK_MS} мс), ошибок ${s.errors}${s.lastError ? `\n    последняя: ${s.lastError.split('\n')[0]}` : ''}`);
-      const name = `${String(foe.spec).replace(/[^\w.-]+/g, '_').replace(/^[._]+|[._]+$/g, '') || 'foe'}-${side === 0 ? 'left' : 'right'}.json`;
+      console.log(`  Мозги ${me.def.card.name}: ход в среднем ${avg.toFixed(3)} мс, максимум ${s.msMax.toFixed(2)} мс, самый тяжёлый ход ${s.stepsMax} шагов, пропущено ${s.skipped} (больше ${BRAIN_STEPS} шагов), ошибок ${s.errors}${s.lastError ? `\n    последняя: ${s.lastError.split('\n')[0]}` : ''}`);
+      const name = `${String(foe.spec).replace(/[^\w.-]+/g, '_').replace(/^[._]+|[._]+$/g, '') || 'foe'}${startName !== 'centre' ? '-' + startName : ''}-${side === 0 ? 'left' : 'right'}.json`;
       const save = join(outDir, name);
       writeFileSync(save, JSON.stringify({ ...r.run.replay, fighters: r.dirs.map(rel), me: side }) + '\n');
       console.log(`  Запись: ${rel(save)} (показать: node arena/cli.mjs preview --fight ${rel(save)})`);
@@ -207,6 +229,56 @@ async function cmdSpar(opts) {
     console.log(`  побед ${won} из ${rows.length}`);
   }
   return { save, me: me.dir, foe: foes[foes.length - 1].dir, rows };
+}
+
+// Mini league: the fighter against every partner of the ring and any other folders (its own past versions), from all
+// five starts with the tournament's noise, on both sides. One table instead of a hundred lines of spar.
+async function cmdLeague(opts) {
+  const meDir = resolveFighterDir(opts._[1] || 'fighter', here);
+  const me = { dir: meDir, def: await loadOk(meDir) };
+  const specs = String(opts.vs || 'all').split(',').map((x) => x.trim()).filter(Boolean).flatMap((x) => (x === 'all' ? SPARRING : [x]));
+  const draws = Math.max(1, Number(opts.draws || 1));
+  const rows = [];
+  const dmg = {};
+  const used = {};
+  let fights = 0;
+  let bad = 0;
+  for (const spec of specs) {
+    const dir = resolveFighterDir(spec, here);
+    const foe = { dir, def: await loadOk(dir) };
+    const row = { foe: foe.def.card.name, spec, won: 0, lost: 0, n: 0, ticks: [], hp: 0, byStart: {} };
+    for (const startName of Object.keys(STARTS)) for (let k = 0; k < draws; k++) for (const side of [0, 1]) {
+      const seed = (7001 + k * 131 + Object.keys(STARTS).indexOf(startName) * 17) >>> 0;
+      const r = await sparOnce(me, foe, side, 1, ROUND_TICKS / TICK_RATE, { start: noisyStart(startName, seed), seed });
+      row.n++;
+      fights++;
+      row.ticks.push(r.f.tick);
+      if (r.f.winner === side) row.won++;
+      else if (r.f.winner === 1 - side) {
+        row.lost++;
+        row.byStart[startName] = (row.byStart[startName] || 0) + 1;
+      }
+      row.hp += r.M.hp / r.M.maxHp - r.O.hp / r.O.maxHp;
+      bad += r.run.stats[side].errors + r.run.stats[side].skipped;
+      for (const e of r.run.events) {
+        if (e.type === 'move' && e.side === side) used[e.move] = (used[e.move] || 0) + 1;
+        if (e.type === 'hit' && e.attacker === side) dmg[e.move] = (dmg[e.move] || 0) + e.damage;
+      }
+      dmg.throw = (dmg.throw || 0) + r.M.tally.throwDamage;
+    }
+    rows.push(row);
+  }
+  const med = (xs) => [...xs].sort((a, b) => a - b)[xs.length >> 1];
+  console.log(`\n${me.def.card.name}: мини-лига, ${fights} боёв (5 стартов × ${draws} × 2 стороны на соперника, старт со встряской, как в турнире)\n`);
+  for (const x of rows.sort((a, b) => a.won / a.n - b.won / b.n)) {
+    const lost = Object.entries(x.byStart).map(([k, v]) => `${k} ${v}`).join(', ');
+    console.log(`  ${x.foe.padEnd(12)} побед ${String(x.won).padStart(2)} из ${x.n}, бой ${String(Math.round(med(x.ticks) / TICK_RATE)).padStart(3)} с, перевес по здоровью ${(100 * x.hp / x.n).toFixed(0).padStart(4)} %${lost ? `   проиграл: ${lost}` : ''}`);
+  }
+  const won = rows.reduce((s, x) => s + x.won, 0);
+  console.log(`\n  всего побед ${won} из ${fights} (${Math.round((100 * won) / fights)} %)${bad ? `; ошибок и пропусков хода у мозгов: ${bad}` : ''}`);
+  const tot = Object.values(dmg).reduce((s, v) => s + v, 0) || 1;
+  console.log('  твой урон по приёмам: ' + Object.entries(dmg).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${Math.round((100 * v) / tot)} %`).join(', '));
+  console.log('  запусков за бой: ' + Object.entries(used).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${(v / fights).toFixed(1)}`).join(', '));
 }
 
 async function cmdPreview(opts) {
@@ -274,6 +346,7 @@ async function main() {
       return;
     }
     case 'spar': return cmdSpar(opts);
+    case 'league': return cmdLeague(opts);
     case 'preview': return cmdPreview(opts);
     case 'paint': return (await import('./tools/paint.js')).cmdPaint(opts, here);
     case 'parts': return (await import('./tools/parts.js')).cmdParts(opts, here);

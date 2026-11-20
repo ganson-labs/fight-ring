@@ -1,0 +1,116 @@
+{
+  "description": "Женский голос лоцмана, низкий и собранный, с тёплой хрипотцой. Короткие фразы произносит чётко, как координаты в корабельную рацию. При победе теплеет. В суперприёме говорит по слогам, как при штормовом предупреждении.",
+  "language": "ru",
+  "lines": [
+    {
+      "id": "intro",
+      "kind": "intro",
+      "text": "Я Ми́ра Соль. Глубину промерим на ходу."
+    },
+    {
+      "id": "taunt",
+      "kind": "taunt",
+      "text": "Здесь мелко. Держись ближе."
+    },
+    {
+      "id": "super",
+      "kind": "super",
+      "text": "Риф на нуле. Полный свет!"
+    },
+    {
+      "id": "mark",
+      "kind": "hit",
+      "text": "Отметка."
+    },
+    {
+      "id": "hurt",
+      "kind": "hurt",
+      "text": "Вижу мель."
+    },
+    {
+      "id": "victory",
+      "kind": "victory",
+      "text": "Проход открыт. Следующая лодка."
+    },
+    {
+      "id": "defeat",
+      "kind": "defeat",
+      "text": "Карту… передайте дальше."
+    },
+    {
+      "id": "edge",
+      "kind": "other",
+      "text": "Кромка."
+    },
+    {
+      "id": "depth",
+      "kind": "other",
+      "text": "Глубже."
+    },
+    {
+      "id": "beam",
+      "kind": "other",
+      "text": "Сигнал."
+    },
+    {
+      "id": "dive",
+      "kind": "other",
+      "text": "За борт!"
+    },
+    {
+      "id": "breaker",
+      "kind": "other",
+      "text": "Волнорез!"
+    },
+    {
+      "id": "jetsam",
+      "kind": "other",
+      "text": "Лови буй!"
+    },
+    {
+      "id": "turn",
+      "kind": "other",
+      "text": "Поворот."
+    },
+    {
+      "id": "wake",
+      "kind": "other",
+      "text": "Киль."
+    },
+    {
+      "id": "cross",
+      "kind": "other",
+      "text": "За кормой."
+    },
+    {
+      "id": "jab",
+      "kind": "other",
+      "text": "Раз."
+    },
+    {
+      "id": "knee",
+      "kind": "other",
+      "text": "К борту."
+    },
+    {
+      "id": "heavy",
+      "kind": "other",
+      "text": "Держись."
+    },
+    {
+      "id": "air_kick",
+      "kind": "other",
+      "text": "Сверху!"
+    },
+    {
+      "id": "cyclone",
+      "kind": "other",
+      "text": "Шлюз пошёл."
+    },
+    {
+      "id": "slide",
+      "kind": "other",
+      "text": "Под риф."
+    }
+  ]
+}

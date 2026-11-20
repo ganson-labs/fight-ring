@@ -1,13 +1,14 @@
 // Developer mode of the viewer (dev.html): the old form. A match round plays its recording (computed by the judge in Node); a free fight is computed here
 // first (brains in Web Workers, the judge's engine copy). Both are shown by the same broadcast as recorded clips.
 import * as PIXI from 'pixi.js';
-import * as E from '/kit/arena/engine/index.js';
-import { loadFighterAssets, loadStage } from '/kit/arena/render/assets.js';
-import { Scene } from '/kit/arena/render/scene.js';
-import { Broadcast } from '/kit/arena/render/broadcast.js';
-import { loadAds, attachBillboard } from '/kit/arena/render/ads.js';
+import * as E from '../kit/arena/engine/index.js';
+import { loadFighterAssets, loadStage } from '../kit/arena/render/assets.js';
+import { Scene } from '../kit/arena/render/scene.js';
+import { Broadcast } from '../kit/arena/render/broadcast.js';
+import { loadAds, attachBillboard } from '../kit/arena/render/ads.js';
 import { BrainHost } from './brain-host.js';
 import { Sfx } from './sfx.js';
+import { at } from './data.js';
 
 const $ = (s) => document.querySelector(s);
 const q = new URLSearchParams(location.search);
@@ -28,7 +29,7 @@ function status(msg, error = false) {
 }
 
 async function lists() {
-  [fighters, stages, matches] = await Promise.all(['fighters', 'stages', 'matches'].map(async (k) => (await fetch(`/api/${k}`)).json()));
+  [fighters, stages, matches] = await Promise.all(['fighters', 'stages', 'matches'].map(async (k) => (await fetch(at(`api/${k}`))).json()));
   for (const sel of [$('#fa'), $('#fb')]) sel.innerHTML = fighters.map((f) => `<option value="${f.id}">${f.name} — ${f.model}</option>`).join('');
   $('#stage').innerHTML = '<option value="">Тренировочный зал</option>' + stages.map((s) => `<option value="${s.id}">${s.name}</option>`).join('');
   const contest = fighters.filter((f) => f.id.startsWith('c/'));
@@ -150,7 +151,7 @@ async function play(c, { intro }) {
   const H = app.renderer.height;
   scene = new Scene(app, { width: W, height: H, vertical, names: c.entries.map((e) => e.model), debug: !!scene?.debug });
   scene.setStage(c.stage);
-  const ads = $('#ads').checked ? await loadAds('/ads/sponsor/', { force: true }) : null;
+  const ads = $('#ads').checked ? await loadAds(at('ads/demo/'), { force: true }) : null;
   if (ads) attachBillboard(scene, ads);
   scene.setFighters(c.assets);
   const fight = E.createFight({ fighters: c.assets.map((a) => a.def), seed: c.replay.seed ?? E.RING_SEED });
@@ -165,7 +166,7 @@ async function play(c, { intro }) {
       if (c.replay.hash && E.fightHash(f) !== c.replay.hash) console.warn(`повтор разошёлся с записью: ${E.fightHash(f)} против ${c.replay.hash}`);
     },
     onSound: (name, gain, variant, delay) => sfx.play(name, gain, variant, delay),
-    onSay: (side, line) => sfx.line(side === 'ring' ? '/announcer/' : bases[side], line),
+    onSay: (side, line) => sfx.line(side === 'ring' ? at('announcer/') : bases[side], line),
   });
   current = c;
   cancelAnimationFrame(raf);

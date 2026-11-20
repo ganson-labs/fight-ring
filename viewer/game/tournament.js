@@ -1,13 +1,15 @@
 // «Турнир» — the console for the day of a shoot: a new match, the agents' windows and the build, a round shown live,
 // the locker room by the clock, the final with the reel and the montage pack. Every action is a call to the ring's
 // local server (judge/tournament.js); the state lives there, so the console picks up where it was after a restart.
+import { at } from '../data.js';
+
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const mmss = (s) => (s === null || s === undefined ? '—' : `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`);
 const STEPS = [['setup', 'Новый матч'], ['build', 'Сборка'], ['round', 'Раунд'], ['locker', 'Раздевалка'], ['final', 'Финал']];
 const CORNER = { red: 'Красный угол', blue: 'Синий угол' };
 
 async function call(path, init) {
-  const r = await fetch(`/api/t/${path}`, init);
+  const r = await fetch(at(`api/t/${path}`), init);
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(j.error || r.statusText);
   return j;
@@ -152,7 +154,12 @@ export function tournamentScreen({ mount, ctx, backIn }) {
   };
 
   const wire = () => {
-    bodyEl.querySelectorAll('[data-win]').forEach((b) => (b.onclick = () => act(b, () => post('window', { corner: b.dataset.win }))));
+    bodyEl.querySelectorAll('[data-win]').forEach((b) => (b.onclick = () => act(b, async () => {
+      const r = await post('window', { corner: b.dataset.win });
+      // macOS and Linux: the console opens no window, the operator starts the agent in a terminal of his own
+      const commands = [r, r?.red, r?.blue].map((x) => x?.command).filter(Boolean);
+      if (commands.length) ctx.toast((await copy(commands.join('\n'))) ? `Запусти в терминале (скопировано): ${commands.join(' · ')}` : `Запусти в терминале: ${commands.join(' · ')}`);
+    })));
     bodyEl.querySelectorAll('[data-copy]').forEach((b) => (b.onclick = () => act(b, async () => {
       const p = await get(`prompts?n=${s.locker?.n || ''}`);
       const text = b.dataset.copy === 'locker' ? p.locker : p.fighter;

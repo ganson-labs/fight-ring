@@ -1,0 +1,43 @@
+{
+  "sponsor": "Образец рекламных заготовок: замени подписи и положи рядом свои картинки",
+  "enabled": false,
+  "costPlate": {
+    "enabled": true,
+    "title": "Счёт боя",
+    "currency": "$",
+    "rows": [
+      {
+        "label": "Картинки бойцов",
+        "amount": 12
+      },
+      {
+        "label": "Голос бойцов",
+        "amount": 5
+      },
+      {
+        "label": "Подписка на модель",
+        "amount": 20,
+        "fixed": true
+      }
+    ],
+    "footer": "строка спонсора"
+  },
+  "cardFlip": {
+    "enabled": true,
+    "label": "СПОНСОР",
+    "kind": "virtual",
+    "number": "••••  ••••  ••••  0000",
+    "holder": "",
+    "colors": [
+      "#1c2440",
+      "#3a5a8a"
+    ],
+    "seconds": 4.5
+  },
+  "billboard": {
+    "enabled": true,
+    "label": "СПОНСОР",
+    "sub": "место под картинку",
+    "glow": "#9fc4ff"
+  }
+}

@@ -2,10 +2,10 @@
 // animated figure for the fighter card. Both use the VS screen's light: a flat accent copy behind the body,
 // shifted to the outer edge (rim light), and a blurred one (aura).
 import * as PIXI from 'pixi.js';
-import { solvePose, sampleAnim, BONE, createFight, RING_SEED } from '/kit/arena/engine/index.js';
-import { Rig, Scene } from '/kit/arena/render/scene.js';
-import { Player } from '/kit/arena/render/player.js';
-import { moveDemo, showGap } from '/kit/arena/render/movedemo.js';
+import { solvePose, sampleAnim, BONE, createFight, RING_SEED } from '../../kit/arena/engine/index.js';
+import { Rig, Scene } from '../../kit/arena/render/scene.js';
+import { Player } from '../../kit/arena/render/player.js';
+import { moveDemo, showGap } from '../../kit/arena/render/movedemo.js';
 
 const hexNum = (h) => parseInt(String(h || '#ffffff').slice(1), 16);
 const rgb = (n) => [(n >> 16) & 255, (n >> 8) & 255, n & 255];

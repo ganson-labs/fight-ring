@@ -6,7 +6,7 @@ import { join, relative, resolve, sep } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { RING, KIT, getContestant, lockerReply } from './contestants.js';
 import { readFighterDir, loadFighter, runFight, expandSteps } from '../kit/arena/tools/load.js';
-import { createFight, stepFight, brainView, ROUND_TICKS, TICK_RATE, STAT_KEYS, RING_SEED, RING_VERSION } from '../kit/arena/engine/index.js';
+import { createFight, stepFight, brainView, ROUND_TICKS, TICK_RATE, STAT_KEYS, RING_SEED, RING_VERSION, STARTS } from '../kit/arena/engine/index.js';
 
 export const MATCHES = join(RING, 'matches');
 const readJSON = (f, fb = null) => (existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : fb);
@@ -34,15 +34,33 @@ function saveMatch(m) {
   writeJSON(join(matchDir(m.id), 'match.json'), m);
 }
 
-export function newMatch(id, { red, blue, stage = 'rooftop', firstTo = 2, maxRounds = 5, minutes = 20 }) {
+// starts: the start of each round (constants.js → STARTS). 'draw' — round 1 from the centre, the rest by lot
+// (seeded by the match id, so the draw is the same if the match is created again).
+export function newMatch(id, { red, blue, stage = 'rooftop', firstTo = 2, maxRounds = 5, minutes = 20, starts = null }) {
   if (!/^[a-z0-9-]+$/.test(id)) throw new Error('id матча: латиница, цифры и -');
   if (existsSync(join(matchDir(id), 'match.json'))) throw new Error(`матч «${id}» уже есть: ${matchDir(id)}`);
   if (red === blue) throw new Error('нужны два разных участника');
   for (const c of [red, blue]) getContestant(c);
   for (const c of [red, blue]) if (existsSync(join(getContestant(c).root, 'history'))) throw new Error(`у участника «${c}» уже есть history/ от прошлого матча: убери её перед новым матчем`);
-  const m = { id, created: new Date().toISOString(), ring: RING_VERSION, red, blue, models: { [red]: getContestant(red).model || red, [blue]: getContestant(blue).model || blue }, colors: { [red]: getContestant(red).color || null, [blue]: getContestant(blue).color || null }, stages: Array.isArray(stage) ? stage : [stage], firstTo, maxRounds, lockerMinutes: minutes, rounds: [], score: { [red]: 0, [blue]: 0 }, over: false, winner: null };
+  const m = { id, created: new Date().toISOString(), ring: RING_VERSION, red, blue, models: { [red]: getContestant(red).model || red, [blue]: getContestant(blue).model || blue }, stages: Array.isArray(stage) ? stage : [stage], ...(starts ? { starts: drawStarts(id, starts) } : {}), firstTo, maxRounds, lockerMinutes: minutes, rounds: [], score: { [red]: 0, [blue]: 0 }, over: false, winner: null };
   saveMatch(m);
   return m;
+}
+
+export function drawStarts(id, starts) {
+  if (Array.isArray(starts)) {
+    for (const s of starts) if (!STARTS[s]) throw new Error(`старт «${s}» не знаю: ${Object.keys(STARTS).join(', ')}`);
+    return starts;
+  }
+  const rest = Object.keys(STARTS).filter((s) => s !== 'centre');
+  let h = 2166136261;
+  for (const ch of id) h = Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0;
+  for (let i = rest.length - 1; i > 0; i--) {
+    h = Math.imul(h ^ (h >>> 13), 1274126177) >>> 0;
+    const j = h % (i + 1);
+    [rest[i], rest[j]] = [rest[j], rest[i]];
+  }
+  return ['centre', ...rest];
 }
 
 // Round 1: red starts on the left; the sides swap every round.
@@ -80,7 +98,7 @@ export function snapshotFilter(src) {
 // The fighter as it is right now, plus the judge's own engine for its brain to import (../arena/engine/).
 // src: the fighter folder to take (by default the contestant's own fighter/; the tournament console passes the copy
 // it took when the locker room's time ran out)
-function snapshot(cid, dir, src = null) {
+export function snapshot(cid, dir, src = null) {
   const c = getContestant(cid);
   src ||= join(c.root, 'fighter');
   if (!existsSync(join(src, 'fighter.json'))) throw new Error(`у участника «${cid}» нет fighter/fighter.json`);
@@ -108,7 +126,7 @@ export function engineHash(dir = join(KIT, 'arena', 'engine')) {
 
 // Re-simulates the recording and returns per-tick samples, events with positions, and per-side summaries.
 export function analyze(fighters, replay) {
-  const fight = createFight({ fighters, seed: replay.seed ?? RING_SEED });
+  const fight = createFight({ fighters, seed: replay.seed ?? RING_SEED, start: replay.start });
   const steps = expandSteps(replay.steps);
   const samples = [];
   const events = [];
@@ -405,7 +423,7 @@ export async function runRound(id, { log = console.log, sources = null } = {}) {
     fighters.push(r.fighter);
   }
   log(`Раунд ${n}: ${fighters[0].card.name} (${sides[0]}) слева против ${fighters[1].card.name} (${sides[1]}) справа`);
-  const run = await runFight({ dirs: sides.map((cid) => snaps[cid].fighter), fighters, options: { round: n }, maxTicks: ROUND_TICKS + 900, log: (s) => log(s) });
+  const run = await runFight({ dirs: sides.map((cid) => snaps[cid].fighter), fighters, options: { round: n }, seed: (RING_SEED + n - 1) >>> 0, start: m.starts ? STARTS[m.starts[(n - 1) % m.starts.length]] : null, maxTicks: ROUND_TICKS + 900, log: (s) => log(s) });
   const replay = { ...run.replay, fighters: sides.map((cid) => `${cid}/fighter`), round: n, stats: run.stats };
   writeJSON(join(roundDir, 'replay.json'), replay, false);
   const an = analyze(fighters, run.replay);
@@ -413,7 +431,7 @@ export async function runRound(id, { log = console.log, sources = null } = {}) {
   const winner = res.winner === null ? null : sides[res.winner];
   if (winner) m.score[winner]++;
   const stage = m.stages[(n - 1) % m.stages.length];
-  m.rounds.push({ n, ring: RING_VERSION, engine: engineHash(join(roundDir, sides[0], 'arena', 'engine')), left: sides[0], right: sides[1], stage, winner, reason: res.reason, ticks: res.ticks, hp: res.hp, maxHp: res.maxHp, snapshot: Object.fromEntries(sides.map((cid) => [cid, { git: snaps[cid].git, at: snaps[cid].at, name: fighters[sides.indexOf(cid)].card.name }])), hash: run.replay.hash });
+  m.rounds.push({ n, ring: RING_VERSION, engine: engineHash(join(roundDir, sides[0], 'arena', 'engine')), left: sides[0], right: sides[1], stage, start: m.starts ? m.starts[(n - 1) % m.starts.length] : null, winner, reason: res.reason, ticks: res.ticks, hp: res.hp, maxHp: res.maxHp, snapshot: Object.fromEntries(sides.map((cid) => [cid, { git: snaps[cid].git, at: snaps[cid].at, name: fighters[sides.indexOf(cid)].card.name }])), hash: run.replay.hash });
   const wonOut = Object.entries(m.score).find(([, v]) => v >= m.firstTo);
   if (wonOut) {
     m.over = true;

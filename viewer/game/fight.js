@@ -1,14 +1,15 @@
 // Fights in the game: a recorded round of a match, a whole match as a show, a fight of two brains computed here,
 // and a live fight of a player against a brain. All go through the same broadcast as the judge's clips.
 import * as PIXI from 'pixi.js';
-import * as E from '/kit/arena/engine/index.js';
-import { loadFighterAssets, loadStage } from '/kit/arena/render/assets.js';
-import { Scene } from '/kit/arena/render/scene.js';
-import { Broadcast } from '/kit/arena/render/broadcast.js';
-import { loadAds, attachBillboard } from '/kit/arena/render/ads.js';
+import * as E from '../../kit/arena/engine/index.js';
+import { loadFighterAssets, loadStage } from '../../kit/arena/render/assets.js';
+import { Scene } from '../../kit/arena/render/scene.js';
+import { Broadcast } from '../../kit/arena/render/broadcast.js';
+import { loadAds, attachBillboard } from '../../kit/arena/render/ads.js';
 import { BrainHost } from '../brain-host.js';
+import { at } from '../data.js';
 import { Controls } from './input.js';
-import { stageBeds } from '/kit/arena/render/sound.js';
+import { stageBeds } from '../../kit/arena/render/sound.js';
 
 const assetCache = new Map();
 export function fighterAssets(url) {
@@ -149,7 +150,7 @@ export class FightView {
     app.stage.removeChildren();
     const scene = new Scene(app, { width: W, height: H, vertical, names: o.names, quality: this.settings().quality || 'high' });
     scene.setStage(o.stage);
-    const ads = this.settings().ads ? await loadAds('/ads/sponsor/', { force: true }).catch(() => null) : null;
+    const ads = this.settings().ads ? await loadAds(at('ads/demo/'), { force: true }).catch(() => null) : null;
     if (ads) attachBillboard(scene, ads);
     scene.setFighters(o.assets);
     const fight = E.createFight({ fighters: o.assets.map((a) => a.def), seed: o.seed ?? E.RING_SEED });
@@ -160,7 +161,7 @@ export class FightView {
       app, scene, assets: o.assets, fight, steps, source, names: o.names, width: W, height: H, vertical, show: true, intro: o.intro !== false,
       ...o.show, ads, announcer: true, totalTicks: o.totalTicks || 1, seed: o.seed ?? E.RING_SEED,
       onSound: (name, gain, variant, delay) => this.sfx.play(name, gain, variant, delay),
-      onSay: (side, line) => this.sfx.line(side === 'ring' ? '/announcer/' : o.urls[side], line),
+      onSay: (side, line) => this.sfx.line(side === 'ring' ? at('announcer/') : o.urls[side], line),
     });
     this.bc = bc;
     this.fight = fight;

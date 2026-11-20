@@ -1,0 +1,111 @@
+{
+  "description": "Низкий женский голос подводной почты. Отвечает спокойно, с суховатой улыбкой. В шлемофоне слышен короткий металлический отзвук, а начало важных передач отмечает тихий гидроакустический сигнал.",
+  "language": "ru",
+  "lines": [
+    {
+      "id": "arrive",
+      "kind": "intro",
+      "text": "Заказное для чемпиона. Кто распишется?"
+    },
+    {
+      "id": "wait",
+      "kind": "taunt",
+      "text": "Я подожду. Я с морского дна."
+    },
+    {
+      "id": "mark",
+      "kind": "hit",
+      "text": "Штемпель лёг."
+    },
+    {
+      "id": "dent",
+      "kind": "hurt",
+      "text": "Письмо цело!"
+    },
+    {
+      "id": "won",
+      "kind": "victory",
+      "text": "Вот теперь адрес правильный."
+    },
+    {
+      "id": "lost",
+      "kind": "defeat",
+      "text": "Поставьте отметку. Приду завтра."
+    },
+    {
+      "id": "jab",
+      "kind": "other",
+      "text": "Точка."
+    },
+    {
+      "id": "low",
+      "kind": "other",
+      "text": "Под дверь!"
+    },
+    {
+      "id": "knee",
+      "kind": "other",
+      "text": "Срочно!"
+    },
+    {
+      "id": "heavy",
+      "kind": "other",
+      "text": "Печать!"
+    },
+    {
+      "id": "overhead",
+      "kind": "other",
+      "text": "Закрыто!"
+    },
+    {
+      "id": "sweep",
+      "kind": "other",
+      "text": "На дно!"
+    },
+    {
+      "id": "upper",
+      "kind": "other",
+      "text": "Наверх!"
+    },
+    {
+      "id": "air_kick",
+      "kind": "other",
+      "text": "Воздушной!"
+    },
+    {
+      "id": "cyclone",
+      "kind": "other",
+      "text": "Кругом!"
+    },
+    {
+      "id": "breaker",
+      "kind": "other",
+      "text": "Сургуч!"
+    },
+    {
+      "id": "cross",
+      "kind": "other",
+      "text": "За спиной."
+    },
+    {
+      "id": "lance",
+      "kind": "other",
+      "text": "Экспресс!"
+    },
+    {
+      "id": "spike",
+      "kind": "other",
+      "text": "Лови!"
+    },
+    {
+      "id": "slide",
+      "kind": "other",
+      "text": "Под килем!"
+    },
+    {
+      "id": "finale",
+      "kind": "super",
+      "text": "Вручено. Лично!"
+    }
+  ]
+}

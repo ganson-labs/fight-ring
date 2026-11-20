@@ -1,0 +1,125 @@
+---
+// A season: the bracket, the league table, what the models spent.
+import type { Season } from '../data/ring';
+import { dateRu, num, plural, watchRound } from '../data/ring';
+import { to } from '../lib/paths';
+import MatchCard from './MatchCard.astro';
+
+interface Props { season: Season }
+const { season } = Astro.props;
+const path = Astro.url.pathname;
+const semis = season.matches.filter((m) => m.kind === 'semi');
+const final = season.final;
+const rest = season.matches.filter((m) => m.kind !== 'semi' && m.kind !== 'final');
+const firstRound = final?.rounds[0];
+const league = season.league;
+const span = league ? league.max - league.min || 1 : 1;
+const pct = (v: number) => (league ? ((v - league.min) / span) * 100 : 0);
+---
+<div class="wrap">
+  <header class="head">
+    <div>
+      <h1 class="slab"><span class="hot">{season.title.replace(/-/g, '\u2011')}</span></h1>
+      <p class="dim date">{dateRu(season.published)}</p>
+    </div>
+    {final && firstRound && <a class="plate primary" href={to(path, watchRound(final, firstRound))}>Смотреть финал</a>}
+  </header>
+
+  <section aria-label="Сетка">
+    <div class:list={['bracket', { paired: semis.length === 2 && final }]}>
+      <div class="semis">{semis.map((m) => <MatchCard season={season} match={m} heading="h2" />)}</div>
+      {final && <div class="final"><MatchCard season={season} match={final} heading="h2" /></div>}
+    </div>
+    {rest.length > 0 && <div class="rest">{rest.map((m) => <MatchCard season={season} match={m} heading="h2" />)}</div>}
+  </section>
+
+  {league && (
+    <section id="league">
+      <h2 class="slab">Лига</h2>
+      <p>Кроме турнира, все бойцы сыграли друг с другом: {num(league.fights)} {plural(league.fights, 'бой', 'боя', 'боёв')}. Полоса показывает границы, в которых лежит рейтинг бойца с вероятностью 95 %.</p>
+      <table class="table league">
+        <thead>
+          <tr><th>Боец</th><th class="n">Рейтинг</th><th class="bar-col"><span class="axis"><span>{num(league.min)}</span><span>{num(league.max)}</span></span></th><th class="n">Набрано очков</th><th class="n">Нокауты</th></tr>
+        </thead>
+        <tbody>
+          {league.rows.map((r) => (
+            <tr class:list={{ ref: r.isReference }} style={`--c:${r.color ?? 'var(--mute)'}`}>
+              <td class="cell-who"><span class="who"><b>{r.name}</b><span>{r.isReference ? 'Эталонный боец ринга' : r.model}</span></span></td>
+              <td class="n cell-rating"><b>{num(r.rating)}</b><span class="range">{num(r.range[0])}–{num(r.range[1])}</span></td>
+              <td class="bar-col" aria-hidden="true"><span class="track"><span class="band" style={`left:${pct(r.range[0]).toFixed(2)}%;width:${(pct(r.range[1]) - pct(r.range[0])).toFixed(2)}%`}></span><span class="dot" style={`left:${pct(r.rating).toFixed(2)}%`}></span></span></td>
+              <td class="n" data-label="Набрано очков">{Math.round(r.share * 100)} %</td>
+              <td class="n" data-label="Нокауты">{num(r.kos)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+  )}
+
+  {season.spend && (
+    <section id="spend">
+      <h2 class="slab">Расходы моделей</h2>
+      <table class="table spend">
+        <thead>
+          <tr><th>Модель</th><th class="n">Создание бойца</th><th class="n">Написано токенов</th><th class="n">Цена</th><th class="n">Раздевалки</th></tr>
+        </thead>
+        <tbody>
+          {season.spend.rows.map((r) => (
+            <tr style={`--c:${r.color ?? 'var(--mute)'}`}>
+              <td class="cell-who"><span class="who"><b>{r.model}</b></span></td>
+              <td class="n" data-label="Создание бойца">{r.minutes} мин</td>
+              <td class="n" data-label="Написано токенов">{r.tokens}</td>
+              <td class="n" data-label="Цена">{r.price}</td>
+              <td class="n" data-label="Раздевалки">{r.lockerMinutes === null ? '—' : `${r.lockerMinutes} мин`}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {season.spend.note && <p class="dim note">{season.spend.note}</p>}
+    </section>
+  )}
+</div>
+
+<style>
+  .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px 32px; flex-wrap: wrap; padding: clamp(16px, 3vw, 40px) 0 clamp(28px, 4vw, 48px); }
+  .head h1 { font-size: clamp(34px, 5.2vw, 68px); }
+  .date { margin: 12px 0 0; }
+
+  .bracket { display: grid; gap: 20px; }
+  .semis { display: grid; gap: 20px; }
+  .rest { display: grid; gap: 20px; margin-top: 20px; }
+  @media (min-width: 900px) {
+    .bracket.paired { grid-template-columns: minmax(0, 1fr) 72px minmax(0, 1fr); gap: 0; align-items: center; }
+    .bracket.paired .semis { position: relative; gap: 40px; }
+    .bracket.paired .final { grid-column: 3; }
+    /* the lines from both semifinals to the final */
+    .bracket.paired .semis::after { content: ''; position: absolute; left: 100%; top: 25%; bottom: 25%; width: 36px; border: 2px solid var(--line); border-left: 0; }
+    .bracket.paired .final { position: relative; }
+    .bracket.paired .final::before { content: ''; position: absolute; right: 100%; top: 50%; width: 36px; border-top: 2px solid var(--line); }
+    .rest { grid-template-columns: minmax(0, 1fr) 72px minmax(0, 1fr); gap: 0; margin-top: 40px; }
+  }
+
+  .league .cell-rating b { font-weight: 600; font-size: 18px; }
+  .range { display: block; font-size: 13.5px; color: var(--dim); }
+  .bar-col { width: 34%; min-width: 180px; }
+  .axis { display: flex; justify-content: space-between; font-weight: 400; }
+  .track { position: relative; display: block; height: 22px; background: linear-gradient(var(--line), var(--line)) center / 100% 1px no-repeat; }
+  .band { position: absolute; top: 7px; height: 8px; background: color-mix(in srgb, var(--c) 55%, transparent); transform: skewX(-24deg); }
+  .dot { position: absolute; top: 1px; width: 5px; height: 20px; margin-left: -2.5px; background: var(--c); transform: skewX(-24deg); }
+  tr.ref .who b { color: var(--dim); }
+  .note { margin-top: 18px; font-size: 15px; }
+
+  @media (max-width: 720px) {
+    .table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+    .table tbody tr { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; padding: 16px 0; border-top: 1px solid var(--line); }
+    .table td { display: block; padding: 0; border: 0; text-align: left; }
+    .table td.cell-who { grid-column: 1 / -1; }
+    .table td[data-label] { display: flex; flex-direction: column-reverse; font-weight: 600; }
+    .table td[data-label]::after { content: attr(data-label); font-size: 13.5px; font-weight: 400; color: var(--mute); }
+    .league tbody tr { grid-template-columns: auto 1fr 1fr; }
+    .league td.cell-rating { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 10px; padding-left: 18px; }
+    .league td.bar-col { grid-column: 1 / -1; width: auto; min-width: 0; padding-left: 18px; }
+    .league td[data-label], .spend td[data-label] { padding-left: 18px; }
+    .spend tbody tr { grid-template-columns: 1fr 1fr; }
+  }
+</style>

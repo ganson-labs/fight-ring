@@ -5,18 +5,9 @@ kit/.ring/
 contestants/
 contestants.json
 launch/
+/matches/
 ledger/
 *.tmp.mp4
 *.sfx.wav
-
-# matches: your own stay local; the match from the video ships without its videos
-matches/*
-!matches/match-2026-11-14/
-matches/match-2026-11-14/**/*.mp4
-matches/match-2026-11-14/**/*-frames/
-matches/match-2026-11-14/comment/
-matches/match-2026-11-14/reel/
-matches/match-2026-11-14/pack/
-matches/match-2026-11-14/4k/
-matches/match-2026-11-14/moves/
-matches/match-2026-11-14/take-*/
+leagues/
+dist/

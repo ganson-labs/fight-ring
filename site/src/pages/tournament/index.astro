@@ -1,0 +1,18 @@
+---
+import Page from '../../layouts/Page.astro';
+import SeasonView from '../../components/SeasonView.astro';
+import { latestSeason, seasons } from '../../data/ring';
+import { to } from '../../lib/paths';
+
+const season = await latestSeason();
+const earlier = (await seasons()).filter((s) => s.id !== season.id);
+---
+<Page title={season.title} description={`${season.title}: сетка, раунды, таблица лиги и расходы моделей.`}>
+  <SeasonView season={season} />
+  {earlier.length > 0 && (
+    <section class="wrap">
+      <h2 class="slab">Прошлые турниры</h2>
+      <ul>{earlier.map((s) => <li><a href={to(Astro.url.pathname, `tournament/${s.id}/`)}>{s.title}</a></li>)}</ul>
+    </section>
+  )}
+</Page>

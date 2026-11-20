@@ -1,9 +1,9 @@
 // Viewer sound: the ring's recorded sounds (kit/arena/sounds, the same ones the judge mixes into clips), the stage's
 // music and ambience loops and the fighters' lines. One AudioContext; buses for effects, lines, music, ambience
 // and menus; the music ducks while someone speaks. Levels: render/sound.js MIX and each sound's catalogue gain.
-import { SOUNDS, soundFile, MIX } from '/kit/arena/render/sound.js';
+import { SOUNDS, soundFile, MIX } from '../kit/arena/render/sound.js';
 
-const BASE = '/kit/arena/sounds/';
+const BASE = new URL('../kit/arena/sounds/', import.meta.url).href;
 
 export class Sfx {
   constructor() {

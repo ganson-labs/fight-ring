@@ -79,7 +79,8 @@ const banned = (what) => () => {
 };
 let guardDepth = 0;
 let saved = null;
-function enterGuard() {
+// also around the brains' turns (load.js → runFight): rules D2
+export function enterGuard() {
   if (guardDepth++ > 0) return;
   const g = globalThis;
   saved = { random: Math.random, Date: g.Date, perfNow: g.performance ? g.performance.now : undefined };
@@ -95,7 +96,7 @@ function enterGuard() {
     } catch {}
   }
 }
-function exitGuard() {
+export function exitGuard() {
   if (--guardDepth > 0) return;
   const g = globalThis;
   Math.random = saved.random;
@@ -174,7 +175,8 @@ function makeApi(ctx) {
     mem: F.mem[script],
     rand: () => (call('rand') ? nextRand(fight, F.side) : 0),
     view: () => (call('view') ? ctx.ring.brainView(fight, F.side) : null),
-    hit: (spec) => (call('hit') ? apiHit(ctx, spec) : 'cut'),
+    hit: (spec) => (call('hit') ? apiHit(ctx, spec) : null),
+    hitResult: (id) => (call('hitResult') ? (F.strikeResults?.[id] ?? (fight.pending?.some((p) => p.id === id && p.side === F.side) ? 'pending' : null)) : null),
     effect: (target, spec) => (call('effect') ? applyEffect(ctx, target, spec, 'effect') : false),
     spawn: (spec) => (call('spawn') ? spawn(ctx, spec) : null),
     remove: (id) => {
@@ -266,6 +268,8 @@ function readHitSpec(fight, side, spec, superMove) {
 function hitCore(ctx, from, box, h) {
   const { fight, F, O, cast, events } = ctx;
   if (fight.tick - from.lastHit < L.hitEvery) return 'wait';
+  // W5: an ability hit breaks into the opponent's wall it reaches (once a hit, like a strike)
+  if (fight.tick - (from.lastWall ?? -99) >= L.hitEvery && strikeWalls(fight, F, box, h.damage, null, events)) from.lastWall = fight.tick;
   const hurt = ctx.ring.hurtboxes(O);
   const hb = hurt.find((x) => ctx.ring.overlap(box, x));
   if (!hb) return 'miss';
@@ -282,7 +286,7 @@ function hitCore(ctx, from, box, h) {
   const out = {};
   const x = (Math.max(box[0], hb[0]) + Math.min(box[2], hb[2])) / 2;
   const y = (Math.max(box[1], hb[1]) + Math.min(box[3], hb[3])) / 2;
-  ctx.ring.connect(fight, F, O, { zone: h.zone, damage, chargeMul: 1, launch: h.launch, push: h.push, moveId: cast.moveId, superMove: cast.superMove, x, y, ability: true }, events, out);
+  ctx.ring.connect(fight, F, O, { zone: h.zone, damage, chargeMul: 1, launch: h.launch, push: h.push, moveId: cast.moveId, superMove: cast.superMove, x, y, ability: true, attack: cast }, events, out);
   const result = out.result || 'hit';
   if (result === 'parry') {
     if (!ctx.obj && F.state === 'move' && F.move === cast.moveInst) {
@@ -297,10 +301,55 @@ function hitCore(ctx, from, box, h) {
   return result;
 }
 
+// api.hit does not land at once: the box and the zone are fixed now, the hit lands L.telegraph ticks later
+// (landPending). The answer is the id of the hit; api.hitResult(id) says how it went once it landed.
 function apiHit(ctx, spec) {
   const h = readHitSpec(ctx.fight, ctx.F.side, spec, ctx.cast.superMove);
   const box = readBox(ctx.fight, ctx.F.side, spec.box, source(ctx));
-  return hitCore(ctx, ctx.obj || ctx.cast, box, h);
+  return queuePending(ctx, { kind: 'hit', box, h });
+}
+
+function queuePending(ctx, p) {
+  const { fight, F, events } = ctx;
+  fight.pending ||= [];
+  // one source (the cast or one object) sends a hit at most once per L.hitEvery ticks, as it lands
+  const src = ctx.obj || ctx.cast;
+  if (p.kind === 'hit') {
+    if (fight.tick - (src.lastSent ?? -99) < L.hitEvery) return null;
+    src.lastSent = fight.tick;
+  }
+  const id = fight.nextId++;
+  // R2: the farther the box from its source, the later it lands; never sooner than reaction + TELEGRAPH.base
+  const ticks = C.telegraphTicks((p.box[0] + p.box[2]) / 2 - source(ctx).x, fight.reaction);
+  fight.pending.push({ id, side: F.side, cast: ctx.cast, obj: ctx.obj, script: ctx.script, from: fight.tick, at: fight.tick + ticks, ...p });
+  events.push({ type: 'strikeWarn', side: F.side, id, kind: p.kind, box: p.box, zone: p.h?.zone ?? null, ticks, move: ctx.cast.moveId });
+  return id;
+}
+
+// Hits and box effects whose time has come land, in the order they were made.
+function landPending(fight, events, ring) {
+  if (!fight.pending?.length) return;
+  const due = fight.pending.filter((p) => p.at <= fight.tick);
+  if (!due.length) return;
+  fight.pending = fight.pending.filter((p) => p.at > fight.tick);
+  for (const p of due) {
+    const F = fight.f[p.side];
+    const O = fight.f[1 - p.side];
+    if (F.abilityOff[p.script]) continue;
+    const ctx = { fight, F, O, cast: p.cast, obj: p.obj, script: p.script, events, ring, passive: false, landBox: p.box };
+    let result;
+    if (p.kind === 'hit') result = hitCore(ctx, p.obj || p.cast, p.box, p.h);
+    else result = applyEffect(ctx, 'opponent', p.spec, 'landed') ? 'hit' : 'miss';
+    F.strikeResults ||= {};
+    F.strikeResults[p.id] = result;
+    const keys = Object.keys(F.strikeResults);
+    if (keys.length > 64) delete F.strikeResults[keys[0]];
+    events.push({ type: 'strikeLand', side: p.side, id: p.id, result });
+  }
+}
+
+export function pendingView(fight, side) {
+  return (fight.pending || []).map((p) => ({ id: p.id, mine: p.side === side, kind: p.kind, box: [...p.box], zone: p.h?.zone ?? null, damage: p.h?.damage ?? 0, in: p.at - fight.tick }));
 }
 
 // ---------- effects ----------
@@ -364,10 +413,27 @@ function applyEffect(ctx, target, spec, via = 'effect') {
   rail('drift', -L.driftMax, L.driftMax, 'толчок эффекта');
   // control on the opponent: through a hit, or a box touching the opponent within reach; not at the very start of
   // a round (the measurement on the dummy is not a round start); a target stopped at most L.stopRound a round
-  if (onOpp && spec.box !== undefined && via !== 'hit') {
-    const box = controlBox(ctx, spec.box);
-    if (!ctx.ring.hurtboxes(O).some((x) => ctx.ring.overlap(box, x))) return false;
+  if (onOpp && spec.box !== undefined && via === 'effect') {
+    // like api.hit: the box is fixed now and lands L.telegraph ticks later (landPending → via 'landed')
+    queuePending(ctx, { kind: 'effect', box: controlBox(ctx, spec.box), spec: JSON.parse(JSON.stringify(spec)) });
+    return true;
+  }
+  if (onOpp && spec.box !== undefined && via === 'landed') {
+    if (!ctx.ring.hurtboxes(O).some((x) => ctx.ring.overlap(ctx.landBox, x))) return false;
     via = 'box';
+    // B4: control and damage over time of a box do not go through a block: the guard gauge takes it; a parry repels it
+    if (isControl(e) || e.dot > 0 || e.taken > 1) {
+      const b = ctx.landBox;
+      if (ctx.ring.parryActive(O)) {
+        ctx.ring.parryBox(fight, F, O, events, O.x, (b[1] + b[3]) / 2);
+        return false;
+      }
+      if (ctx.ring.guarding(O)) {
+        ctx.ring.addGuard(fight, F, O, C.GUARD_GAUGE.controlAdd, events, cast);
+        events.push({ type: 'block', side: O.side, attacker: F.side, move: cast.moveId, x: O.x, y: (b[1] + b[3]) / 2, zone: 'mid', chip: 0, ability: true, effect: true });
+        return false;
+      }
+    }
   }
   if (onOpp && isControl(e) && via === 'effect') dropControl(fight, side, e, `контроль на соперника (stop, замедление) — только через попадание api.hit или с box в пределах ${L.controlReach} ед.: снят`);
   if (onOpp && isControl(e) && !fight.measuring && fight.tick < L.controlStart) dropControl(fight, side, e, `контроль на соперника в первые ${L.controlStart} тиков раунда: снят`);
@@ -378,7 +444,11 @@ function applyEffect(ctx, target, spec, via = 'effect') {
     e.dot = 0;
   }
   if (onOpp && !isControl(e) && e.dot === 0 && e.taken === 1 && e.drift === 0) return false;
-  let maxTicks = L.effectTicks;
+  let maxTicks = Math.min(L.effectTicks, L.castLife - (fight.tick - cast.startTick)); // O1: not past the cast's life
+  if (maxTicks < 1) {
+    cut(fight, side, `эффект позже ${L.castLife} тиков от начала каста: не наложен`);
+    return false;
+  }
   if (onOpp && e.stop && L.stopRound - V.stopUsed < maxTicks) maxTicks = Math.min(maxTicks, L.stopRound - V.stopUsed);
   if (e.stop) maxTicks = Math.min(maxTicks, L.stopTicks);
   if (e.speed < 1) maxTicks = Math.min(maxTicks, L.slowTicks);
@@ -446,17 +516,33 @@ function applyEffect(ctx, target, spec, via = 'effect') {
 
 // ---------- moving fighters ----------
 
-function shoveRaw(fight, A, V, dx) {
+// quiet: a wall's push (it reports nothing as cut: the wall simply holds)
+function shoveRaw(fight, A, V, dx, quiet = false) {
   const budget = A.shoveLeft;
   const left = budget[V.side];
   let d = clamp(dx, -left, left);
-  if (d !== dx) cut(fight, A.side, `сдвиг больше ${L.shovePerTick} ед. на цель за тик: срезан`);
+  if (d !== dx && !quiet) cut(fight, A.side, `сдвиг больше ${L.shovePerTick} ед. на цель за тик: срезан`);
   if (['grabbed', 'thrown', 'throwing'].includes(V.state)) return 0;
   const before = V.x;
   V.x = clamp(V.x + d, WALL_L, WALL_R);
   const moved = V.x - before;
   budget[V.side] = left - Math.abs(d);
+  // the judge's check of the rules (judge/bench.js → verifyInvariants): a wall's push is not a fighter moving itself
+  if (fight.audit && moved) fight.audit.push({ kind: quiet ? 'wall' : V === A ? 'selfShove' : 'shove', side: A.side, target: V.side, moved, state: V.state, tick: fight.tick });
   return moved;
+}
+
+// M1: a fighter that can act (its abilities may push the opponent)
+export function ownerActing(F) {
+  return !F.mods.stop && F.wait <= 0 && !['hitstun', 'blockstun', 'juggle', 'knockdown', 'getup', 'grabbed', 'thrown', 'dizzy', 'staggered', 'ko'].includes(F.state);
+}
+
+// M1: a fighter moves itself only in neutral or in the move of the cast that moves it — not in hitstun, blockstun,
+// a juggle, a knockdown, a getup, a throw or under stop
+export function selfMoveFree(F, cast) {
+  if (F.mods.stop || F.wait > 0) return false;
+  if (F.state === 'neutral') return true;
+  return F.state === 'move' && !!cast && F.move === cast.moveInst;
 }
 
 function apiShove(ctx, target, dx) {
@@ -465,29 +551,52 @@ function apiShove(ctx, target, dx) {
   let d = num(dx, NaN);
   if (Number.isNaN(d)) throw new Error('api.shove: dx — число');
   const V = target === 'me' ? F : O;
-  if (V === O && cast.cap) {
+  if (V === F && !selfMoveFree(F, cast)) return 0;
+  // M1 (pilot 3.0 v3): an ability moves nobody while its fighter cannot act — pushing the opponent away from under a
+  // series is the same escape as moving oneself out of it
+  if (V === O && !ownerActing(F)) return 0;
+  // M2: moving oneself costs like moving the opponent: it is measured and capped the same way
+  if (cast.cap) {
     const left = Math.max(0, cast.cap.shove - cast.used.shove);
     if (Math.abs(d) > left) {
-      cut(fight, F.side, 'сдвиг соперника за каст больше замеренного: срезан');
+      cut(fight, F.side, 'сдвиг за каст больше замеренного: срезан');
       d = sign(d) * left;
     }
   }
   const moved = shoveRaw(fight, F, V, F.facing * d);
-  if (V === O) cast.used.shove += Math.abs(moved);
+  cast.used.shove += Math.abs(moved);
   return F.facing * moved;
 }
 
 // ---------- objects ----------
 
 function objectView(o) {
-  return { id: o.id, x: o.x, y: o.y, w: o.w, h: o.h, vx: o.vx, vy: o.vy, age: o.age, life: o.life, facing: o.facing, label: o.label, solid: o.solid, data: o.data };
+  return { id: o.id, x: o.x, y: o.y, w: o.w, h: o.h, vx: o.vx, vy: o.vy, age: o.age, life: o.life, facing: o.facing, label: o.label, solid: o.solid, hp: o.solid ? o.hp : null, data: o.data };
+}
+
+// O2: object ticks a cast may still spend: the measured ones ×capMul + capAdd, minus what its objects lived and will live
+function objectRoom(fight, cast) {
+  if (!cast.cap) return Infinity;
+  const ahead = fight.objects.reduce((s, o) => s + (o.cast === cast && !o.dead ? Math.max(0, o.life) : 0), 0);
+  return cast.cap.objectTicks - cast.used.objectTicks - ahead;
 }
 
 function spawn(ctx, spec) {
   const { fight, F, cast, events } = ctx;
   if (!isObj(spec)) throw new Error('api.spawn: нужен объект { x, y, w, h, vx, vy, life, tick, touch, solid, image, color, particles, label, data }');
+  // W1: one wall per fighter — a new one takes the old one away
+  if (spec.solid && fight.tick - cast.startTick < L.castLife) {
+    const old = fight.objects.filter((o) => o.side === F.side && o.solid && !o.dead);
+    for (const o of old.slice(0, Math.max(0, old.length - L.solidsMax + 1))) killObject(fight, o, events);
+  }
   if (fight.objects.filter((o) => o.side === F.side && !o.dead).length >= L.objectsMax) {
     cut(fight, F.side, `больше ${L.objectsMax} своих объектов на поле: новый не появился`);
+    return null;
+  }
+  // O1: a cast older than castLife makes nothing new, and what it makes is gone by then
+  const castLeft = L.castLife - (fight.tick - cast.startTick);
+  if (castLeft < 1) {
+    cut(fight, F.side, `объект позже ${L.castLife} тиков от начала каста: не появился`);
     return null;
   }
   const src = source(ctx);
@@ -500,17 +609,24 @@ function spawn(ctx, spec) {
   const ry = clamp(n('y', ctx.obj ? 0 : 150), -L.boxReach, L.boxReach);
   const solid = !!spec.solid;
   let w = clamp(n('w', 60), 4, solid ? L.solidWidthMax : L.boxMax);
-  let h = clamp(n('h', 60), 4, L.boxMax);
-  if (w !== n('w', 60) || h !== n('h', 60)) cut(fight, F.side, `размер объекта вне 4…${L.boxMax} (стена до ${L.solidWidthMax} в ширину): срезан`);
-  const sp = (v) => {
-    const c = clamp(v, -L.objectSpeed, L.objectSpeed);
-    if (c !== v) cut(fight, F.side, `скорость объекта больше ${L.objectSpeed} ед./тик: срезана`);
+  let h = clamp(n('h', 60), 4, solid ? L.solidHeightMax : L.boxMax);
+  if (w !== n('w', 60) || h !== n('h', 60)) cut(fight, F.side, `размер объекта вне 4…${L.boxMax} (стена до ${L.solidWidthMax} в ширину и ${L.solidHeightMax} в высоту): срезан`);
+  const sp = (v, max = L.objectSpeed) => {
+    const c = clamp(v, -max, max);
+    if (c !== v) cut(fight, F.side, `скорость объекта больше ${max} ед./тик: срезана`);
     return c;
   };
   let life = Math.floor(n('life', 120));
   if (life > L.objectLife) {
     cut(fight, F.side, `объект живёт ${life} тиков → ${L.objectLife}`);
     life = L.objectLife;
+  }
+  if (life > castLeft) life = castLeft;
+  const room = objectRoom(fight, cast);
+  if (life > room) {
+    cut(fight, F.side, 'время объектов каста больше замеренного: объект живёт меньше');
+    life = Math.floor(room);
+    if (life < 1) return null;
   }
   if (life < 1) life = 1;
   if (spec.tick !== undefined && typeof spec.tick !== 'function') throw new Error('api.spawn: tick — функция (api, o) => {}');
@@ -535,11 +651,14 @@ function spawn(ctx, spec) {
     cast,
     move: cast.moveId,
     x: src.x + src.facing * rx,
-    y: Math.max(0, src.y + ry),
+    px: src.x + src.facing * rx,
+    // W2: a wall stands on the floor
+    y: solid ? h / 2 : Math.max(0, src.y + ry),
     w,
     h,
-    vx: sp(src.facing * n('vx', 0)),
-    vy: sp(n('vy', 0)),
+    vx: sp(src.facing * n('vx', 0), solid ? L.solidSpeed : L.objectSpeed),
+    vy: solid ? 0 : sp(n('vy', 0)),
+    hp: solid ? L.solidHp : null,
     life,
     age: 0,
     facing: src.facing,
@@ -572,30 +691,49 @@ function stepObject(fight, o, ring, events) {
   const O = fight.f[1 - o.side];
   const ctx = { fight, F, O, cast: o.cast, obj: o, script: o.script, events, ring, passive: false };
   o.age++;
+  o.px = o.x;
   if (o.tick && !F.abilityOff[o.script]) {
     const view = objectView(o);
     callHook(ctx, o.tick, [view], 'tick объекта');
     if (o.dead) return;
     const n = (v, d) => (typeof v === 'number' && Number.isFinite(v) ? v : d);
-    o.x = n(view.x, o.x);
-    o.y = n(view.y, o.y);
+    // an object moves at most L.objectSpeed a tick on each axis, also when its behaviour sets x and y itself
+    const nx = n(view.x, o.x);
+    const ny = n(view.y, o.y);
+    const cx = clamp(nx, o.x - L.objectSpeed, o.x + L.objectSpeed);
+    const cy = clamp(ny, o.y - L.objectSpeed, o.y + L.objectSpeed);
+    if (cx !== nx || cy !== ny) cut(fight, o.side, `объект сдвинут больше чем на ${L.objectSpeed} ед. за тик: срезано`);
+    o.x = cx;
+    o.y = cy;
     const vx = n(view.vx, o.vx);
     const vy = n(view.vy, o.vy);
-    o.vx = clamp(vx, -L.objectSpeed, L.objectSpeed);
+    const vmax = o.solid ? L.solidSpeed : L.objectSpeed;
+    o.vx = clamp(vx, -vmax, vmax);
     o.vy = clamp(vy, -L.objectSpeed, L.objectSpeed);
-    if (o.vx !== vx || o.vy !== vy) cut(fight, o.side, `скорость объекта больше ${L.objectSpeed} ед./тик: срезана`);
-    const maxLife = L.objectLife - o.age;
-    const life = Math.floor(n(view.life, o.life));
-    if (life > maxLife) cut(fight, o.side, `объект живёт дольше ${L.objectLife} тиков: срезано`);
+    if (o.vx !== vx || o.vy !== vy) cut(fight, o.side, `скорость объекта больше ${vmax} ед./тик: срезана`);
+    if (o.solid) {
+      // W2, W3: a wall stays on the floor and moves at most solidSpeed a tick, also when its behaviour sets x itself
+      o.x = clamp(o.x, o.px - L.solidSpeed, o.px + L.solidSpeed);
+      o.y = o.h / 2;
+      o.vy = 0;
+    }
+    const maxLife = Math.min(L.objectLife - o.age, L.castLife - (fight.tick - o.cast.startTick));
+    let life = Math.floor(n(view.life, o.life));
+    if (life > maxLife) cut(fight, o.side, `объект живёт дольше ${L.objectLife} тиков или дольше ${L.castLife} от начала каста: срезано`);
+    if (life > o.life) life = Math.min(life, o.life + Math.max(0, Math.floor(objectRoom(fight, o.cast))));
     o.life = clamp(life, 0, maxLife);
     if (isObj(view.data)) o.data = view.data;
     if (view.facing === 1 || view.facing === -1) o.facing = view.facing;
   }
   o.x += o.vx;
-  o.y = clamp(o.y + o.vy, 0, 1200);
+  o.y = o.solid ? o.h / 2 : clamp(o.y + o.vy, 0, 1200);
+  if (o.solid) o.x = clamp(o.x, o.px - L.solidSpeed, o.px + L.solidSpeed);
   o.life--;
   o.cast.used.objectTicks++;
-  if (o.touch && !o.removeAsked) {
+  // O1: everything a cast made is gone castLife ticks after the cast began
+  if (fight.tick - o.cast.startTick >= L.castLife) o.life = 0;
+  // R2: an object touches only from the age reaction + TELEGRAPH.base: the defender saw it for 7 ticks by then
+  if (o.touch && !o.removeAsked && o.age >= fight.reaction + C.TELEGRAPH.base) {
     const box = [o.x - o.w / 2, o.y - o.h / 2, o.x + o.w / 2, o.y + o.h / 2];
     const r = hitCore(ctx, o, box, o.touch);
     if (o.touch.once && (r === 'hit' || r === 'block' || r === 'armor' || r === 'parry')) o.removeAsked = true;
@@ -603,27 +741,75 @@ function stepObject(fight, o, ring, events) {
   if (o.removeAsked || o.life <= 0 || o.x < WALL_L - 300 || o.x > WALL_R + 300) killObject(fight, o, events);
 }
 
+// Walls (W2–W5). A wall is terrain: it holds both fighters on the ground (in the air they pass over it) and stops the
+// projectiles of both sides below its top. A fighter walking into a standing wall stops at it; a moving wall pushes only
+// through its owner's shove budget, and its push counts as the cast's shove. A fighter inside a wall (it landed there)
+// is pushed out to the side of its centre through the same budget.
 function solidPass(fight, events) {
   for (const o of fight.objects) {
     if (o.dead || !o.solid) continue;
-    const O = fight.f[1 - o.side];
+    const A = fight.f[o.side];
     const half = o.w / 2 + 35;
-    if (O.y < o.y + o.h / 2 && Math.abs(O.x - o.x) < half && !['grabbed', 'thrown'].includes(O.state)) {
-      const dir = sign(O.x - o.x) || -o.facing;
-      O.x = clamp(o.x + dir * half, WALL_L, WALL_R);
+    const moved = o.x - (o.px ?? o.x);
+    for (const V of fight.f) {
+      if (V.y > 0 || V.vy !== 0 || ['grabbed', 'thrown', 'throwing', 'juggle'].includes(V.state)) continue;
+      if (Math.abs(V.x - o.x) >= half) continue;
+      const wasOut = Math.abs(V.px - (o.px ?? o.x)) >= half - 0.001;
+      const dir = wasOut ? sign(V.px - (o.px ?? o.x)) || -o.facing : sign(V.x - o.x) || -o.facing;
+      const target = clamp(o.x + dir * half, WALL_L, WALL_R);
+      if (wasOut && moved === 0) {
+        V.x = target; // walked into a standing wall
+        continue;
+      }
+      // pushed by a moving wall, or pushed out of it: the owner's shove budget
+      const d = shoveRaw(fight, A, V, target - V.x, true);
+      o.cast.used.shove += Math.abs(d);
     }
+    const top = o.y + o.h / 2;
     for (const p of fight.projectiles) {
-      if (p.owner === o.side || p.dead) continue;
-      if (Math.abs(p.x - o.x) < o.w / 2 + 25 && Math.abs(p.y - o.y) < o.h / 2 + 25) {
+      if (p.dead || p.y >= top) continue;
+      if (Math.abs(p.x - o.x) < o.w / 2 + 25) {
         p.dead = true;
         const owner = fight.f[p.owner];
         if (owner.projectile === p.id) owner.projectile = null;
         events.push({ type: 'clash', x: p.x, y: p.y });
         events.push({ type: 'projectileEnd', id: p.id, x: p.x, y: p.y });
+        if (p.owner !== o.side) {
+          if (fight.measuring) fight.refused = (fight.refused || 0) + p.damage * (p.hits - p.done);
+          damageWall(fight, o, p.damage, events);
+        }
       }
     }
   }
+  if (fight.objects.some((o) => o.dead)) fight.objects = fight.objects.filter((o) => !o.dead);
   if (fight.projectiles.some((p) => p.dead)) fight.projectiles = fight.projectiles.filter((p) => !p.dead);
+}
+
+// W5: a wall takes the damage of the opponent's strikes, projectiles and ability hits; at 0 it breaks
+function damageWall(fight, o, damage, events) {
+  if (o.dead || !o.solid) return;
+  o.hp -= damage;
+  events.push({ type: 'wallHit', side: o.side, id: o.id, damage, hp: Math.max(0, o.hp), x: o.x, y: o.y });
+  if (o.hp > 0) return;
+  events.push({ type: 'wallBreak', side: o.side, id: o.id, x: o.x, y: o.y, w: o.w, h: o.h, color: o.color });
+  killObject(fight, o, events);
+}
+
+// A strike or a hit box of fighter F reaches the opponent's walls: each wall takes the damage once (seen: ids already
+// hit by this strike segment, or null). Returns whether some wall was hit.
+export function strikeWalls(fight, F, box, damage, seen, events) {
+  let any = false;
+  for (const o of fight.objects) {
+    if (o.dead || !o.solid || o.side === F.side) continue;
+    if (seen?.has(o.id)) continue;
+    const wb = [o.x - o.w / 2, o.y - o.h / 2, o.x + o.w / 2, o.y + o.h / 2];
+    if (!(box[0] < wb[2] && wb[0] < box[2] && box[1] < wb[3] && wb[1] < box[3])) continue;
+    seen?.add(o.id);
+    damageWall(fight, o, damage, events);
+    any = true;
+  }
+  if (any && fight.objects.some((o) => o.dead)) fight.objects = fight.objects.filter((o) => !o.dead);
+  return any;
 }
 
 // ---------- effects over time ----------
@@ -673,8 +859,13 @@ function stepEffects(fight, V, ring, events) {
       }
     }
     if (e.drift && !fight.over) {
-      const dir = sign(V.x - A.x) || A.facing;
-      shoveRaw(fight, A, V, dir * e.drift);
+      if (V === A) {
+        // M1, M2: drifting oneself is moving oneself
+        if (selfMoveFree(A, e.cast) && (!e.cast.cap || e.cast.used.shove < e.cast.cap.shove)) e.cast.used.shove += Math.abs(shoveRaw(fight, A, A, A.facing * e.drift));
+      } else {
+        const dir = sign(V.x - A.x) || A.facing;
+        if (ownerActing(A)) shoveRaw(fight, A, V, dir * e.drift);
+      }
     }
   }
   const before = V.effects.length;
@@ -693,10 +884,11 @@ export function queueCast(F, seg) {
 }
 
 function castAlive(fight, c) {
-  if (c.ended || c.t > L.castTicks) return false;
+  if (c.ended || c.t > L.castTicks || fight.tick - c.startTick >= L.castLife) return false;
   const F = fight.f[c.side];
   if (F.state === 'move' && F.move === c.moveInst) return true;
   if (fight.objects.some((o) => o.cast === c && !o.dead)) return true;
+  if (fight.pending?.some((p) => p.cast === c)) return true;
   return fight.f.some((V) => V.effects.some((e) => e.cast === c));
 }
 
@@ -710,6 +902,7 @@ export function abilityPhase(fight, events, ring) {
       F.shoveLeft = [L.shovePerTick, L.shovePerTick];
       for (const k in F.cooldowns) if (F.cooldowns[k] > 0) F.cooldowns[k]--;
     }
+    landPending(fight, events, ring);
     const order = fight.tick % 2 ? [1, 0] : [0, 1];
     for (const s of order) {
       const F = fight.f[s];
@@ -735,6 +928,7 @@ export function abilityPhase(fight, events, ring) {
           moveInst: p.moveInst,
           superMove: d.slot === 'super' ? p.moveInst : null,
           t: 0,
+          startTick: fight.tick,
           ended: false,
           lastHit: -99,
           used: { damage: 0, control: 0, buff: 0, shove: 0, objectTicks: 0 },
@@ -780,6 +974,7 @@ function capOf(m, k = 1) {
     control: m.control * k * L.capMul + a.control,
     buff: m.buff * k * L.capMul + a.buff,
     shove: m.shove * k * L.capMul + a.shove,
+    objectTicks: m.objectTicks * k * L.capMul + a.objectTicks, // O2
   };
 }
 
@@ -797,7 +992,7 @@ export function abilityFighterView(F) {
 }
 
 export function objectsView(fight, side) {
-  return fight.objects.filter((o) => !o.dead).map((o) => ({ id: o.id, mine: o.side === side, move: o.move, x: o.x, y: o.y, w: o.w, h: o.h, vx: o.vx, vy: o.vy, life: o.life, solid: o.solid, label: o.label, touch: o.touch ? { damage: o.touch.damage, zone: o.touch.zone } : null }));
+  return fight.objects.filter((o) => !o.dead).map((o) => ({ id: o.id, mine: o.side === side, move: o.move, x: o.x, y: o.y, w: o.w, h: o.h, vx: o.vx, vy: o.vy, age: o.age, life: o.life, solid: o.solid, hp: o.solid ? o.hp : null, label: o.label, touch: o.touch ? { damage: o.touch.damage, zone: o.touch.zone, from: Math.max(0, fight.reaction + C.TELEGRAPH.base - o.age) } : null }));
 }
 
 export function abilityHash(fight, mix) {
@@ -819,5 +1014,6 @@ export function abilityHash(fight, mix) {
       mix(s);
     }
   }
-  for (const o of fight.objects) for (const k of ['x', 'y', 'vx', 'vy', 'life']) mix(o[k]);
+  for (const o of fight.objects) for (const k of ['x', 'y', 'vx', 'vy', 'life', 'hp']) mix(o[k] ?? '-');
+  for (const p of fight.pending || []) mix(`${p.id}:${p.at}:${p.box.join(',')}`);
 }

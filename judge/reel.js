@@ -2,7 +2,7 @@
 // round (supers, the last blow, the longest combo, a comeback, the first use of what a locker room added),
 // the locker rooms as "before and after" cards, the round's stats card, the final with the knockout replay. The
 // sound is the game's own: the reel is voiced by a person (the voiced commentary only with `comment`). Captions
-// (judge/captions.js) mark the key moments on the screen, notes-for-pasha.md tells the match for the voice-over.
+// (judge/captions.js) mark the key moments on the screen, notes-for-voice.md tells the match for the voice-over.
 // Plus 2–3 shorts 9:16 of 20–40 s and a folder for the montage: every piece apart (without captions),
 // moments.json and moments.md with the timecodes.
 import { execFileSync, spawn } from 'node:child_process';
@@ -323,7 +323,7 @@ export async function buildReel(id, { log = console.log, studio = false, shorts 
       for (const x of made) log(`Шортс: ${x.file} (${x.seconds} с${captions ? `, подписей ${shown.shorts[x.name].length}` : ''}) — ${x.what}`);
       const bare = (list) => list.map(({ why, prio, latest, ...c }) => c);
       writeFileSync(join(dir, 'captions.json'), JSON.stringify({ model: answer ? model : null, reel: bare(shown.main), shorts: Object.fromEntries(Object.entries(shown.shorts).map(([k, v]) => [k, bare(v)])) }, null, 1) + '\n');
-      const notes = join(dir, 'notes-for-pasha.md');
+      const notes = join(dir, 'notes-for-voice.md');
       writeFileSync(notes, notesMd(id, { reelSeconds, captions: shown.main, best, answer, model: answer ? model : null }));
       log(`Шпаргалка: ${notes}`);
       // the same story for the game's «История» tab, read as it is
@@ -331,8 +331,8 @@ export async function buildReel(id, { log = console.log, studio = false, shorts 
       // ---------- the montage folder ----------
       const rel = (f) => f.slice(dir.length + 1).replace(/\\/g, '/');
       const list = moments.map((p) => ({ file: rel(p.file), round: p.round ?? null, kind: p.kind, what: p.what, ...(p.from !== undefined ? { from: +p.from.toFixed(2), to: +p.to.toFixed(2), source: `round-${p.round}/${p.short ? 'fight-9x16' : 'fight-16x9'}${clip[`${p.round}|${p.short ? '9:16' : '16:9'}`]?.comment ? '-comment' : ''}.mp4` } : {}), ...(p.short ? { short: p.short } : {}), ...(p.score ? { score: +p.score.toFixed(1) } : {}), ...(p.png ? { png: rel(p.png) } : {}) }));
-      writeFileSync(join(dir, 'moments.json'), JSON.stringify({ match: id, reel: 'match-16x9.mp4', ...(captions ? { clean: 'match-16x9-clean.mp4' } : {}), notes: 'notes-for-pasha.md', shorts: made.map((x) => ({ ...x, file: rel(x.file) })), pieces: list }, null, 1) + '\n');
-      const md = [`# Матч ${id}: моменты для монтажа`, '', `Ролик матча: \`match-16x9.mp4\` (${dur(reel).toFixed(1)} с)${captions ? ', без подписей — `match-16x9-clean.mp4`' : ''}. Шортсы: ${made.map((x) => `\`${rel(x.file)}\` (${x.seconds} с, ${x.what})`).join('; ') || 'нет'}. Шпаргалка для озвучки: \`notes-for-pasha.md\`.`, '', 'Каждый кусок лежит в `pieces/` без подписей; время — секунды исходного ролика раунда (`from`–`to`).', ''];
+      writeFileSync(join(dir, 'moments.json'), JSON.stringify({ match: id, reel: 'match-16x9.mp4', ...(captions ? { clean: 'match-16x9-clean.mp4' } : {}), notes: 'notes-for-voice.md', shorts: made.map((x) => ({ ...x, file: rel(x.file) })), pieces: list }, null, 1) + '\n');
+      const md = [`# Матч ${id}: моменты для монтажа`, '', `Ролик матча: \`match-16x9.mp4\` (${dur(reel).toFixed(1)} с)${captions ? ', без подписей — `match-16x9-clean.mp4`' : ''}. Шортсы: ${made.map((x) => `\`${rel(x.file)}\` (${x.seconds} с, ${x.what})`).join('; ') || 'нет'}. Шпаргалка для озвучки: \`notes-for-voice.md\`.`, '', 'Каждый кусок лежит в `pieces/` без подписей; время — секунды исходного ролика раунда (`from`–`to`).', ''];
       for (const p of list) md.push(`- \`${p.file}\`${p.round ? ` · раунд ${p.round}` : ''}${p.from !== undefined ? ` · ${tc(p.from)}–${tc(p.to)} из \`${p.source}\`` : ''}${p.short ? ` · для ${p.short}` : ''} — ${p.what}`);
       writeFileSync(join(dir, 'moments.md'), md.join('\n') + '\n');
       let studioId = null;
@@ -344,7 +344,7 @@ export async function buildReel(id, { log = console.log, studio = false, shorts 
   });
 }
 
-// The reel as a video of «гансон: Студия»: a new video with the reel, the shorts and the montage list as its
+// The reel as a video of the author's own montage program (vagent, not part of this repository): a new video with the reel, the shorts and the montage list as its
 // materials. Returns the Studio's id of the video.
 export function toStudio(id, reel, shorts, dir, log = console.log, project = 'ring') {
   const run = (args) => execFileSync('vagent', args, { encoding: 'utf8', shell: process.platform === 'win32' });
@@ -354,10 +354,10 @@ export function toStudio(id, reel, shorts, dir, log = console.log, project = 'ri
   const out = run(['video', 'new', '--kind', 'long', '--project', project, '--title', `"Ринг моделей: матч ${id}"`]);
   // the new video's id: the one the list did not have before (the answer's wording may change)
   const vid = studioVideos(run).find((v) => !before.has(v)) || (out.match(/\b(\d{4}-\d{2}-\d{2}-[a-z0-9-]+|[a-z]+-\d{3,}[a-z0-9-]*)\b/i) || [])[1];
-  if (!vid) throw new Error(`Студия не назвала id ролика: ${out.slice(0, 300)}`);
+  if (!vid) throw new Error(`программа монтажа не назвала id ролика: ${out.slice(0, 300)}`);
   run(['video', 'add', vid, `"${reel}"`, ...shorts.map((f) => `"${f}"`), '--as', 'recording', '--what', '"Ролик матча и шортсы, собраны судьёй ринга"']);
   run(['video', 'add', vid, `"${join(dir, 'moments.md')}"`, '--as', 'note', '--what', '"Моменты матча с таймкодами"']);
-  log(`В Студии: ролик ${vid} (проект ${project})`);
+  log(`В программе монтажа: ролик ${vid} (проект ${project})`);
   return vid;
 }
 

@@ -3,16 +3,20 @@ import { existsSync, readFileSync, readdirSync, statSync, openSync, readSync, cl
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { performance } from 'node:perf_hooks';
-import { checkFighter, createFight, stepFight, brainView, sanitizeAction, IDLE_ACTION, fightHash, ringLine, prepareAbilities, RING_SEED } from '../engine/index.js';
+import { checkFighter, createFight, stepFight, brainView, sanitizeAction, IDLE_ACTION, fightHash, ringLine, prepareAbilities, RING_SEED, STARTS, BRAIN, REACTION_TICKS } from '../engine/index.js';
 import { abilityLoader } from '../engine/instrument.js';
+import { meterOpen, meterClose, meterTripped, meterUsed } from '../engine/meter.js';
+import { enterGuard, exitGuard } from '../engine/ability.js';
 import { seatPart } from '../render/seat.js';
 import { bodyFit, fitWarnings, fighterPoses } from '../render/fit.js';
 import { decodeImage } from './png.js';
 
 export const ARENA_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export const KIT_DIR = resolve(ARENA_DIR, '..');
-export const BRAIN_TICK_MS = 5; // per tick; slower answers are dropped and the previous action repeats
-export const BRAIN_INIT_MS = 1000;
+// ring 3.0 (D1–D3): the brains are measured in steps (engine/meter.js), not in milliseconds — BRAIN.tickSteps a turn,
+// BRAIN.initSteps for init; past them the turn is dropped and the previous action repeats. The clock is a watchdog only.
+export const BRAIN_STEPS = BRAIN.tickSteps;
+const now = performance.now.bind(performance); // bound before the guard swaps performance.now
 export const FIGHTER_FILES = ['fighter.json', 'body.json', 'moves.json', 'voice.json', 'brain.js'];
 
 export function listFiles(dir) {
@@ -43,7 +47,7 @@ function pngSize(file) {
 }
 
 // quick: without the warnings that decode the part pictures (joints, fit): for reading a fighter, not checking it
-export function readFighterDir(dir, { strict = false, quick = false } = {}) {
+export function readFighterDir(dir, { strict = false, quick = false, ruleset = undefined } = {}) {
   const errors = [];
   const input = {};
   for (const f of ['fighter', 'body', 'moves', 'voice']) {
@@ -63,7 +67,7 @@ export function readFighterDir(dir, { strict = false, quick = false } = {}) {
   const imageSizes = {};
   for (const f of files) if (f.toLowerCase().endsWith('.png')) imageSizes[f] = pngSize(join(dir, f));
   if (errors.length) return { ok: false, errors, warnings: [], fighter: null, budget: null };
-  const res = checkFighter(input, { files, imageSizes, strict });
+  const res = checkFighter(input, { files, imageSizes, strict, ruleset });
   for (const [f, s] of Object.entries(imageSizes)) if (f.startsWith('parts/') && s && (s[0] > 2048 || s[1] > 2048)) res.warnings.push(`${f}: ${s[0]}×${s[1]} — части больше 2048 px тяжелы для рендера, уменьши`);
   if (res.fighter && !quick) res.warnings.push(...jointWarnings(dir, res.fighter.parts), ...fitWarnings(fighterFit(dir, res.fighter), res.fighter.parts));
   return res;
@@ -142,6 +146,7 @@ const BANNED = [
 const stripComments = (src) => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:\\])\/\/.*$/gm, '$1');
 
 export function scanAbilityModule(dir, script) {
+  dir = resolve(dir);
   const errors = [];
   const engine = resolve(dir, '..', 'arena', 'engine', 'index.js');
   const seen = new Set();
@@ -231,42 +236,76 @@ export function resolveFighterDir(spec, cwd = process.cwd()) {
 }
 
 let instanceSeq = 0;
+// The brains load like abilities (rules D1, D2): the step meter is built into the code, imports only of own files and
+// the engine, no clock, Math.random, timers or the host. A fresh instance of the modules for every fight.
 export async function loadBrain(dir) {
-  const url = pathToFileURL(join(dir, 'brain.js')).href + `?instance=${++instanceSeq}`;
-  const mod = await import(url);
+  const scan = scanAbilityModule(dir, 'brain.js').map((e) => e.replace('способности недоступно', 'мозгам недоступно').replace('недоступен способности', 'недоступен мозгам'));
+  if (scan.length) throw new Error(`${dir}/brain.js: ${scan.join('; ')}`);
+  const tag = ++instanceSeq;
+  const load = abilityLoader({
+    base: pathToFileURL(dir).href.replace(/\/?$/, '/'),
+    read: async (u) => readFileSync(fileURLToPath(u), 'utf8'),
+    toUrl: (src, u) => `data:text/javascript;charset=utf-8,${encodeURIComponent(src + '\n//# ' + u + '#brain' + tag)}`,
+  });
+  let mod;
+  enterGuard();
+  try {
+    mod = await load('brain.js');
+  } finally {
+    exitGuard();
+    meterClose();
+  }
   const brain = mod.default ?? mod;
   if (!brain || typeof brain.tick !== 'function') throw new Error(`${dir}/brain.js: нужен export default { tick(state) { ... } }`);
   return brain;
 }
 
-function timed(fn) {
-  const t0 = performance.now();
+// One call of a brain under the step meter and the guard. Returns { value, error, ms, steps, skipped }.
+export function callBrain(fn, steps = BRAIN.tickSteps) {
+  const t0 = now();
   let value;
   let error = null;
+  meterOpen(steps, BRAIN.depth);
+  enterGuard();
   try {
     value = fn();
+    if (value && typeof value.then === 'function') throw new Error('мозги вернули Promise: tick синхронный, без async и await');
+    // the action is read now, while the meter still runs: getters in it count too
+    if (value && typeof value === 'object') value = sanitizeAction(value);
   } catch (err) {
     error = err;
+  } finally {
+    exitGuard();
   }
-  return { value, error, ms: performance.now() - t0 };
+  const skipped = !!meterTripped();
+  const used = meterUsed();
+  meterClose();
+  return { value, error: skipped ? null : error, ms: now() - t0, steps: used, skipped, trip: meterTripped() };
 }
 
 // Runs a fight in-process. Returns { fight, replay, stats }.
 // replay.steps: one entry per stepFight call: null when the brains were not asked (freeze, hitstop),
 // otherwise [action0, action1] already sanitized. Re-simulating the steps reproduces the fight exactly.
-export async function runFight({ dirs, fighters, options = {}, seed = options.seed ?? RING_SEED, maxTicks = 99 * 60, tail = 120, log = null }) {
+// start: a start of STARTS by name, or { x: [left, right], delay: [left, right] } (the league's noise, judge/league.js).
+// The fight depends only on its inputs: a brain's turn past its steps is dropped the same way on any machine; a turn
+// longer than BRAIN.wallMs by the clock stops the fight as a failure of the judge (an Error), not as a result.
+export async function runFight({ dirs, fighters, options = {}, seed = options.seed ?? RING_SEED, start = options.start ?? null, maxTicks = 99 * 60, tail = 120, log = null, reaction = REACTION_TICKS, onStep = null }) {
   const brains = [];
   for (const d of dirs) brains.push(await loadBrain(d));
-  const fight = createFight({ fighters, seed });
-  const stats = [0, 1].map(() => ({ calls: 0, msSum: 0, msMax: 0, slow: 0, errors: 0, lastError: '' }));
+  const fight = createFight({ fighters, seed, start: typeof start === 'string' ? STARTS[start] : start, reaction });
+  const stats = [0, 1].map(() => ({ calls: 0, msSum: 0, msMax: 0, slow: 0, skipped: 0, stepsMax: 0, errors: 0, lastError: '' }));
   const last = [IDLE_ACTION, IDLE_ACTION];
+  const watchdog = (s, r, what) => {
+    if (r.ms > BRAIN.wallMs) throw new Error(`сбой судьи: ${what} мозгов ${fighters[s].card.name} шёл ${Math.round(r.ms)} мс по часам (сторож ${BRAIN.wallMs} мс) — бой не засчитывается, переиграть на свободной машине`);
+  };
   for (let s = 0; s < 2; s++) {
-    const r = timed(() => brains[s].init?.({ side: s, opponent: { name: fighters[1 - s].card.name }, options, view: brainView(fight, s) }));
-    if (r.error) {
+    const info = { side: s, seed: (seed * 31 + s * 7919) >>> 0, opponent: { name: fighters[1 - s].card.name }, options, reaction: fight.reaction, start: { x: fight.f.map((F) => F.x), delay: fight.f.map((F) => F.wait) }, view: brainView(fight, s) };
+    const r = callBrain(() => brains[s].init?.(info), BRAIN.initSteps);
+    watchdog(s, r, 'init');
+    if (r.error || r.skipped) {
       stats[s].errors++;
-      stats[s].lastError = String(r.error?.stack || r.error);
+      stats[s].lastError = r.skipped ? `init: больше ${BRAIN.initSteps} шагов` : String(r.error?.stack || r.error);
     }
-    if (r.ms > BRAIN_INIT_MS) stats[s].lastError = `init длился ${r.ms.toFixed(0)} мс (предел ${BRAIN_INIT_MS})`;
   }
   const steps = [];
   const events = [];
@@ -276,12 +315,22 @@ export async function runFight({ dirs, fighters, options = {}, seed = options.se
     let acts = null;
     if (!fight.over && fight.freeze === 0 && fight.hitstop === 0) {
       acts = [0, 1].map((s) => {
+        // N3: a fighter whose start is delayed is not asked yet
+        if (fight.f[s].wait > 0) return IDLE_ACTION;
         const view = brainView(fight, s);
-        const r = timed(() => brains[s].tick(view));
+        const r = callBrain(() => brains[s].tick(view));
+        watchdog(s, r, 'ход');
         const st = stats[s];
         st.calls++;
         st.msSum += r.ms;
         st.msMax = Math.max(st.msMax, r.ms);
+        st.stepsMax = Math.max(st.stepsMax, r.steps);
+        if (r.skipped) {
+          st.skipped++;
+          st.slow++;
+          if (st.skipped <= 3) st.lastError = `ход на тике ${fight.tick}: больше ${BRAIN.tickSteps} шагов — пропущен, повторено прошлое действие`;
+          return last[s];
+        }
         if (r.error) {
           st.errors++;
           if (st.errors <= 3) {
@@ -290,15 +339,12 @@ export async function runFight({ dirs, fighters, options = {}, seed = options.se
           }
           return (last[s] = IDLE_ACTION);
         }
-        if (r.ms > BRAIN_TICK_MS) {
-          st.slow++;
-          return last[s];
-        }
-        return (last[s] = sanitizeAction(r.value));
+        return (last[s] = r.value && typeof r.value === 'object' ? r.value : IDLE_ACTION);
       });
     }
     steps.push(acts);
     const ev = stepFight(fight, acts);
+    onStep?.(fight, ev);
     for (const e of ev) events.push({ step: steps.length - 1, tick: fight.tick, ...e });
     if (fight.over) after++;
   }
@@ -307,7 +353,7 @@ export async function runFight({ dirs, fighters, options = {}, seed = options.se
     fight,
     events,
     stats,
-    replay: { ring: 1, seed, intro, options, steps: compressSteps(steps), hash: fightHash(fight), result: { winner: fight.winner, reason: fight.endReason, hp: fight.f.map((f) => f.hp), ticks: fight.tick } },
+    replay: { ring: 1, seed, ...(fight.start ? { start: fight.start } : {}), ...(fight.reaction !== REACTION_TICKS ? { reaction: fight.reaction } : {}), intro, options, steps: compressSteps(steps), hash: fightHash(fight), result: { winner: fight.winner, reason: fight.endReason, hp: fight.f.map((f) => f.hp), ticks: fight.tick } },
   };
 }
 
@@ -333,7 +379,7 @@ export function expandSteps(runs) {
 }
 
 export function replayFight(fighters, replay) {
-  const fight = createFight({ fighters, seed: replay.seed ?? RING_SEED });
+  const fight = createFight({ fighters, seed: replay.seed ?? RING_SEED, start: replay.start, reaction: replay.reaction ?? REACTION_TICKS });
   for (const acts of expandSteps(replay.steps)) stepFight(fight, acts);
   return fight;
 }

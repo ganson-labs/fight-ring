@@ -1,0 +1,1807 @@
+{
+ "moves": [
+  {
+   "id": "jab",
+   "name": "Замечание",
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": "stance",
+      "ease": "out"
+     },
+     {
+      "t": 2,
+      "pose": "jab_ready",
+      "ease": "in"
+     },
+     {
+      "t": 4,
+      "pose": "jab",
+      "ease": "hold"
+     },
+     {
+      "t": 7,
+      "pose": "jab",
+      "ease": "inout"
+     },
+     {
+      "t": 15,
+      "pose": "stance"
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "active",
+     "type": "trail",
+     "bone": "hand_front",
+     "color": "#b56cf0",
+     "size": 0.7,
+     "duration": 5
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "color": "#b56cf0",
+     "color2": "#f2b632",
+     "count": 10,
+     "size": 0.8
+    },
+    {
+     "on": "block",
+     "type": "sparks",
+     "color": "#fff6e0",
+     "color2": "#b56cf0",
+     "count": 8,
+     "size": 0.7
+    }
+   ],
+   "command": "LP",
+   "sounds": {
+    "start": "whoosh-light",
+    "hit": "hit-light"
+   }
+  },
+  {
+   "id": "low",
+   "name": "Сноска",
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": "crouch",
+      "ease": "out"
+     },
+     {
+      "t": 4,
+      "pose": "low_chamber",
+      "ease": "in"
+     },
+     {
+      "t": 7,
+      "pose": "low_kick",
+      "ease": "hold"
+     },
+     {
+      "t": 10,
+      "pose": "low_kick",
+      "ease": "inout"
+     },
+     {
+      "t": 16,
+      "pose": "low_chamber",
+      "ease": "inout"
+     },
+     {
+      "t": 22,
+      "pose": "crouch"
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "active",
+     "type": "trail",
+     "bone": "foot_front",
+     "color": "#fff6e0",
+     "size": 0.7,
+     "duration": 5
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "bone": "foot_front",
+     "color": "#f2b632",
+     "color2": "#fff6e0",
+     "count": 10,
+     "size": 0.8
+    },
+    {
+     "on": "block",
+     "type": "sparks",
+     "bone": "foot_front",
+     "color": "#fff6e0",
+     "color2": "#b56cf0",
+     "count": 8,
+     "size": 0.7
+    }
+   ],
+   "command": "2LK",
+   "sounds": {
+    "start": "whoosh-light",
+    "hit": "kick"
+   }
+  },
+  {
+   "id": "knee",
+   "name": "Выговор",
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": "stance",
+      "ease": "out"
+     },
+     {
+      "t": 5,
+      "pose": "knee_dip",
+      "ease": "in"
+     },
+     {
+      "t": 10,
+      "pose": "knee",
+      "ease": "hold"
+     },
+     {
+      "t": 13,
+      "pose": "knee",
+      "ease": "inout"
+     },
+     {
+      "t": 21,
+      "pose": {
+       "root": [
+        0,
+        -16
+       ],
+       "bones": {
+        "torso": -12,
+        "head": 10,
+        "upper_arm_back": -8,
+        "forearm_back": 60,
+        "thigh_back": 26,
+        "shin_back": -32,
+        "foot_back": 6,
+        "thigh_front": -22,
+        "shin_front": -18,
+        "foot_front": 20,
+        "upper_arm_front": -28,
+        "forearm_front": 70,
+        "hand_front": 10,
+        "stamp": -40
+       },
+       "images": {
+        "head": null
+       },
+       "z": {
+        "thigh_front": 5,
+        "shin_front": 5.6,
+        "foot_front": 5.3
+       }
+      },
+      "ease": "inout"
+     },
+     {
+      "t": 28,
+      "pose": "stance"
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "start",
+     "type": "afterimage",
+     "color": "#b56cf0",
+     "duration": 10
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "bone": "shin_front",
+     "color": "#f2b632",
+     "color2": "#b56cf0",
+     "count": 14
+    },
+    {
+     "on": "block",
+     "type": "sparks",
+     "bone": "shin_front",
+     "color": "#fff6e0",
+     "color2": "#b56cf0",
+     "count": 8,
+     "size": 0.7
+    }
+   ],
+   "command": "HK",
+   "sounds": {
+    "start": "dash",
+    "hit": "kick-heavy"
+   }
+  },
+  {
+   "id": "heavy",
+   "name": "Строгий выговор",
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": "stance",
+      "ease": "out"
+     },
+     {
+      "t": 8,
+      "pose": "heavy_wind",
+      "ease": "in"
+     },
+     {
+      "t": 13,
+      "pose": {
+       "root": [
+        36,
+        -24
+       ],
+       "bones": {
+        "pelvis": -10,
+        "torso": -24,
+        "head": 24,
+        "upper_arm_back": -52,
+        "forearm_back": 12,
+        "hand_back": 4,
+        "thigh_back": 62,
+        "shin_back": -62,
+        "foot_back": 10,
+        "thigh_front": -32,
+        "shin_front": -6,
+        "foot_front": 18,
+        "upper_arm_front": 102,
+        "forearm_front": 4,
+        "hand_front": 2,
+        "hair_1": 14,
+        "hair_2": 16,
+        "hair_3": 16
+       },
+       "images": {
+        "head": "shout"
+       },
+       "z": {
+        "forearm_back": 1,
+        "hand_back": 2
+       }
+      },
+      "ease": "hold"
+     },
+     {
+      "t": 17,
+      "pose": "heavy",
+      "ease": "inout"
+     },
+     {
+      "t": 28,
+      "pose": {
+       "root": [
+        22,
+        -16
+       ],
+       "bones": {
+        "torso": -20,
+        "head": 14,
+        "upper_arm_back": -20,
+        "forearm_back": 30,
+        "thigh_back": 40,
+        "shin_back": -46,
+        "foot_back": 6,
+        "thigh_front": -32,
+        "shin_front": -8,
+        "foot_front": 20,
+        "upper_arm_front": 50,
+        "forearm_front": 20,
+        "hand_front": 4,
+        "stamp": -34
+       },
+       "images": {
+        "head": null
+       }
+      },
+      "ease": "inout"
+     },
+     {
+      "t": 39,
+      "pose": "stance"
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "active",
+     "type": "trail",
+     "bone": "hand_front",
+     "color": "#b56cf0",
+     "color2": "#6a2bd9",
+     "size": 1.3,
+     "duration": 8
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "color": "#b56cf0",
+     "color2": "#f2b632",
+     "count": 22,
+     "size": 1.2
+    },
+    {
+     "on": "hit",
+     "type": "ring",
+     "color": "#b56cf0",
+     "size": 0.9
+    },
+    {
+     "on": "block",
+     "type": "sparks",
+     "color": "#fff6e0",
+     "color2": "#b56cf0",
+     "count": 8,
+     "size": 0.7
+    }
+   ],
+   "command": "HP",
+   "sounds": {
+    "start": "whoosh-heavy",
+    "hit": "hit-heavy"
+   }
+  },
+  {
+   "id": "overhead",
+   "name": "Резолюция",
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": "stance",
+      "ease": "inout"
+     },
+     {
+      "t": 9,
+      "pose": "over_raise",
+      "ease": "inout"
+     },
+     {
+      "t": 16,
+      "pose": "over_peak",
+      "ease": "in"
+     },
+     {
+      "t": 20,
+      "pose": "over_slam",
+      "ease": "hold"
+     },
+     {
+      "t": 23,
+      "pose": "over_slam",
+      "ease": "inout"
+     },
+     {
+      "t": 31,
+      "pose": {
+       "root": [
+        22,
+        -16
+       ],
+       "bones": {
+        "torso": -20,
+        "head": 14,
+        "upper_arm_back": -20,
+        "forearm_back": 30,
+        "thigh_back": 40,
+        "shin_back": -46,
+        "foot_back": 6,
+        "thigh_front": -32,
+        "shin_front": -8,
+        "foot_front": 20,
+        "upper_arm_front": 50,
+        "forearm_front": 20,
+        "hand_front": 4,
+        "stamp": -34
+       },
+       "images": {
+        "head": null
+       }
+      },
+      "ease": "inout"
+     },
+     {
+      "t": 39,
+      "pose": "stance"
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "start",
+     "type": "glow",
+     "color": "#b56cf0",
+     "size": 0.8,
+     "duration": 18
+    },
+    {
+     "on": "active",
+     "type": "trail",
+     "bone": "hand_front",
+     "color": "#b56cf0",
+     "color2": "#fff6e0",
+     "size": 1.4,
+     "duration": 8
+    },
+    {
+     "on": "hit",
+     "type": "shockwave",
+     "color": "#b56cf0",
+     "size": 1
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "color": "#b56cf0",
+     "color2": "#f2b632",
+     "count": 24,
+     "size": 1.2
+    },
+    {
+     "on": "block",
+     "type": "sparks",
+     "color": "#fff6e0",
+     "color2": "#b56cf0",
+     "count": 8,
+     "size": 0.7
+    }
+   ],
+   "command": "6HP",
+   "sounds": {
+    "start": "whoosh-heavy",
+    "active": "whip",
+    "hit": "bass-hit"
+   }
+  },
+  {
+   "id": "sweep",
+   "name": "Сокращение штата",
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": "crouch",
+      "ease": "out"
+     },
+     {
+      "t": 6,
+      "pose": "sweep_wind",
+      "ease": "in"
+     },
+     {
+      "t": 12,
+      "pose": "sweep",
+      "ease": "hold"
+     },
+     {
+      "t": 16,
+      "pose": "sweep",
+      "ease": "inout"
+     },
+     {
+      "t": 30,
+      "pose": {
+       "root": [
+        4,
+        -88
+       ],
+       "bones": {
+        "pelvis": 6,
+        "torso": -6,
+        "head": -2,
+        "upper_arm_back": -20,
+        "forearm_back": 30,
+        "thigh_back": 50,
+        "shin_back": -116,
+        "foot_back": 30,
+        "thigh_front": 54,
+        "shin_front": -80,
+        "foot_front": -10,
+        "upper_arm_front": 30,
+        "forearm_front": 60,
+        "hand_front": 4,
+        "stamp": -54
+       },
+       "images": {
+        "head": null
+       },
+       "z": {
+        "thigh_front": 5,
+        "shin_front": 5.6,
+        "foot_front": 5.3
+       }
+      },
+      "ease": "inout"
+     },
+     {
+      "t": 42,
+      "pose": "crouch"
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "active",
+     "type": "trail",
+     "bone": "foot_front",
+     "color": "#fff6e0",
+     "color2": "#b56cf0",
+     "size": 1.3,
+     "duration": 8
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "bone": "foot_front",
+     "color": "#fff6e0",
+     "color2": "#f2b632",
+     "count": 20
+    },
+    {
+     "on": "block",
+     "type": "sparks",
+     "bone": "foot_front",
+     "color": "#fff6e0",
+     "color2": "#b56cf0",
+     "count": 8,
+     "size": 0.7
+    }
+   ],
+   "command": "2HK",
+   "sounds": {
+    "start": "whoosh-heavy",
+    "hit": "kick-heavy"
+   }
+  },
+  {
+   "id": "upper",
+   "name": "Повышение",
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": "stance",
+      "ease": "out"
+     },
+     {
+      "t": 3,
+      "pose": "upper_dip",
+      "ease": "in"
+     },
+     {
+      "t": 5,
+      "pose": "upper",
+      "ease": "hold"
+     },
+     {
+      "t": 11,
+      "pose": "upper",
+      "ease": "inout"
+     },
+     {
+      "t": 24,
+      "pose": {
+       "root": [
+        6,
+        0
+       ],
+       "bones": {
+        "torso": 2,
+        "head": 4,
+        "upper_arm_back": -22,
+        "forearm_back": 30,
+        "thigh_back": 20,
+        "shin_back": -12,
+        "foot_back": -8,
+        "thigh_front": -10,
+        "shin_front": -3,
+        "foot_front": 13,
+        "upper_arm_front": 38,
+        "forearm_front": 80,
+        "hand_front": 6,
+        "stamp": 4
+       },
+       "images": {
+        "head": null
+       }
+      },
+      "ease": "inout"
+     },
+     {
+      "t": 39,
+      "pose": "stance"
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "active",
+     "type": "trail",
+     "bone": "hand_front",
+     "color": "#f2b632",
+     "color2": "#b56cf0",
+     "size": 1.3,
+     "duration": 9
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "color": "#f2b632",
+     "color2": "#b56cf0",
+     "count": 24,
+     "size": 1.2
+    },
+    {
+     "on": "hit",
+     "type": "ring",
+     "color": "#f2b632",
+     "size": 0.8
+    },
+    {
+     "on": "block",
+     "type": "sparks",
+     "color": "#fff6e0",
+     "color2": "#b56cf0",
+     "count": 8,
+     "size": 0.7
+    }
+   ],
+   "command": "6LP",
+   "sounds": {
+    "start": "whoosh-heavy",
+    "hit": "hit-heavy"
+   }
+  },
+  {
+   "id": "air_kick",
+   "name": "Спущено сверху",
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": "air_tuck",
+      "ease": "out"
+     },
+     {
+      "t": 6,
+      "pose": "air_kick",
+      "ease": "hold"
+     },
+     {
+      "t": 14,
+      "pose": "air_kick",
+      "ease": "inout"
+     },
+     {
+      "t": 20,
+      "pose": {
+       "root": [
+        0,
+        0
+       ],
+       "bones": {
+        "torso": -6,
+        "head": 6,
+        "upper_arm_back": 152,
+        "forearm_back": 68,
+        "hand_back": 10,
+        "thigh_back": 60,
+        "shin_back": -94,
+        "foot_back": -16,
+        "thigh_front": 50,
+        "shin_front": -100,
+        "foot_front": -10,
+        "upper_arm_front": -44,
+        "forearm_front": 40,
+        "hand_front": 4,
+        "stamp": -14
+       },
+       "z": {
+        "forearm_back": 10.6,
+        "hand_back": 11,
+        "thigh_front": 5,
+        "shin_front": 5.6,
+        "foot_front": 5.3
+       },
+       "images": {
+        "head": null
+       }
+      }
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "active",
+     "type": "trail",
+     "bone": "foot_front",
+     "color": "#fff6e0",
+     "color2": "#b56cf0",
+     "size": 1,
+     "duration": 9
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "bone": "foot_front",
+     "color": "#f2b632",
+     "color2": "#fff6e0",
+     "count": 14
+    },
+    {
+     "on": "block",
+     "type": "sparks",
+     "bone": "foot_front",
+     "color": "#fff6e0",
+     "color2": "#b56cf0",
+     "count": 8,
+     "size": 0.7
+    }
+   ],
+   "command": "LK",
+   "sounds": {
+    "start": "whoosh-light",
+    "hit": "kick"
+   }
+  },
+  {
+   "id": "fireball",
+   "name": "Заказное письмо",
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": "stance",
+      "ease": "out"
+     },
+     {
+      "t": 8,
+      "pose": "cast_wind",
+      "ease": "in"
+     },
+     {
+      "t": 13,
+      "pose": {
+       "root": [
+        14,
+        -12
+       ],
+       "bones": {
+        "pelvis": -4,
+        "torso": -12,
+        "head": 12,
+        "upper_arm_back": -44,
+        "forearm_back": 30,
+        "thigh_back": 32,
+        "shin_back": -24,
+        "foot_back": -4,
+        "thigh_front": -12,
+        "shin_front": -6,
+        "foot_front": 14,
+        "upper_arm_front": 92,
+        "forearm_front": 6,
+        "hand_front": 4,
+        "hair_1": 10,
+        "hair_2": 12,
+        "hair_3": 12
+       },
+       "images": {
+        "head": "shout"
+       },
+       "z": {
+        "forearm_back": 1,
+        "hand_back": 2
+       }
+      },
+      "ease": "hold"
+     },
+     {
+      "t": 19,
+      "pose": "cast",
+      "ease": "inout"
+     },
+     {
+      "t": 38,
+      "pose": {
+       "root": [
+        0,
+        -4
+       ],
+       "bones": {
+        "torso": -2,
+        "head": 4,
+        "upper_arm_back": 17,
+        "forearm_back": 15,
+        "hand_back": -10,
+        "thigh_back": 20,
+        "shin_back": -12,
+        "foot_back": -8,
+        "thigh_front": -10,
+        "shin_front": -3,
+        "foot_front": 13,
+        "upper_arm_front": -13,
+        "forearm_front": 90,
+        "hand_front": 5,
+        "stamp": -80
+       },
+       "images": {
+        "head": null
+       }
+      }
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "projectile",
+     "type": "glow",
+     "image": "art/shot_letter.png",
+     "color": "#b56cf0",
+     "color2": "#fff6e0",
+     "size": 1.1
+    },
+    {
+     "on": "active",
+     "type": "ring",
+     "color": "#b56cf0",
+     "size": 0.7
+    },
+    {
+     "on": "active",
+     "type": "particles",
+     "color": "#fff6e0",
+     "color2": "#b56cf0",
+     "count": 40,
+     "duration": 8
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "color": "#fff6e0",
+     "color2": "#b56cf0",
+     "count": 18
+    }
+   ],
+   "command": "236P",
+   "sounds": {
+    "start": "whoosh-light",
+    "projectile": "projectile",
+    "hit": "projectile-hit"
+   }
+  },
+  {
+   "id": "lance",
+   "name": "Срочная депеша",
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": "stance",
+      "ease": "out"
+     },
+     {
+      "t": 5,
+      "pose": "dart_wind",
+      "ease": "in"
+     },
+     {
+      "t": 9,
+      "pose": "dart",
+      "ease": "hold"
+     },
+     {
+      "t": 14,
+      "pose": "dart",
+      "ease": "inout"
+     },
+     {
+      "t": 30,
+      "pose": {
+       "root": [
+        0,
+        -4
+       ],
+       "bones": {
+        "torso": -2,
+        "head": 4,
+        "upper_arm_back": 17,
+        "forearm_back": 15,
+        "hand_back": -10,
+        "thigh_back": 20,
+        "shin_back": -12,
+        "foot_back": -8,
+        "thigh_front": -10,
+        "shin_front": -3,
+        "foot_front": 13,
+        "upper_arm_front": -13,
+        "forearm_front": 90,
+        "hand_front": 5,
+        "stamp": -80
+       },
+       "z": {
+        "forearm_back": 1,
+        "hand_back": 2
+       }
+      }
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "projectile",
+     "type": "glow",
+     "image": "art/shot_plane.png",
+     "color": "#b56cf0",
+     "color2": "#fff6e0",
+     "size": 0.95
+    },
+    {
+     "on": "active",
+     "type": "trail",
+     "bone": "hand_back",
+     "color": "#fff6e0",
+     "size": 0.8,
+     "duration": 5
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "color": "#fff6e0",
+     "color2": "#b56cf0",
+     "count": 12,
+     "size": 0.8
+    }
+   ],
+   "command": "214P",
+   "sounds": {
+    "start": "whoosh-light",
+    "projectile": "whip",
+    "hit": "projectile-hit"
+   }
+  },
+  {
+   "id": "slide",
+   "name": "Скользящий график",
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": "crouch",
+      "ease": "out"
+     },
+     {
+      "t": 4,
+      "pose": "slide",
+      "ease": "hold"
+     },
+     {
+      "t": 19,
+      "pose": "slide",
+      "ease": "inout"
+     },
+     {
+      "t": 34,
+      "pose": {
+       "root": [
+        4,
+        -92
+       ],
+       "bones": {
+        "pelvis": 14,
+        "torso": -4,
+        "head": -8,
+        "upper_arm_back": -40,
+        "forearm_back": 30,
+        "thigh_back": 46,
+        "shin_back": -100,
+        "foot_back": 20,
+        "thigh_front": 62,
+        "shin_front": -56,
+        "foot_front": -30,
+        "upper_arm_front": -30,
+        "forearm_front": 50,
+        "hand_front": 4,
+        "stamp": -34
+       },
+       "images": {
+        "head": null
+       },
+       "z": {
+        "thigh_front": 5,
+        "shin_front": 5.6,
+        "foot_front": 5.3
+       }
+      },
+      "ease": "inout"
+     },
+     {
+      "t": 47,
+      "pose": "crouch"
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "start",
+     "type": "afterimage",
+     "color": "#b56cf0",
+     "duration": 16
+    },
+    {
+     "on": "start",
+     "type": "particles",
+     "bone": "foot_back",
+     "color": "#fff6e0",
+     "color2": "#b56cf0",
+     "count": 40,
+     "duration": 16
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "bone": "foot_front",
+     "color": "#f2b632",
+     "color2": "#fff6e0",
+     "count": 18
+    },
+    {
+     "on": "block",
+     "type": "sparks",
+     "bone": "foot_front",
+     "color": "#fff6e0",
+     "color2": "#b56cf0",
+     "count": 8,
+     "size": 0.7
+    }
+   ],
+   "command": "236K",
+   "sounds": {
+    "start": "dash",
+    "hit": "kick-heavy"
+   }
+  },
+  {
+   "id": "flurry",
+   "name": "Квартальный аврал",
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": "stance",
+      "ease": "out"
+     },
+     {
+      "t": 6,
+      "pose": "fl_b",
+      "ease": "in"
+     },
+     {
+      "t": 9,
+      "pose": "fl_a",
+      "ease": "out"
+     },
+     {
+      "t": 11,
+      "pose": "fl_b",
+      "ease": "in"
+     },
+     {
+      "t": 12,
+      "pose": "fl_a",
+      "ease": "out"
+     },
+     {
+      "t": 14,
+      "pose": "fl_b",
+      "ease": "in"
+     },
+     {
+      "t": 15,
+      "pose": "fl_a",
+      "ease": "out"
+     },
+     {
+      "t": 17,
+      "pose": "fl_b",
+      "ease": "in"
+     },
+     {
+      "t": 18,
+      "pose": "fl_a",
+      "ease": "hold"
+     },
+     {
+      "t": 21,
+      "pose": "fl_a",
+      "ease": "inout"
+     },
+     {
+      "t": 41,
+      "pose": {
+       "root": [
+        0,
+        -4
+       ],
+       "bones": {
+        "torso": -2,
+        "head": 4,
+        "upper_arm_back": 17,
+        "forearm_back": 15,
+        "hand_back": -10,
+        "thigh_back": 20,
+        "shin_back": -12,
+        "foot_back": -8,
+        "thigh_front": -10,
+        "shin_front": -3,
+        "foot_front": 13,
+        "upper_arm_front": -13,
+        "forearm_front": 90,
+        "hand_front": 5,
+        "stamp": -80
+       },
+       "images": {
+        "head": null
+       }
+      }
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "active",
+     "type": "trail",
+     "bone": "hand_front",
+     "color": "#b56cf0",
+     "color2": "#fff6e0",
+     "size": 1,
+     "duration": 12
+    },
+    {
+     "on": "active",
+     "type": "afterimage",
+     "color": "#b56cf0",
+     "duration": 12
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "color": "#b56cf0",
+     "color2": "#f2b632",
+     "count": 10,
+     "size": 0.9
+    },
+    {
+     "on": "block",
+     "type": "sparks",
+     "color": "#fff6e0",
+     "color2": "#b56cf0",
+     "count": 8,
+     "size": 0.7
+    }
+   ],
+   "command": "63214P",
+   "sounds": {
+    "start": "whoosh-light",
+    "active": "whoosh-light",
+    "hit": "hit-light"
+   }
+  },
+  {
+   "id": "twin",
+   "name": "В двух экземплярах",
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": "stance",
+      "ease": "out"
+     },
+     {
+      "t": 4,
+      "pose": "twin_ready",
+      "ease": "in"
+     },
+     {
+      "t": 8,
+      "pose": "twin_1",
+      "ease": "hold"
+     },
+     {
+      "t": 11,
+      "pose": "twin_1",
+      "ease": "inout"
+     },
+     {
+      "t": 17,
+      "pose": {
+       "root": [
+        10,
+        -22
+       ],
+       "bones": {
+        "torso": -18,
+        "head": 12,
+        "upper_arm_back": -2,
+        "forearm_back": 40,
+        "thigh_back": 28,
+        "shin_back": -24,
+        "foot_back": -4,
+        "thigh_front": -16,
+        "shin_front": -6,
+        "foot_front": 14,
+        "upper_arm_front": 12,
+        "forearm_front": 130,
+        "hand_front": 10,
+        "stamp": 26
+       },
+       "images": {
+        "head": null
+       }
+      },
+      "ease": "in"
+     },
+     {
+      "t": 23,
+      "pose": "twin_2",
+      "ease": "hold"
+     },
+     {
+      "t": 26,
+      "pose": "twin_2",
+      "ease": "inout"
+     },
+     {
+      "t": 37,
+      "pose": {
+       "root": [
+        12,
+        -40
+       ],
+       "bones": {
+        "pelvis": -4,
+        "torso": -24,
+        "head": 18,
+        "upper_arm_back": -2,
+        "forearm_back": 40,
+        "thigh_back": 54,
+        "shin_back": -64,
+        "foot_back": 14,
+        "thigh_front": -22,
+        "shin_front": -24,
+        "foot_front": 30,
+        "upper_arm_front": 38,
+        "forearm_front": 50,
+        "stamp": -60
+       },
+       "images": {
+        "head": null
+       }
+      },
+      "ease": "inout"
+     },
+     {
+      "t": 48,
+      "pose": "stance"
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "active",
+     "type": "trail",
+     "bone": "hand_front",
+     "color": "#b56cf0",
+     "color2": "#fff6e0",
+     "size": 1.1,
+     "duration": 6
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "color": "#b56cf0",
+     "color2": "#f2b632",
+     "count": 14,
+     "size": 1
+    },
+    {
+     "on": "hit",
+     "type": "ring",
+     "color": "#b56cf0",
+     "size": 0.6
+    },
+    {
+     "on": "block",
+     "type": "sparks",
+     "color": "#fff6e0",
+     "color2": "#b56cf0",
+     "count": 8,
+     "size": 0.7
+    }
+   ],
+   "command": "PP",
+   "sounds": {
+    "start": "whoosh-light",
+    "active": "whoosh-light",
+    "hit": "hit-light"
+   }
+  },
+  {
+   "id": "cyclone",
+   "name": "Документооборот",
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": "stance",
+      "ease": "out"
+     },
+     {
+      "t": 7,
+      "pose": "cyc_coil",
+      "ease": "in"
+     },
+     {
+      "t": 12,
+      "pose": {
+       "root": [
+        10,
+        -10
+       ],
+       "bones": {
+        "torso": -4,
+        "head": 4,
+        "upper_arm_back": -82,
+        "forearm_back": 6,
+        "thigh_back": 28,
+        "shin_back": -24,
+        "foot_back": -4,
+        "thigh_front": -16,
+        "shin_front": -6,
+        "foot_front": 14,
+        "upper_arm_front": 72,
+        "forearm_front": 10,
+        "hand_front": 4,
+        "stamp": 2,
+        "hair_1": -18,
+        "hair_2": -20,
+        "hair_3": -22
+       },
+       "images": {
+        "head": "shout"
+       },
+       "z": {
+        "forearm_back": 1,
+        "hand_back": 2
+       }
+      },
+      "ease": "linear"
+     },
+     {
+      "t": 14,
+      "pose": "cyc_b",
+      "ease": "linear"
+     },
+     {
+      "t": 15,
+      "pose": {
+       "root": [
+        10,
+        -10
+       ],
+       "bones": {
+        "torso": -4,
+        "head": 4,
+        "upper_arm_back": -82,
+        "forearm_back": 6,
+        "thigh_back": 28,
+        "shin_back": -24,
+        "foot_back": -4,
+        "thigh_front": -16,
+        "shin_front": -6,
+        "foot_front": 14,
+        "upper_arm_front": 72,
+        "forearm_front": 10,
+        "hand_front": 4,
+        "stamp": 2,
+        "hair_1": -18,
+        "hair_2": -20,
+        "hair_3": -22
+       },
+       "images": {
+        "head": "shout"
+       },
+       "z": {
+        "forearm_back": 1,
+        "hand_back": 2
+       }
+      },
+      "ease": "linear"
+     },
+     {
+      "t": 17,
+      "pose": "cyc_b",
+      "ease": "linear"
+     },
+     {
+      "t": 18,
+      "pose": {
+       "root": [
+        10,
+        -10
+       ],
+       "bones": {
+        "torso": -4,
+        "head": 4,
+        "upper_arm_back": -82,
+        "forearm_back": 6,
+        "thigh_back": 28,
+        "shin_back": -24,
+        "foot_back": -4,
+        "thigh_front": -16,
+        "shin_front": -6,
+        "foot_front": 14,
+        "upper_arm_front": 72,
+        "forearm_front": 10,
+        "hand_front": 4,
+        "stamp": 2,
+        "hair_1": -18,
+        "hair_2": -20,
+        "hair_3": -22
+       },
+       "images": {
+        "head": "shout"
+       },
+       "z": {
+        "forearm_back": 1,
+        "hand_back": 2
+       }
+      },
+      "ease": "linear"
+     },
+     {
+      "t": 20,
+      "pose": "cyc_b",
+      "ease": "linear"
+     },
+     {
+      "t": 21,
+      "pose": {
+       "root": [
+        10,
+        -10
+       ],
+       "bones": {
+        "torso": -4,
+        "head": 4,
+        "upper_arm_back": -82,
+        "forearm_back": 6,
+        "thigh_back": 28,
+        "shin_back": -24,
+        "foot_back": -4,
+        "thigh_front": -16,
+        "shin_front": -6,
+        "foot_front": 14,
+        "upper_arm_front": 72,
+        "forearm_front": 10,
+        "hand_front": 4,
+        "stamp": 2,
+        "hair_1": -18,
+        "hair_2": -20,
+        "hair_3": -22
+       },
+       "images": {
+        "head": "shout"
+       },
+       "z": {
+        "forearm_back": 1,
+        "hand_back": 2
+       }
+      },
+      "ease": "out"
+     },
+     {
+      "t": 30,
+      "pose": {
+       "root": [
+        8,
+        -8
+       ],
+       "bones": {
+        "torso": 6,
+        "head": 4,
+        "upper_arm_back": -16,
+        "forearm_back": 40,
+        "thigh_back": 20,
+        "shin_back": -12,
+        "foot_back": -8,
+        "thigh_front": -10,
+        "shin_front": -3,
+        "foot_front": 13,
+        "upper_arm_front": 24,
+        "forearm_front": 40,
+        "stamp": -40,
+        "hair_1": -10,
+        "hair_2": -14,
+        "hair_3": -18
+       },
+       "images": {
+        "head": null
+       }
+      },
+      "ease": "inout"
+     },
+     {
+      "t": 47,
+      "pose": "stance"
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "start",
+     "type": "afterimage",
+     "color": "#b56cf0",
+     "duration": 22
+    },
+    {
+     "on": "active",
+     "type": "trail",
+     "bone": "hand_front",
+     "color": "#b56cf0",
+     "color2": "#fff6e0",
+     "size": 1.3,
+     "duration": 10
+    },
+    {
+     "on": "active",
+     "type": "particles",
+     "bone": "torso",
+     "color": "#fff6e0",
+     "color2": "#b56cf0",
+     "count": 60,
+     "duration": 10
+    },
+    {
+     "on": "active",
+     "type": "ring",
+     "color": "#fff6e0",
+     "size": 0.9
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "color": "#b56cf0",
+     "color2": "#f2b632",
+     "count": 12,
+     "size": 1
+    },
+    {
+     "on": "block",
+     "type": "sparks",
+     "color": "#fff6e0",
+     "color2": "#b56cf0",
+     "count": 8,
+     "size": 0.7
+    }
+   ],
+   "command": "63214K",
+   "sounds": {
+    "start": "whoosh-heavy",
+    "active": "whoosh-heavy",
+    "hit": "hit-light"
+   }
+  },
+  {
+   "id": "finale",
+   "name": "Годовой отчёт",
+   "anim": {
+    "keys": [
+     {
+      "t": 0,
+      "pose": "super_pose",
+      "ease": "out"
+     },
+     {
+      "t": 5,
+      "pose": "fin_wind",
+      "ease": "in"
+     },
+     {
+      "t": 8,
+      "pose": {
+       "root": [
+        40,
+        -26
+       ],
+       "bones": {
+        "pelvis": -12,
+        "torso": -26,
+        "head": 28,
+        "upper_arm_back": -48,
+        "forearm_back": 10,
+        "hand_back": 6,
+        "thigh_back": 66,
+        "shin_back": -64,
+        "foot_back": 10,
+        "thigh_front": -32,
+        "shin_front": -6,
+        "foot_front": 20,
+        "upper_arm_front": 110,
+        "forearm_front": 4,
+        "hand_front": 2,
+        "stamp": 2,
+        "hair_1": 18,
+        "hair_2": 20,
+        "hair_3": 22
+       },
+       "scale": {
+        "stamp": 3
+       },
+       "images": {
+        "head": "shout"
+       },
+       "z": {
+        "forearm_back": 1,
+        "hand_back": 2
+       }
+      },
+      "ease": "hold"
+     },
+     {
+      "t": 14,
+      "pose": "fin_hit",
+      "ease": "inout"
+     },
+     {
+      "t": 30,
+      "pose": {
+       "root": [
+        22,
+        -16
+       ],
+       "bones": {
+        "torso": -20,
+        "head": 14,
+        "upper_arm_back": -20,
+        "forearm_back": 30,
+        "thigh_back": 40,
+        "shin_back": -46,
+        "foot_back": 6,
+        "thigh_front": -32,
+        "shin_front": -8,
+        "foot_front": 20,
+        "upper_arm_front": 50,
+        "forearm_front": 20,
+        "hand_front": 4,
+        "stamp": -34
+       },
+       "scale": {
+        "stamp": 1.8
+       },
+       "images": {
+        "head": null
+       }
+      },
+      "ease": "inout"
+     },
+     {
+      "t": 48,
+      "pose": "stance"
+     }
+    ]
+   },
+   "fx": [
+    {
+     "on": "start",
+     "type": "glow",
+     "color": "#b56cf0",
+     "size": 1.6,
+     "duration": 14
+    },
+    {
+     "on": "start",
+     "type": "particles",
+     "bone": "hand_front",
+     "color": "#fff6e0",
+     "color2": "#b56cf0",
+     "count": 120,
+     "duration": 14
+    },
+    {
+     "on": "active",
+     "type": "trail",
+     "bone": "hand_front",
+     "color": "#b56cf0",
+     "color2": "#f2b632",
+     "size": 2.4,
+     "duration": 10
+    },
+    {
+     "on": "active",
+     "type": "afterimage",
+     "color": "#b56cf0",
+     "duration": 8
+    },
+    {
+     "on": "hit",
+     "type": "flash",
+     "color": "#b56cf0",
+     "duration": 8
+    },
+    {
+     "on": "hit",
+     "type": "shockwave",
+     "color": "#f2b632",
+     "size": 2
+    },
+    {
+     "on": "hit",
+     "type": "ring",
+     "color": "#b56cf0",
+     "size": 1.8
+    },
+    {
+     "on": "hit",
+     "type": "sparks",
+     "color": "#b56cf0",
+     "color2": "#f2b632",
+     "count": 60,
+     "size": 1.8
+    },
+    {
+     "on": "hit",
+     "type": "particles",
+     "bone": "hand_front",
+     "color": "#fff6e0",
+     "color2": "#b56cf0",
+     "count": 160,
+     "duration": 24
+    },
+    {
+     "on": "block",
+     "type": "sparks",
+     "color": "#fff6e0",
+     "color2": "#b56cf0",
+     "count": 8,
+     "size": 0.7
+    }
+   ],
+   "command": "236236P",
+   "sounds": {
+    "start": "super-start",
+    "active": "whoosh-heavy",
+    "hit": "super-hit"
+   },
+   "director": {
+    "title": "ГОДОВОЙ ОТЧЁТ",
+    "titleColor": "#f2b632",
+    "line": "super_1",
+    "zoom": 1.8,
+    "angle": "low",
+    "flash": "#b56cf0",
+    "background": "color",
+    "backgroundColor": "#1a0f33",
+    "slowmo": 0.55
+   }
+  }
+ ]
+}

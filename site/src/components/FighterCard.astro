@@ -1,0 +1,25 @@
+---
+// The card of a fighter in a gallery: portrait, the fighter's name, the model, the author when there is one.
+import type { Fighter } from '../data/ring';
+import { to } from '../lib/paths';
+import Portrait from './Portrait.astro';
+
+interface Props { fighter: Fighter; width?: number; sizes?: string }
+const { fighter, width = 340, sizes } = Astro.props;
+---
+<a class="card" href={to(Astro.url.pathname, `fighters/${fighter.id}/`)} style={`--c:${fighter.color}`}>
+  <Portrait fighter={fighter} width={width} sizes={sizes} alt="" />
+  <span class="card-name slab">{fighter.name}</span>
+  <span class="card-model">{fighter.model}</span>
+  {fighter.author && <span class="card-author">{fighter.author}</span>}
+</a>
+
+<style>
+  .card { display: flex; flex-direction: column; text-decoration: none; }
+  .card :global(.frame) { transition: transform .15s; }
+  .card:hover :global(.frame) { transform: translateY(-4px); }
+  .card-name { margin-top: 14px; font-size: clamp(19px, 1.9vw, 24px); line-height: 1.08; }
+  .card-model { margin-top: 4px; font-size: 15px; font-weight: 500; color: var(--c); }
+  .card-author { font-size: 14px; color: var(--dim); }
+  @media (prefers-reduced-motion: reduce) { .card :global(.frame) { transition: none; } }
+</style>

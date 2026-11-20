@@ -5,7 +5,7 @@
 // the fight frame) and in the match reel (viewer/card.html records them frame by frame): every animation is a
 // function of the screen's time, seek(t) shows any frame. Plus the «История» tab of a match page.
 import * as PIXI from 'pixi.js';
-import { solvePose, sampleAnim, STAT_MAX } from '/kit/arena/engine/index.js';
+import { solvePose, sampleAnim, STAT_MAX } from '../../kit/arena/engine/index.js';
 import { litFigure } from './figure.js';
 import { keyNumbers, changeCards, plainSay, saidHtml } from './screen-data.js';
 
@@ -644,7 +644,7 @@ export async function lockerFor(data, m, n, cid, { assetsOf, bg = null, buttons 
 // defs: the two compiled fighters, steps: the recording (one entry per tick), seed. The same shape as the judge's
 // round stats (judge/moments.js), the part the result screen shows.
 export async function quickStats(defs, steps, seed) {
-  const E = await import('/kit/arena/engine/index.js');
+  const E = await import('../../kit/arena/engine/index.js');
   const fight = E.createFight({ fighters: defs, seed });
   const hp = [];
   const hits = [];

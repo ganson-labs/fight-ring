@@ -1,0 +1,26 @@
+---
+import Page from '../../layouts/Page.astro';
+import FighterCard from '../../components/FighterCard.astro';
+import { seasons } from '../../data/ring';
+
+const all = await seasons();
+---
+<Page title="Бойцы" description="Бойцы, которых создали нейросети: портрет, модель, приёмы и версии.">
+  <div class="wrap">
+    <h1 class="slab"><span class="hot">Бойцы</span></h1>
+    {all.map((s) => (
+      <section>
+        {all.length > 1 && <h2 class="slab">{s.title}</h2>}
+        <div class="grid">
+          {s.fighters.map((f) => <FighterCard fighter={f} width={360} sizes="(max-width: 620px) 44vw, (max-width: 1000px) 30vw, 360px" />)}
+        </div>
+      </section>
+    ))}
+  </div>
+</Page>
+
+<style>
+  h1 { padding: clamp(16px, 3vw, 40px) 0 clamp(28px, 4vw, 48px); }
+  .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(28px, 4vw, 48px) clamp(16px, 3vw, 36px); }
+  @media (max-width: 620px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>

@@ -1,0 +1,24 @@
+{
+  "description": "A clockwork automaton boxer: a precise, calm, dry, slightly ironic male baritone, middle-low pitch, with a faint metallic resonance, as if the voice rings through a small brass chamber. Clipped, rhythmic delivery: every syllable lands exactly on the beat, as if he speaks in time with a metronome, with short crisp pauses between phrases. Unhurried and cool, never shouts even when exerting, confident with understated dry humor, like a strict old conductor counting the orchestra in. Clean studio recording, close microphone, no music, no background noise. Clear Russian diction.",
+  "language": "ru",
+  "lines": [
+    { "id": "intro_1", "kind": "intro", "text": "Раз. Два. Начинаем." },
+    { "id": "intro_2", "kind": "intro", "text": "[calm] Темп задан. Не отставай." },
+    { "id": "taunt_1", "kind": "taunt", "text": "Ты сбился с ритма." },
+    { "id": "taunt_2", "kind": "taunt", "text": "Тик-так. Ты опять опоздал." },
+    { "id": "taunt_3", "kind": "taunt", "text": "Громко. И мимо такта." },
+    { "id": "super_1", "kind": "super", "text": "Финальный аккорд!" },
+    { "id": "hit_1", "kind": "hit", "text": "В сильную долю." },
+    { "id": "hit_2", "kind": "hit", "text": "Ровно в такт." },
+    { "id": "hit_3", "kind": "hit", "text": "Тик." },
+    { "id": "hurt_1", "kind": "hurt", "text": "Фальшь..." },
+    { "id": "hurt_2", "kind": "hurt", "text": "Пружина держит." },
+    { "id": "victory_1", "kind": "victory", "text": "Финал. Аплодисменты — по желанию." },
+    { "id": "victory_2", "kind": "victory", "text": "Темп выдержан. А ты — нет." },
+    { "id": "defeat_1", "kind": "defeat", "text": "Завод... кончился..." },
+    { "id": "parry_1", "kind": "other", "text": "Предсказуемо." },
+    { "id": "parry_2", "kind": "other", "text": "Я слышал это за такт." },
+    { "id": "punish_1", "kind": "other", "text": "Пауза — это ошибка." },
+    { "id": "punish_2", "kind": "other", "text": "Опоздал на четверть." }
+  ]
+}

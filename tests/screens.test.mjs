@@ -8,7 +8,7 @@ import { tmpdir } from 'node:os';
 import { diffFighters } from '../judge/match.js';
 import { changeCards, keyNumbers, plainSay } from '../viewer/game/screen-data.js';
 
-const KIT = new URL('../kit/fighter/', import.meta.url);
+const KIT = new URL('./fixtures/ring3/fighter/', import.meta.url);
 
 function twoVersions(change) {
   const dir = mkdtempSync(join(tmpdir(), 'ring-locker-'));

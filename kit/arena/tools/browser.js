@@ -96,7 +96,10 @@ export async function launch({ width = 1280, height = 720 } = {}) {
     '--disable-background-networking', '--disable-component-update',
     // RING_GPU=1 renders on the video card (much faster on a desktop); the default software renderer works everywhere
     ...(process.env.RING_GPU === '1' ? ['--use-angle=' + (process.platform === 'win32' ? 'd3d11' : 'default'), '--enable-gpu'] : ['--enable-unsafe-swiftshader', '--use-angle=swiftshader']),
-    '--disable-background-timer-throttling', '--disable-renderer-backgrounding', `--window-size=${width},${height}`, 'about:blank',
+    '--disable-background-timer-throttling', '--disable-renderer-backgrounding', `--window-size=${width},${height}`,
+    // more switches for a machine that needs them: RING_CHROME_ARGS="--no-sandbox" inside a container run as root
+    ...(process.env.RING_CHROME_ARGS || '').split(/\s+/).filter(Boolean),
+    'about:blank',
   ], { stdio: 'ignore', windowsHide: true });
   let port = null;
   let path = null;

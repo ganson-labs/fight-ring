@@ -1,6 +1,6 @@
 // Captions over the match reel and notes for the person who voices it. The facts the commentator used to speak
 // become short plates on the screen at the key moments (one at a time, at most one every CAPTION_GAP seconds), and
-// notes-for-pasha.md next to the reel: what happened in every round, what each model changed in the locker room in
+// notes-for-voice.md next to the reel: what happened in every round, what each model changed in the locker room in
 // its own words, the best moments with the reel's timecodes and a line on what to say there. A model (claude -p,
 // prompts/commentator.md, no tools) words the captions and the notes from the facts; without it the judge words
 // them itself.
@@ -213,7 +213,7 @@ export async function burnCaptions(video, captions, out, { base, browser, aspect
 
 const quote = (t) => t.trim().split('\n').map((l) => `> ${l}`).join('\n');
 
-// notes-for-pasha.md: the match for the person who voices the reel.
+// notes-for-voice.md: the match for the person who voices the reel.
 export function notesMd(id, { reelSeconds, captions, best, answer = null, model = null }) {
   const m = loadMatch(id);
   const stories = Object.fromEntries((answer?.rounds || []).filter((x) => typeof x?.story === 'string').map((x) => [x.n, x.story.trim()]));
@@ -277,7 +277,7 @@ export function bestMoments(pieces, cands, clipT = null) {
 
 // ---------- the match's story for the game ----------
 
-// story.json next to the match: what notes-for-pasha.md tells, for the viewer of the game. The words of the model
+// story.json next to the match: what notes-for-voice.md tells, for the viewer of the game. The words of the model
 // that wrote the notes (or the judge's own), round by round; the locker rooms with what changed and the models'
 // replies word for word; the best moments with the round's ticks, so the game can replay them. The game reads it
 // as it is (judge/gamedata.js), nothing is rebuilt.

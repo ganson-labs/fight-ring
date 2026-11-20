@@ -1,7 +1,7 @@
 // Builds the ring's sound set kit/arena/sounds/ from scripts/sounds.sources.json:
 //   node scripts/build-sounds.mjs [--check]
-// Sources: the «гансон: Студия» media library — its starter pack (models/sounds-pack, with source and licence of
-// every file in sounds.json) and sounds generated there with ElevenLabs (library/sounds). Each file is trimmed of
+// Sources (not part of this repository): a pack of sounds from third-party libraries (RING_SOUND_PACK, with source
+// and licence of every file in its sounds.json) and sounds generated with ElevenLabs (RING_SOUND_GEN). Each file is trimmed of
 // silence, peak-normalised, given short fades (no clicks), loops get a crossfaded seam; Opus in Ogg. Writes the
 // catalogue (catalog.js), the inventory with origins and licences (README.md) and prints a listening report:
 // length, peak, loudness, edges and the loop seam of every file. --check only prints the report of what is built.
@@ -14,9 +14,10 @@ import { fileURLToPath } from 'node:url';
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const OUT = join(root, 'kit', 'arena', 'sounds');
 const SR = 48000;
-const PACK = join(process.env.LOCALAPPDATA || join(homedir(), 'AppData', 'Local'), 'VideoAgent', 'models', 'sounds-pack');
-const GEN = join(homedir(), 'Documents', 'Видео-агент', 'library', 'sounds');
-const GEN_LICENSE = 'ElevenLabs Sound Effects / Music, сгенерировано по заказу Паши на его тарифе (Creator): коммерческое использование разрешено';
+// where the author keeps the sources; another machine names its own folders
+const PACK = process.env.RING_SOUND_PACK || join(process.env.LOCALAPPDATA || join(homedir(), 'AppData', 'Local'), 'VideoAgent', 'models', 'sounds-pack');
+const GEN = process.env.RING_SOUND_GEN || join(homedir(), 'Documents', 'Видео-агент', 'library', 'sounds');
+const GEN_LICENSE = 'ElevenLabs Sound Effects / Music, сгенерировано автором ринга на платном тарифе (Creator): коммерческое использование разрешено';
 const spec = JSON.parse(readFileSync(join(root, 'scripts', 'sounds.sources.json'), 'utf8')).sounds;
 const check = process.argv.includes('--check');
 
@@ -111,12 +112,12 @@ function source(ref) {
   const [where, id] = ref.split(':');
   if (where === 'pack') {
     const m = packMeta[id];
-    if (!m) throw new Error(`в стартовом наборе Студии нет звука ${id}`);
+    if (!m) throw new Error(`в наборе сторонних звуков нет звука ${id}`);
     return { file: join(PACK, m.file), origin: m.source, license: m.license };
   }
   const f = ['sounds', 'music'].flatMap((d) => ['mp3', 'wav', 'ogg', 'opus'].map((e) => join(GEN, '..', d, `${id}.${e}`))).find(existsSync);
   if (!f) throw new Error(`нет сгенерированного звука ${id} в ${GEN}`);
-  return { file: f, origin: `ElevenLabs, сгенерирован в Студии (${id})`, license: GEN_LICENSE };
+  return { file: f, origin: `ElevenLabs, сгенерирован для ринга (${id})`, license: GEN_LICENSE };
 }
 
 mkdirSync(OUT, { recursive: true });
@@ -150,7 +151,7 @@ if (!check) {
 // catalogue (kit/arena/sounds/catalog.js); the engine keeps its own copy so its snapshot runs without the sounds.
 export const SOUND_NAMES = ${JSON.stringify(Object.keys(catalog).filter((n) => catalog[n].kind === 'sfx'))};
 `);
-  writeFileSync(join(OUT, 'README.md'), `# Звуки ринга\n\nСобраны \`node scripts/build-sounds.mjs\` из \`scripts/sounds.sources.json\`: тишина по краям обрезана, пик звуков −2 dBFS, края с плавным входом 3 мс и затуханием до 60 мс, петли фона и музыки — бесшовные (хвост перетекает в начало), громкость петель по RMS (фон −21 dBFS, музыка −18 dBFS). Opus в Ogg: звуки моно 96 кбит/с, петли стерео 128 кбит/с. Каталог с уровнями в миксе — \`catalog.js\`, имена для \`moves.json → sounds\` печатает \`node arena/cli.mjs sounds\`.\n\nИсточники — медиатека «гансон: Студии»: стартовый набор программы (Pixabay, Sonniss #GameAudioGDC, Mixkit; источник и лицензия каждого файла записаны в её \`sounds.json\`) и звуки, сгенерированные в Студии через ElevenLabs. Все лицензии разрешают звук в играх, роликах и коммерческих проектах без указания автора; продавать или раздавать сами звуки отдельной библиотекой нельзя.\n\n| Файл | Что | Источник | Лицензия |\n|---|---|---|---|\n${lines.join('\n')}\n`);
+  writeFileSync(join(OUT, 'README.md'), `# Звуки ринга\n\nСобраны \`node scripts/build-sounds.mjs\` из \`scripts/sounds.sources.json\`: тишина по краям обрезана, пик звуков −2 dBFS, края с плавным входом 3 мс и затуханием до 60 мс, петли фона и музыки — бесшовные (хвост перетекает в начало), громкость петель по RMS (фон −21 dBFS, музыка −18 dBFS). Opus в Ogg: звуки моно 96 кбит/с, петли стерео 128 кбит/с. Каталог с уровнями в миксе — \`catalog.js\`, имена для \`moves.json → sounds\` печатает \`node arena/cli.mjs sounds\`.\n\nИсточники: звуки из сторонних библиотек (Pixabay, Sonniss #GameAudioGDC, Mixkit; источник и лицензия каждого файла — в таблице) и звуки, сгенерированные для ринга через ElevenLabs. Исходные файлы в репозиторий не входят. Все лицензии разрешают звук в играх, роликах и коммерческих проектах без указания автора; продавать или раздавать сами звуки отдельной библиотекой нельзя.\n\n| Файл | Что | Источник | Лицензия |\n|---|---|---|---|\n${lines.join('\n')}\n`);
 }
 console.log('файл'.padEnd(26), 'сек'.padStart(6), 'пик'.padStart(6), 'RMS'.padStart(6), 'вход'.padStart(5), 'выход'.padStart(6), 'скачок'.padStart(7), 'шов');
 for (const r of rows) console.log(r.name.padEnd(26), String(r.seconds).padStart(6), String(r.peak).padStart(6), String(r.rms).padStart(6), String(r.start).padStart(5), String(r.end).padStart(6), String(r.jump).padStart(7), r.seam ?? '');

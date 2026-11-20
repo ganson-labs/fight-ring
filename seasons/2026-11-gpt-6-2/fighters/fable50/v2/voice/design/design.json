@@ -1,0 +1,25 @@
+{
+  "description": "A native Russian woman in her early sixties, a formidable Soviet-era chief accountant. Low, firm contralto, slightly husky, dry and unhurried, with steel underneath and a note of weary irony. Flat deadpan bureaucratic delivery: she never shouts, she pronounces verdicts. Clear standard Moscow Russian, crisp consonants, measured pace, authoritative and intimidating in a calm office way. Close studio microphone, clean recording.",
+  "text": "Так. Кто у нас тут без отчёта? Зоя Павловна, главный бухгалтер. Документы на стол. Переделывайте. Повторяетесь. Я записала. Недостача! Период закрыт. Следующий! Дебет с кредитом сошёлся. Как всегда. Это… ошибка в расчётах… А теперь — годовой отчёт! У меня обед до двух. Не затягивайте. И это всё? Несерьёзно. Третий раз одно и то же. Штраф. Отклонено. На выход. Куда без пропуска? Штраф. Сидите, сидите. Подпись недействительна. Списано! Вам письмо. Работаем сверхурочно. Закрываем период. Рабочий день кончается. Это вычтут из премии. Безобразие!",
+  "previews": [
+    {
+      "n": 1,
+      "file": "voice/design/preview-1.mp3",
+      "generated_voice_id": "sB0d776Jaz8rwCycAzKM",
+      "seconds": 55.957
+    },
+    {
+      "n": 2,
+      "file": "voice/design/preview-2.mp3",
+      "generated_voice_id": "Ar29armH7fGwpGRgSqjc",
+      "seconds": 59.95375
+    },
+    {
+      "n": 3,
+      "file": "voice/design/preview-3.mp3",
+      "generated_voice_id": "jNA4FNVaIks9NUznWEGh",
+      "seconds": 64.2116875
+    }
+  ],
+  "at": "2026-11-18T18:34:21.206Z"
+}

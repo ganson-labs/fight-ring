@@ -6,11 +6,5 @@
     "primary": "#8d9199",
     "secondary": "#6c7078",
     "accent": "#d0d4da"
-  },
-  "stats": {
-    "health": 3,
-    "power": 3,
-    "speed": 3,
-    "defense": 3
   }
 }

@@ -8,4 +8,5 @@ export * from './sim.js';
 export { prepareAbilities, measureAbility, STANDARD_TARGET, MEASURE } from './measure.js';
 export * from './commands.js';
 export * from './version.js';
+export * from './standard.js';
 export * from './soundnames.js';

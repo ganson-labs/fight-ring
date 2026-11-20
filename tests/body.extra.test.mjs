@@ -6,7 +6,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import * as E from '../kit/arena/engine/index.js';
 
-const KIT = new URL('../kit/fighter/', import.meta.url);
+const KIT = new URL('./fixtures/ring3/fighter/', import.meta.url);
 const raw = () => Object.fromEntries(['fighter', 'body', 'moves', 'voice'].map((f) => [f, JSON.parse(readFileSync(new URL(`${f}.json`, KIT), 'utf8'))]));
 const files = new Set(['parts/a.png', 'parts/b.png', ...readdirSync(new URL('parts/', KIT)).map((f) => `parts/${f}`)]);
 const check = (input) => E.checkFighter(input, { files });

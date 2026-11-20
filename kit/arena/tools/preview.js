@@ -1,7 +1,7 @@
 // Pose sheet PNG and clips MP4 through the lab page in headless Chrome, encoded by ffmpeg.
 import { spawn, execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, writeFileSync, rmSync, renameSync, readdirSync } from 'node:fs';
-import { mixFight, wavStereo, fileSeconds } from './sounds.js';
+import { mixFight, wavStereo, fileSeconds, decodeFile, MIX_RATE } from './sounds.js';
 import { basename, dirname, join } from 'node:path';
 import { cpus } from 'node:os';
 import { ARENA_DIR } from './load.js';
@@ -141,15 +141,17 @@ function mixAudio(video, { says = [], sounds = [], beds = null, voiceDirs = null
   const args = ['-y', '-v', 'error', '-i', video];
   const inputs = [];
   const track = mixFight({ sounds: sounds.map((x) => ({ ...x, at: x.frame / fps })), beds, lines: clips.map((c) => ({ at: c.frame / fps, seconds: fileSeconds(c.file) })), seconds });
+  // The lines go into the same track here, not as ffmpeg inputs: a three-minute round of two talkative fighters has
+  // hundreds of lines, and that many -i arguments did not fit a Windows command line (ENAMETOOLONG, the final of 4.0)
+  for (const c of clips) {
+    const d = decodeFile(c.file);
+    const o = Math.floor((c.frame / fps) * MIX_RATE) * 2;
+    for (let i = 0; i < d.length && o + i < track.length; i++) track[o + i] += d[i] * 1.5;
+  }
   writeFileSync(wav, wavStereo(track));
   args.push('-i', wav);
-  inputs.push('[1]volume=1.0[s0]');
-  const base = 2;
-  for (const c of clips) args.push('-i', c.file);
-  const chains = clips.map((c, i) => `[${i + base}]adelay=${Math.round((c.frame / fps) * 1000)}|${Math.round((c.frame / fps) * 1000)},volume=1.5[a${i}]`);
-  const labels = ['[s0]', ...clips.map((_, i) => `[a${i}]`)];
-  const mix = `${labels.join('')}amix=inputs=${labels.length}:normalize=0:dropout_transition=0,alimiter=limit=0.85,loudnorm=I=-16:TP=-1.5:LRA=14[aout]`;
-  args.push('-filter_complex', [...inputs, ...chains, mix].join(';'), '-map', '0:v', '-map', '[aout]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest', tmp);
+  inputs.push('[1]alimiter=limit=0.85,loudnorm=I=-16:TP=-1.5:LRA=14[aout]');
+  args.push('-filter_complex', inputs.join(';'), '-map', '0:v', '-map', '[aout]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest', tmp);
   execFileSync('ffmpeg', args, { stdio: 'ignore' });
   rmSync(video);
   if (existsSync(wav)) rmSync(wav);

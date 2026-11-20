@@ -1,0 +1,184 @@
+---
+import Page from '../../layouts/Page.astro';
+import Portrait from '../../components/Portrait.astro';
+import MatchCard from '../../components/MatchCard.astro';
+import { agentName, allFighters, playAgainst, roundTitle, seasons } from '../../data/ring';
+import type { Fighter, MoveSlot, Season, StatKey } from '../../data/ring';
+import { commandGlyphs } from '../../lib/command';
+import { to } from '../../lib/paths';
+
+export async function getStaticPaths() {
+  const all = await seasons();
+  return (await allFighters()).map((fighter) => ({ params: { id: fighter.id }, props: { fighter, season: all.find((s) => s.id === fighter.season) } }));
+}
+interface Props { fighter: Fighter; season: Season }
+const { fighter: f, season } = Astro.props;
+const path = Astro.url.pathname;
+
+const STATS: [StatKey, string][] = [['health', 'Здоровье'], ['power', 'Сила'], ['speed', 'Скорость'], ['defense', 'Защита']];
+const SLOTS: [MoveSlot, string][] = [['super', 'Суперприём'], ['special', 'Спецприёмы'], ['normal', 'Обычные удары']];
+const groups = SLOTS.map(([slot, title]) => ({ title, moves: f.moves.filter((m) => m.slot === slot) })).filter((g) => g.moves.length);
+const abilities = f.versions.at(-1)?.abilities ?? [];
+const agent = f.agent ? [agentName(f.agent.tool), f.agent.model, f.agent.effort && `уровень рассуждений ${f.agent.effort}`].filter(Boolean).join(', ') : null;
+---
+<Page title={f.name} description={f.motto ? `${f.name}, боец модели ${f.model}. ${f.motto}` : `${f.name}, боец модели ${f.model}.`}>
+  <div class="wrap" style={`--c:${f.color}`}>
+    <header class="head">
+      <div class="pic"><Portrait fighter={f} width={460} sizes="(max-width: 820px) 92vw, 460px" eager /></div>
+      <div class="about">
+        <h1 class="slab">{f.name}</h1>
+        {f.motto && <p class="motto">{f.motto}</p>}
+        <dl class="facts">
+          <div><dt>Модель</dt><dd class="model">{f.model}</dd></div>
+          {agent && <div><dt>Агент</dt><dd>{agent}</dd></div>}
+          {f.author && <div><dt>Автор</dt><dd>{f.author}</dd></div>}
+        </dl>
+        <div class="steps">
+          <a class="plate primary" href={to(path, playAgainst(f))}>Сразиться</a>
+          {f.matches.length > 0 && <a class="plate" href="#bouts">Смотреть бои</a>}
+        </div>
+      </div>
+    </header>
+
+    <div class="cols">
+      {f.story && (
+        <section class="story">
+          <h2 class="slab">Предыстория</h2>
+          <p>{f.story}</p>
+        </section>
+      )}
+      {f.stats && (
+        <section>
+          <h2 class="slab">Телосложение</h2>
+          <dl class="stats">
+            {STATS.map(([key, title]) => (
+              <div>
+                <dt>{title}</dt>
+                <dd aria-label={`${f.stats?.[key]} из 5`}>{[1, 2, 3, 4, 5].map((i) => <span class:list={['pip', { on: i <= (f.stats?.[key] ?? 0) }]}></span>)}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      )}
+    </div>
+
+    {groups.length > 0 && (
+      <section>
+        <h2 class="slab">Приёмы</h2>
+        <div class="moves">
+          {groups.map((g) => (
+            <div class="group">
+              <h3 class="slab">{g.title}</h3>
+              <ul>
+                {g.moves.map((m) => (
+                  <li>
+                    <span class="move-name">{m.name}{m.kitName && m.kitName !== m.name && <span class="kit">{m.kitName}</span>}</span>
+                    {m.command && <span class="cmd" aria-label={`Команда ${m.command}`}>{commandGlyphs(m.command).map((g) => <span class={g.kind}>{g.text}</span>)}</span>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {abilities.length > 0 && (
+      <section>
+        <h2 class="slab">Способности</h2>
+        <ul class="abilities">
+          {abilities.map((a) => <li><b>{a.name}</b>{a.about && <p>{a.about}</p>}</li>)}
+        </ul>
+      </section>
+    )}
+
+    {f.matches.length > 0 && (
+      <section id="bouts">
+        <h2 class="slab">Бои</h2>
+        <div class="bouts">{f.matches.map((m) => <MatchCard season={season} match={m} />)}</div>
+      </section>
+    )}
+
+    <section>
+      <h2 class="slab">Версии</h2>
+      <ol class="versions">
+        {f.versions.map((v) => (
+          <li>
+            <h3 class="slab">Версия {v.v}</h3>
+            {v.rounds.length > 0 && <p class="fought">{v.rounds.map((r) => `${r.match.title}, ${roundTitle(r.round).toLowerCase()}`).join('; ')}</p>}
+            {(v.renamed || v.changes.length > 0 || v.added.length > 0 || v.removed.length > 0) && (
+              <ul class="changes">
+                {v.renamed && <li>Новое имя: {v.renamed[1]} вместо {v.renamed[0]}</li>}
+                {v.changes.map((c) => <li><code>{c.file}</code> {c.lines}</li>)}
+                {v.added.map((file) => <li><code>{file}</code> добавлен</li>)}
+                {v.removed.map((file) => <li><code>{file}</code> удалён</li>)}
+              </ul>
+            )}
+            {v.note && (
+              <figure class="said">
+                <figcaption>{f.model} в раздевалке после раунда {v.note.afterRound}</figcaption>
+                <blockquote set:html={v.note.html} />
+              </figure>
+            )}
+          </li>
+        ))}
+      </ol>
+    </section>
+  </div>
+</Page>
+
+<style>
+  .head { display: grid; grid-template-columns: minmax(0, 460px) minmax(0, 1fr); gap: clamp(24px, 5vw, 64px); align-items: center; padding-top: clamp(12px, 2vw, 28px); }
+  .about h1 { font-size: clamp(38px, 5.6vw, 76px); overflow-wrap: anywhere; }
+  .motto { margin: 18px 0 0; font: italic 500 clamp(20px, 2.1vw, 27px)/1.3 var(--display); color: var(--c); max-width: 26ch; }
+  .facts { display: grid; gap: 10px; margin: 28px 0 0; }
+  .facts div { display: grid; grid-template-columns: 5.5em 1fr; gap: 12px; align-items: baseline; }
+  .facts dt { color: var(--mute); font-size: 15px; }
+  .facts dd { margin: 0; }
+  .facts .model { font-weight: 600; }
+
+  .cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, 320px); gap: 0 clamp(32px, 6vw, 88px); }
+  .stats { margin: 0; display: grid; gap: 14px; }
+  .stats div { display: grid; grid-template-columns: 6.5em 1fr; align-items: center; gap: 12px; }
+  .stats dd { margin: 0; display: flex; gap: 5px; }
+  .pip { width: 30px; height: 12px; background: var(--line); transform: skewX(-24deg); }
+  .pip.on { background: var(--c); }
+
+  .moves { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px clamp(24px, 4vw, 56px); align-items: start; }
+  .group h3 { color: var(--dim); margin-bottom: 10px; }
+  .group ul { list-style: none; margin: 0; padding: 0; }
+  .group li { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 10px 0; border-top: 1px solid var(--line); }
+  .move-name { display: flex; flex-direction: column; line-height: 1.3; font-weight: 500; }
+  .kit { font-size: 13.5px; font-weight: 400; color: var(--mute); }
+  .cmd { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; font-size: 17px; color: var(--dim); }
+  .cmd .hold { padding: 0 5px; border: 1px solid var(--mute); border-radius: 3px; }
+  .cmd .btn { margin-left: 4px; padding: 2px 7px; font: 700 13px/1.4 var(--text); color: #160a04; background: var(--gold); border-radius: 3px; }
+
+  .abilities { padding-left: 1.2em; }
+  .bouts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
+
+  .versions { list-style: none; margin: 0; padding: 0; border-left: 3px solid var(--c); }
+  .versions > li { position: relative; padding: 0 0 36px clamp(18px, 3vw, 32px); }
+  .versions > li:last-child { padding-bottom: 0; }
+  .versions > li::before { content: ''; position: absolute; left: -9px; top: 6px; width: 15px; height: 15px; background: var(--c); transform: skewX(-18deg); }
+  .fought { margin: 6px 0 0; color: var(--dim); font-size: 15.5px; }
+  .changes { margin: 10px 0 0; padding: 0; list-style: none; font-size: 15.5px; }
+  .said { margin: 16px 0 0; max-width: 72ch; }
+  .said figcaption { font-size: 14.5px; color: var(--mute); margin-bottom: 8px; }
+  .said blockquote { margin: 0; padding: 18px 22px 2px; background: var(--panel); }
+  .said blockquote :global(a) { color: var(--gold); }
+  .said blockquote :global(ol), .said blockquote :global(ul) { margin: 0 0 1em; padding-left: 1.3em; }
+  .said blockquote :global(li) { margin-bottom: .5em; }
+  .said blockquote :global(.scroll) { overflow-x: auto; margin: 0 0 1em; }
+  .said blockquote :global(table) { border-collapse: collapse; font-size: 15px; font-variant-numeric: tabular-nums; }
+  .said blockquote :global(th) { text-align: left; font-weight: 500; color: var(--mute); padding: 0 18px 6px 0; }
+  .said blockquote :global(td) { padding: 6px 18px 6px 0; border-top: 1px solid var(--line); }
+
+  @media (max-width: 820px) {
+    .head { grid-template-columns: 1fr; }
+    .cols { grid-template-columns: 1fr; }
+    .moves { grid-template-columns: 1fr; }
+    .bouts { grid-template-columns: 1fr; }
+    .said blockquote { padding: 16px 16px 1px; }
+  }
+</style>

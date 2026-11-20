@@ -1,4 +1,4 @@
-// Judge tests: contestant isolation, round analysis and the locker room, the winner after a knockout, ring sounds.
+// Judge tests: round analysis and the locker room, the winner after a knockout, ring sounds, the audit of journals.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, mkdtempSync, rmSync, existsSync, readdirSync, statSync } from 'node:fs';
@@ -12,8 +12,8 @@ import { soundsFor, SOUNDS, stageBeds } from '../kit/arena/render/sound.js';
 import { mixFight } from '../kit/arena/tools/sounds.js';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
-const KIT = join(root, 'kit', 'fighter');
-const DUMMY = join(root, 'kit', 'arena', 'sparring', 'dummy');
+const KIT = join(root, 'tests', 'fixtures', 'ring3', 'fighter');
+const DUMMY = join(root, 'tests', 'fixtures', 'ring3', 'dummy');
 
 function walk(dir, out = []) {
   for (const n of readdirSync(dir)) {
@@ -25,68 +25,7 @@ function walk(dir, out = []) {
   return out;
 }
 
-test('папка участника создаётся вне ринга и не знает пути к рингу', async () => {
-  const { createContestant } = await import('../judge/contestants.js');
-  assert.throws(() => createContestant('inside-test', { agent: 'claude', root: join(root, 'contestants', 'x') }), /внутри папки ринга/);
-  // a real folder: the registry entry is removed afterwards
-  const reg = join(root, 'contestants.json');
-  const before = existsSync(reg) ? readFileSync(reg, 'utf8') : null;
-  const base = mkdtempSync(join(tmpdir(), 'ring-iso-'));
-  try {
-    const r = createContestant('iso-test', { agent: 'codex', model: 'Проба', root: join(base, 'iso') });
-    const ring = root.toLowerCase();
-    const ringSlash = root.split('\\').join('/').toLowerCase();
-    for (const f of walk(r.root)) {
-      if (/\.(png|webp|mp3|mjs|js)$/i.test(f) && !f.endsWith('contestant.json')) continue;
-      const text = readFileSync(f, 'utf8').toLowerCase();
-      assert.ok(!text.includes(ring) && !text.includes(ringSlash), `${f} содержит путь к рингу`);
-    }
-    const c = JSON.parse(readFileSync(join(r.root, 'contestant.json'), 'utf8'));
-    assert.deepEqual(Object.keys(c).sort(), ['color', 'id', 'model']);
-    assert.ok(existsSync(join(r.root, '.ring', 'limits.json')));
-    assert.match(readFileSync(join(r.root, '.gitignore'), 'utf8'), /\.ring\//);
-    assert.ok(readFighterDir(join(r.root, 'fighter')).ok);
-    // the launch script: no trace of the operator's agent session, the agent's exit code back
-    const ps = readFileSync(r.script, 'utf8');
-    assert.match(ps, /CLAUDE_CODE_\|.*CODEX_\|T3CODE_/);
-    assert.ok(ps.indexOf('Remove-Item') < ps.indexOf('$env:'), 'чистка окружения до своих переменных');
-    // a Windows job that closes what the agent leaves running (a background preview outlived the agent)
-    assert.ok(ps.includes('0x2000') && ps.indexOf('[RingJob]::Start()') < ps.indexOf('Set-Location'));
-    assert.match(ps, /\$code = \$LASTEXITCODE[\s\S]*exit \$code\s*$/);
-    // its own git identity, or the agent cannot commit its work (found on the rehearsal)
-    const { execFileSync } = await import('node:child_process');
-    assert.ok(execFileSync('git', ['config', 'user.name'], { cwd: r.root, encoding: 'utf8' }).trim());
-  } finally {
-    rmSync(base, { recursive: true, force: true });
-    const { writeFileSync } = await import('node:fs');
-    if (before === null) rmSync(reg, { force: true });
-    else writeFileSync(reg, before);
-    rmSync(join(root, 'launch', 'iso-test.ps1'), { force: true });
-  }
-});
-
-test('Claude-участник на другой подписке: токен читается из файла при запуске, в скрипт не попадает', async () => {
-  const { createContestant, setClaudeAccount, claudeTokenFile } = await import('../judge/contestants.js');
-  const reg = join(root, 'contestants.json');
-  const before = existsSync(reg) ? readFileSync(reg, 'utf8') : null;
-  const base = mkdtempSync(join(tmpdir(), 'ring-acc-'));
-  try {
-    createContestant('acc-test', { agent: 'claude', model: 'Проба', root: join(base, 'acc') });
-    assert.throws(() => setClaudeAccount('acc-test', 'Bad Name'), /имя аккаунта/);
-    const ps = readFileSync(setClaudeAccount('acc-test', 'friend'), 'utf8');
-    const file = claudeTokenFile('friend');
-    assert.ok(ps.includes(file) && ps.includes('Test-Path'));
-    // set after the cleanup of CLAUDE_CODE_* variables, or the cleanup erases it
-    assert.ok(ps.indexOf('Remove-Item') < ps.indexOf('CLAUDE_CODE_OAUTH_TOKEN =') && ps.indexOf('CLAUDE_CODE_OAUTH_TOKEN =') < ps.indexOf('Set-Location'));
-    assert.ok(!readFileSync(setClaudeAccount('acc-test', null), 'utf8').includes('OAUTH_TOKEN'));
-  } finally {
-    rmSync(base, { recursive: true, force: true });
-    const { writeFileSync } = await import('node:fs');
-    if (before === null) rmSync(reg, { force: true });
-    else writeFileSync(reg, before);
-    rmSync(join(root, 'launch', 'acc-test.ps1'), { force: true });
-  }
-});
+// the contestant's folder and the launch of its agent: tests/launch.test.mjs
 
 test('после нокаута победитель сразу перестаёт атаковать и встаёт в победу', () => {
   const k = readFighterDir(KIT).fighter;
@@ -171,4 +110,7 @@ test('аудит: свои сохранённые выводы сессии Clau
   assert.deepEqual(auditLine(mine, needles, own), []);
   assert.equal(auditLine('{"file_path":"C:\\Users\\Op\\.claude\\skills\\x.md"}', needles, own)[0].what, '~/.claude оператора');
   assert.equal(auditLine('cat C:/Ring-Contest-B/fighter/brain.js', needles, own)[0].what, 'участник «b»');
+  // a longer name that starts like another contestant's folder is not that folder
+  assert.deepEqual(auditLine('cd C:/ring-contest-b55/fighter', needles, own), []);
+  assert.equal(auditLine('cd C:/ring-contest-b55 && cat C:/ring-contest-b', needles, own)[0].what, 'участник «b»');
 });

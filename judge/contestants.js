@@ -17,6 +17,9 @@ const writeJSON = (f, v) => {
   writeFileSync(f, JSON.stringify(v, null, 2) + '\n');
 };
 const win = (p) => p.split('/').join('\\');
+const WIN = process.platform === 'win32';
+// a path as the agent's own system writes it
+const native = (p, platform = process.platform) => (platform === 'win32' ? win(p) : p);
 
 export function ringConfig() {
   return readJSON(join(RING, 'ring.config.json'));
@@ -32,25 +35,36 @@ export function getContestant(id) {
   return { id, ...c };
 }
 
+// Where a contestant lives when --root is not given: ring.config.json → contestRoot ({id} — the contestant, a leading
+// ~ — the operator's home), or C:/ring-contest-<id> on Windows and ~/ring-contest/<id> on macOS and Linux.
 export function defaultRoot(id) {
-  // relative to the ring folder: by default a sibling folder, outside the ring, so a contestant never sees the judge
-  const tpl = ringConfig().contestRoot || '../ring-contest-{id}';
-  return resolve(RING, tpl.replace('{id}', id));
+  const tpl = ringConfig().contestRoot || (WIN ? 'C:/ring-contest-{id}' : '~/ring-contest/{id}');
+  return resolve(tpl.replace(/^~(?=$|[\\/])/, homedir()).replace('{id}', id));
+}
+
+// The contestants' agent profiles, outside the ring and outside the contestants' folders: RING_PROFILES, or
+// %LOCALAPPDATA%\fight-ring on Windows, $XDG_DATA_HOME/fight-ring (~/.local/share/fight-ring) on macOS and Linux.
+export function profilesDir() {
+  if (process.env.RING_PROFILES) return resolve(process.env.RING_PROFILES);
+  return join(process.env.LOCALAPPDATA || process.env.XDG_DATA_HOME || join(homedir(), '.local', 'share'), 'fight-ring');
 }
 
 export function codexHome(id) {
-  return join(process.env.LOCALAPPDATA || join(homedir(), '.local', 'share'), 'fight-ring', `codex-${id}`);
+  return join(profilesDir(), `codex-${id}`);
 }
 
 // A clean Antigravity CLI profile for a Gemini contestant: Antigravity keeps its settings, hooks, skills, MCP servers and
 // conversations under ~/.gemini and has no switch for another folder, so the contestant's agent runs with its own home
-// (USERPROFILE/HOME). The login lives in the Windows credential store and works from any home (checked).
+// (USERPROFILE/HOME). On Windows the login lives in the credential store and works from any home (checked); on
+// macOS and Linux this was never tried with a real Antigravity.
 export function geminiHome(id) {
-  return join(process.env.LOCALAPPDATA || join(homedir(), '.local', 'share'), 'fight-ring', `gemini-${id}`);
+  return join(profilesDir(), `gemini-${id}`);
 }
 
-// Antigravity CLI: the winget link agy, or the binary in the winget package folder when this shell's PATH is older
-export function agyExe() {
+// Antigravity CLI: on Windows the winget link agy, or the binary in the winget package folder when this shell's PATH
+// is older; elsewhere agy from PATH
+export function agyExe(platform = process.platform) {
+  if (platform !== 'win32' || !WIN) return 'agy';
   const r = spawnSync('where', ['agy'], { encoding: 'utf8' });
   const found = (r.stdout || '').split(/\r?\n/).find((p) => /\.(exe|cmd)$/i.test(p));
   if (found) return found;
@@ -59,6 +73,8 @@ export function agyExe() {
   if (pkg && existsSync(join(pkgs, pkg, 'agy.exe'))) return join(pkgs, pkg, 'agy.exe');
   return 'agy';
 }
+
+const DENY_IMAGE = '{"decision":"deny","reason":"generate_image выключен в ринге"}';
 
 export function prepareGeminiHome(id) {
   const c = getContestant(id);
@@ -70,7 +86,7 @@ export function prepareGeminiHome(id) {
     // the same as the other corners: the agent works without asking (Claude --dangerously-skip-permissions, Codex never)
     toolPermission: 'always-proceed',
     artifactReviewPolicy: 'always-proceed',
-    trustedWorkspaces: [win(c.root)],
+    trustedWorkspaces: [native(c.root)],
     showTips: false,
     showFeedbackSurvey: false,
     notifications: false,
@@ -88,7 +104,7 @@ export function prepareGeminiHome(id) {
   // contestant draws through `arena paint`. Checked: the call is denied, in sub-agents too.
   writeJSON(join(g, 'config', 'hooks.json'), {
     'ring-no-image-tool': {
-      PreToolUse: [{ matcher: 'generate_image', hooks: [{ type: 'command', command: 'cmd /c echo {"decision":"deny","reason":"generate_image выключен в ринге"}', timeout: 10 }] }],
+      PreToolUse: [{ matcher: 'generate_image', hooks: [{ type: 'command', command: WIN ? `cmd /c echo ${DENY_IMAGE}` : `echo '${DENY_IMAGE}'`, timeout: 10 }] }],
     },
   });
   return { home };
@@ -158,16 +174,16 @@ export function setClaudeAccount(id, account) {
   return writeLaunchScript(id);
 }
 
-export function launchCommand(id) {
+export function launchCommand(id, platform = process.platform) {
   const c = getContestant(id);
-  const root = win(c.root);
+  const root = native(c.root, platform);
   if (c.agent === 'claude') {
     // the agent runs with --dangerously-skip-permissions; its window on camera does not stop on the «bypass
     // permissions?» question, which stands on «No, exit» (Claude Code takes this one key only from --settings, not
     // from the project's settings: checked on the console's window)
     const flags = join(c.root, '.claude', 'launch-settings.json');
     writeJSON(flags, { skipDangerousModePermissionPrompt: true });
-    const args = ['--settings', win(flags), '--setting-sources', 'project', '--strict-mcp-config', '--dangerously-skip-permissions'];
+    const args = ['--settings', native(flags, platform), '--setting-sources', 'project', '--strict-mcp-config', '--dangerously-skip-permissions'];
     if (c.agentModel) args.push('--model', c.agentModel);
     if (c.effort) args.push('--effort', c.effort);
     return { root, env: { CLAUDE_CODE_DISABLE_AUTO_MEMORY: '1' }, exe: 'claude', args };
@@ -179,7 +195,7 @@ export function launchCommand(id) {
     if (c.effort && !/-(low|medium|high|xhigh|max)$/.test(c.agentModel || '')) args.push('--effort', c.effort);
     const home = geminiHome(id);
     // the ring's tools read the operator's services and the paint profile from the operator's home, not the agent's
-    return { root, env: { USERPROFILE: home, HOME: home, RING_OPERATOR_HOME: homedir() }, exe: agyExe(), args };
+    return { root, env: { ...(platform === 'win32' ? { USERPROFILE: home } : {}), HOME: home, RING_OPERATOR_HOME: homedir() }, exe: agyExe(platform), args };
   }
   const args = ['-C', root];
   if (c.agentModel) args.push('-m', c.agentModel);
@@ -214,20 +230,56 @@ export const JOB_LINES = [
   '$ringJob = [RingJob]::Start()',
 ];
 
-export function writeLaunchScript(id) {
-  const c = getContestant(id);
-  const cmd = launchCommand(id);
+// The same on macOS and Linux: the launch script leads its own process group, the agent and everything it starts
+// stay in that group, and whatever is still there when the agent has left is closed. Run by a shell with job
+// control or by the judge (a detached child), the script already leads a group; from another script it starts
+// itself once more under job control, which gives it one. A process that left the group on its own (setsid, or an
+// agent that gives its commands groups of their own) is not found this way.
+export const GROUP_LINES = [
+  '# всё, что запустит агент, живёт в одной группе процессов: когда скрипт заканчивается, оставшиеся в ней процессы закрываются',
+  'if [ "$(ps -o pgid= -p $$ | tr -d \' \')" != "$$" ]; then',
+  '  set -m',
+  '  "${BASH:-bash}" "$0" "$@"',
+  '  exit $?',
+  'fi',
+  'ring_sweep() {',
+  '  for _ in 1 2 3 4 5; do',
+  '    # все процессы группы, кроме самого скрипта и этой проверки (me — её подоболочка, ps и awk — её потомки)',
+  '    left=$(me=$(exec sh -c \'echo $PPID\'); ps -A -o pid= -o pgid= -o ppid= | awk -v g=$$ -v me="$me" \'$2 == g && $1 != g && $1 != me && $3 != me { print $1 }\')',
+  '    [ -z "$left" ] && return 0',
+  '    kill -KILL $left 2>/dev/null',
+  '    sleep 0.1',
+  '  done',
+  '}',
+  'trap ring_sweep EXIT',
+];
+
+const SESSION_VARS = '^(CLAUDECODE|CLAUDE_CODE_|CLAUDE_PID|CLAUDE_EFFORT|CLAUDE_AGENT_SDK|CODEX_|T3CODE_)';
+
+export function launchScriptFile(id, platform = process.platform) {
+  return join(RING, 'launch', `${id}.${platform === 'win32' ? 'ps1' : 'sh'}`);
+}
+
+// How to start the launch script: the program and its arguments before the agent's own
+export function launchInvocation(id, platform = process.platform) {
+  const script = launchScriptFile(id, platform);
+  return platform === 'win32' ? { exe: 'powershell', args: ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', script], script } : { exe: 'bash', args: [script], script };
+}
+
+function powershellScript(c, cmd) {
+  const id = c.id;
   const ps = (s) => `'${String(s).replace(/'/g, "''")}'`;
   const lines = [
     `# Запуск участника «${id}» (${c.model}) с чистого листа. Создан судьёй: node ring.mjs new / node ring.mjs launch-script ${id}`,
     `# Дополнительные аргументы передаются агенту, например: .\\launch\\${id}.ps1 -p "текст промпта"`,
     "$ErrorActionPreference = 'Stop'",
     '# окружение без следов чужой сессии агента (терминал Claude Code или Codex оператора): иначе участник наследует её',
-    "Get-ChildItem env: | Where-Object { $_.Name -match '^(CLAUDECODE|CLAUDE_CODE_|CLAUDE_PID|CLAUDE_EFFORT|CLAUDE_AGENT_SDK|CODEX_|T3CODE_)' -and $_.Name -ne 'CLAUDE_CODE_GIT_BASH_PATH' } | ForEach-Object { Remove-Item -LiteralPath \"env:$($_.Name)\" }",
+    `Get-ChildItem env: | Where-Object { $_.Name -match '${SESSION_VARS}' -and $_.Name -ne 'CLAUDE_CODE_GIT_BASH_PATH' } | ForEach-Object { Remove-Item -LiteralPath "env:$($_.Name)" }`,
     ...JOB_LINES,
   ];
-  if (c.agent === 'codex') lines.push(`node ${ps(join(RING, 'ring.mjs'))} codex-home ${id}`);
-  if (c.agent === 'gemini') lines.push(`node ${ps(join(RING, 'ring.mjs'))} gemini-home ${id}`);
+  const ring = `node ${ps(join(RING, 'ring.mjs'))}`;
+  if (c.agent === 'codex') lines.push(`${ring} codex-home ${id}`);
+  if (c.agent === 'gemini') lines.push(`${ring} gemini-home ${id}`);
   for (const [k, v] of Object.entries(cmd.env)) lines.push(`$env:${k} = ${ps(v)}`);
   if (c.agent === 'claude' && c.account) {
     const f = ps(claudeTokenFile(c.account));
@@ -238,11 +290,51 @@ export function writeLaunchScript(id) {
   lines.push(`Set-Location -LiteralPath ${ps(cmd.root)}`);
   lines.push(`& ${cmd.exe} ${cmd.args.map(ps).join(' ')} @args`);
   lines.push('$code = $LASTEXITCODE');
-  if (c.agent === 'codex') lines.push(`node ${ps(join(RING, 'ring.mjs'))} codex-home ${id} --back`);
+  if (c.agent === 'codex') lines.push(`${ring} codex-home ${id} --back`);
   lines.push('exit $code');
-  const file = join(RING, 'launch', `${id}.ps1`);
+  return '\ufeff' + lines.join('\r\n') + '\r\n';
+}
+
+function shellScript(c, cmd) {
+  const id = c.id;
+  const sh = (s) => `'${String(s).replace(/'/g, `'\\''`)}'`;
+  const lines = [
+    '#!/usr/bin/env bash',
+    `# Запуск участника «${id}» (${c.model}) с чистого листа. Создан судьёй: node ring.mjs new / node ring.mjs launch-script ${id}`,
+    `# Дополнительные аргументы передаются агенту, например: bash launch/${id}.sh -p "текст промпта"`,
+    ...GROUP_LINES,
+    '# окружение без следов чужой сессии агента (терминал Claude Code или Codex оператора): иначе участник наследует её',
+    `for v in $(awk 'BEGIN { for (k in ENVIRON) if (k ~ /${SESSION_VARS}/) print k }'); do unset "$v"; done`,
+  ];
+  const ring = `node ${sh(join(RING, 'ring.mjs'))}`;
+  if (c.agent === 'codex') lines.push(`${ring} codex-home ${id} || exit 1`);
+  if (c.agent === 'gemini') lines.push(`${ring} gemini-home ${id} || exit 1`);
+  for (const [k, v] of Object.entries(cmd.env)) lines.push(`export ${k}=${sh(v)}`);
+  if (c.agent === 'claude' && c.account) {
+    const f = sh(claudeTokenFile(c.account));
+    lines.push(`# бой на подписке «${c.account}»: токен из claude setup-token этого аккаунта`);
+    lines.push(`[ -f ${f} ] || { echo ${sh(`нет токена аккаунта «${c.account}»: ${claudeTokenFile(c.account)}`)} >&2; exit 1; }`);
+    lines.push(`export CLAUDE_CODE_OAUTH_TOKEN="$(tr -d '[:space:]' < ${f})"`);
+  }
+  lines.push(`cd ${sh(cmd.root)} || exit 1`);
+  lines.push(`${sh(cmd.exe)} ${cmd.args.map(sh).join(' ')} "$@"`);
+  lines.push('code=$?');
+  if (c.agent === 'codex') lines.push(`${ring} codex-home ${id} --back`);
+  lines.push('exit $code');
+  return lines.join('\n') + '\n';
+}
+
+// The text of a contestant's launch script: PowerShell for Windows, bash for macOS and Linux
+export function launchScriptText(id, platform = process.platform) {
+  const c = getContestant(id);
+  const cmd = launchCommand(id, platform);
+  return platform === 'win32' ? powershellScript(c, cmd) : shellScript(c, cmd);
+}
+
+export function writeLaunchScript(id, platform = process.platform) {
+  const file = launchScriptFile(id, platform);
   mkdirSync(join(RING, 'launch'), { recursive: true });
-  writeFileSync(file, '\ufeff' + lines.join('\r\n') + '\r\n');
+  writeFileSync(file, launchScriptText(id, platform), platform === 'win32' ? {} : { mode: 0o755 });
   return file;
 }
 
@@ -273,7 +365,6 @@ export function prepareCodexHome(id, { back = false } = {}) {
   }
   if (!existsSync(mainAuth)) throw new Error(`нет входа Codex в ${main} (codex login)`);
   if (!existsSync(ownAuth) || fresh(mainAuth) >= fresh(ownAuth)) copyFileSync(mainAuth, ownAuth);
-  const root = win(c.root);
   const toml = [
     '# Чистый профиль участника ринга: без AGENTS.md пользователя, памяти, навыков, плагинов и MCP.',
     c.agentModel ? `model = "${c.agentModel}"` : null,
@@ -282,6 +373,10 @@ export function prepareCodexHome(id, { back = false } = {}) {
     // no «update available» question in the contestant's window on camera
     'check_for_update_on_startup = false',
     'sandbox_mode = "danger-full-access"',
+    // Codex puts the date and the machine's time zone into the model's context (<timezone>…</timezone>): in pilot
+    // 3.0 v4 a contestant built its fighter around the operator's city and gave it that country's voice. A contestant
+    // knows nothing of the operator, the place included (checked on Codex CLI 0.169.0: the block loses both lines)
+    'include_environment_context_time = false',
     '',
     '[features]',
     'memories = false',
@@ -296,7 +391,8 @@ export function prepareCodexHome(id, { back = false } = {}) {
     '[skills]',
     'include_instructions = false',
     '',
-    `[projects.'${root.toLowerCase()}']`,
+    // Codex keys a trusted project by its path: lower case with backslashes on Windows, as it is elsewhere
+    `[projects.'${WIN ? win(c.root).toLowerCase() : c.root}']`,
     'trust_level = "trusted"',
     '',
   ].filter((l) => l !== null);
@@ -352,7 +448,9 @@ export function auditLine(line, needles, own = []) {
   for (const o of own) text = text.split(o).join('');
   const out = [];
   for (const { what, n } of needles) {
-    const k = text.indexOf(n);
+    // a whole path only: C:/ring-contest-opus is not a prefix of C:/ring-contest-opus55
+    let k = text.indexOf(n);
+    while (k >= 0 && /[a-z0-9_-]/.test(text[k + n.length] || '')) k = text.indexOf(n, k + 1);
     if (k >= 0) out.push({ what, text: text.slice(Math.max(0, k - 80), k + n.length + 80) });
   }
   return out;

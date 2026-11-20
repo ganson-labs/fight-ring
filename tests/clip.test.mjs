@@ -10,6 +10,9 @@ import { tmpdir } from 'node:os';
 import { loadFighter, runFight } from '../kit/arena/tools/load.js';
 import { renderClip, hasFfmpeg } from '../kit/arena/tools/preview.js';
 
+import { setRuleset } from '../kit/arena/engine/standard.js';
+
+setRuleset('standard'); // the page plays ring 4: the template fighter of the kit
 const KIT_FIGHTER = new URL('../kit/fighter/', import.meta.url).pathname.replace(/^\/(\w:)/, '$1');
 
 test('ролик в несколько страниц совпадает с роликом одной страницы: кадры, разметка, стыки', { timeout: 300000, skip: !hasFfmpeg() }, async () => {

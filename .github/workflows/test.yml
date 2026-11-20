@@ -1,0 +1,29 @@
+name: Тесты
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      # ролики в тестах снимает Chrome (на ubuntu-latest он уже стоит), собирает ffmpeg
+      - name: Chrome и ffmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg
+          google-chrome --version
+          ffmpeg -version | head -n 1
+      - name: Тесты
+        run: npm test
+      - name: Сайт собирается
+        run: |
+          node ring.mjs site dist
+          test -f dist/index.html
+          test -f dist/api/game.json

@@ -131,6 +131,6 @@ export function serviceEnv() {
       if (m) out[m[1]] = m[2].replace(/^['"]|['"]$/g, '');
     }
   }
-  for (const k of new Set([...Object.keys(out), 'ELEVENLABS_SSH', 'ELEVENLABS_SSH_ENV', 'RING_PAINT_CODEX_HOME'])) if (process.env[k]) out[k] = process.env[k];
+  for (const k of Object.keys(out)) if (process.env[k]) out[k] = process.env[k];
   return out;
 }

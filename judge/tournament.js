@@ -6,7 +6,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSy
 import { homedir, setPriority, constants as osc } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { RING, registry, createContestant, getContestant, codexHome, agyExe, geminiTranscripts, ringConfig, setClaudeAccount } from './contestants.js';
+import { RING, registry, createContestant, getContestant, codexHome, agyExe, geminiTranscripts, ringConfig, setClaudeAccount, launchInvocation } from './contestants.js';
 import { newMatch, loadMatch, runRound, writeLocker, sidesFor, matchDir } from './match.js';
 import { promptText } from './run.js';
 import { readFighterDir } from '../kit/arena/tools/load.js';
@@ -171,14 +171,24 @@ for ($i = 0; $i -lt ${tries}; $i++) { $h = [RingWin]::FindAny('${t}'); if ($h -n
 
 export const windowTitle = (corner, model) => `${CORNER_RU[corner]} · ${model}`;
 
-// A visible terminal with the contestant's agent started clean (launch/<id>.ps1, interactive), titled with its
-// corner and model, on the left (red) or right (blue) half of the screen.
+// A visible terminal with the contestant's agent started clean (its launch script, interactive), titled with its
+// corner and model, on the left (red) or right (blue) half of the screen. The console opens and places the window on
+// Windows only (Windows Terminal); on macOS and Linux the operator starts the script in a terminal of his own, and
+// the console says which command.
 export async function openWindow(corner) {
   const s = loadState();
   const c = s.corners?.[corner];
   if (!c) throw new Error('сначала новый матч');
-  const script = join(RING, 'launch', `${c.id}.ps1`);
+  const launch = launchInvocation(c.id);
+  const script = launch.script;
   const title = windowTitle(corner, c.model);
+  if (process.platform !== 'win32') {
+    const command = `bash ${/[^\w@%+=:,./-]/.test(script) ? `'${script.replace(/'/g, `'\\''`)}'` : script}`;
+    s.build = { ...(s.build || {}), [corner]: s.build?.[corner] || new Date().toISOString() };
+    note(s, `${title}: окно на этой системе открой сам — ${command}`);
+    saveState(s);
+    return { title, placed: false, command };
+  }
   // Start-Process with a normal window: a server started hidden would hand Windows Terminal its hidden state, and the
   // agent's window would exist but never show (found on the console's own check)
   const q = (x) => `'${String(x).replace(/'/g, "''")}'`;
@@ -233,20 +243,22 @@ function journalTouched(c) {
 // request (a synchronous scan on every poll of the console held the whole server for seconds)
 let procs = { at: 0, lines: [], running: false };
 function scanProcesses() {
-  if (process.platform !== 'win32' || procs.running || Date.now() - procs.at < 3000) return;
+  if (procs.running || Date.now() - procs.at < 3000) return;
   procs.running = true;
-  const p = spawn('powershell', ['-NoProfile', '-Command', "Get-CimInstance Win32_Process -Filter \"Name='powershell.exe' or Name='pwsh.exe'\" | ForEach-Object { [string]$_.CommandLine }"], { windowsHide: true });
+  const p = process.platform === 'win32'
+    ? spawn('powershell', ['-NoProfile', '-Command', "Get-CimInstance Win32_Process -Filter \"Name='powershell.exe' or Name='pwsh.exe'\" | ForEach-Object { [string]$_.CommandLine }"], { windowsHide: true })
+    : spawn('ps', ['-A', '-o', 'command='], { stdio: ['ignore', 'pipe', 'ignore'] });
   let out = '';
   p.stdout.on('data', (d) => (out += d));
   p.on('close', () => {
-    procs = { at: Date.now(), lines: out.split(/\r?\n/).filter((l) => /-File/i.test(l)), running: false };
+    procs = { at: Date.now(), lines: out.split(/\r?\n/).filter((l) => /-File|launch\/[a-z0-9-]+\.sh/i.test(l)), running: false };
   });
   p.on('error', () => (procs.running = false));
 }
 
 function launchAlive(id) {
   scanProcesses();
-  const needle = `launch\\${id}.ps1`.toLowerCase();
+  const needle = (process.platform === 'win32' ? `launch\\${id}.ps1` : `launch/${id}.sh`).toLowerCase();
   return procs.lines.some((l) => l.toLowerCase().includes(needle));
 }
 
@@ -558,7 +570,8 @@ export function retryJob(name) {
 export function openFolder(name) {
   const dir = loadState().jobs?.[name]?.dir;
   if (!dir || !existsSync(dir)) throw new Error('папки ещё нет');
-  spawn('explorer.exe', [dir], { detached: true, stdio: 'ignore' }).unref();
+  const opener = process.platform === 'win32' ? 'explorer.exe' : process.platform === 'darwin' ? 'open' : 'xdg-open';
+  spawn(opener, [dir], { detached: true, stdio: 'ignore' }).on('error', () => {}).unref();
   return { dir };
 }
 

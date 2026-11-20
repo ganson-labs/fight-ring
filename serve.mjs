@@ -7,7 +7,7 @@ import { extname, join, normalize, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { TYPES } from './kit/arena/tools/serve.js';
 import { roundOrder } from './judge/match.js';
-import { gameData } from './judge/gamedata.js';
+import { gameData, stageList } from './judge/gamedata.js';
 
 const root = resolve(fileURLToPath(new URL('.', import.meta.url)));
 const portArg = process.argv.indexOf('--port');
@@ -59,12 +59,7 @@ async function listMatches() {
   return out.sort((a, b) => String(b.created).localeCompare(String(a.created)));
 }
 
-async function listStages() {
-  const dir = join(root, 'stages');
-  const out = [];
-  if (existsSync(dir)) for (const name of await readdir(dir)) if (existsSync(join(dir, name, 'stage.json'))) { const d = readJSON(join(dir, name, 'stage.json')); const far = (d.layers || []).find((l) => l.image)?.image; out.push({ id: name, dir: `/stages/${name}/`, name: d.name || name, thumb: far ? `/stages/${name}/${far}` : null }); }
-  return out;
-}
+const listStages = async () => stageList();
 
 // the tournament console (judge/tournament.js): this machine only — it starts agents and the judge
 const local = (req) => ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.socket.remoteAddress);
@@ -129,7 +124,7 @@ createServer(async (req, res) => {
         return res.end(JSON.stringify({ error: String(e.message || e) }));
       }
     }
-    const api = { '/api/fighters': listFighters, '/api/stages': listStages, '/api/matches': listMatches, '/api/game': async () => ({ ...gameData(), stages: await listStages() }) }[url.pathname];
+    const api = { '/api/fighters': listFighters, '/api/stages': listStages, '/api/matches': listMatches, '/api/game': gameData, '/api/game.json': gameData }[url.pathname];
     if (api) {
       res.writeHead(200, { 'content-type': TYPES['.json'], 'cache-control': 'no-store' });
       res.end(JSON.stringify(await api()));

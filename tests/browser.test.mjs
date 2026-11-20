@@ -18,13 +18,13 @@ test('длинная строка со страницы приходит цел�
 });
 
 test('профиль Chrome инструментов участника лежит в его папке, у судьи — во временной', async () => {
-  const { mkdtempSync, mkdirSync, copyFileSync, writeFileSync, rmSync } = await import('node:fs');
+  const { mkdtempSync, mkdirSync, copyFileSync, writeFileSync, rmSync, realpathSync } = await import('node:fs');
   const { join } = await import('node:path');
   const { tmpdir } = await import('node:os');
   const { pathToFileURL, fileURLToPath } = await import('node:url');
   const { profileBase } = await import('../kit/arena/tools/browser.js');
   assert.equal(profileBase(), tmpdir());
-  const root = mkdtempSync(join(tmpdir(), 'ring-prof-'));
+  const root = realpathSync(mkdtempSync(join(tmpdir(), 'ring-prof-'))); // macOS: the temp folder is a link
   try {
     mkdirSync(join(root, 'arena', 'tools'), { recursive: true });
     copyFileSync(fileURLToPath(new URL('../kit/arena/tools/browser.js', import.meta.url)), join(root, 'arena', 'tools', 'browser.js'));

@@ -54,7 +54,7 @@ export async function ghostFrames(id, n, cid, from, ticks) {
   const oldDef = await loadWith(E, I, prev.dir);
   const defs = side === 0 ? [oldDef, fighters[1]] : [fighters[0], oldDef];
   const replay = readJSON(join(matchDir(id), `round-${n}`, 'replay.json'));
-  const G = E.createFight({ fighters: defs, seed: replay.seed ?? E.RING_SEED });
+  const G = E.createFight({ fighters: defs, seed: replay.seed ?? E.RING_SEED, start: replay.start });
   G.f.forEach((F, s) => {
     const x = state[s];
     Object.assign(F, { x: x.x, y: 0, facing: x.facing, hp: Math.max(1, Math.round(x.hp * F.maxHp)), meter: x.meter, stun: x.stun });

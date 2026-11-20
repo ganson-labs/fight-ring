@@ -1,5 +1,5 @@
 {
-  "note": "Звуки ринга: имя → исходники (медиатека «гансон: Студии»: models/sounds-pack — стартовый набор, library/sounds — сгенерированные ElevenLabs). Собирает node scripts/build-sounds.mjs в kit/arena/sounds/.",
+  "note": "Звуки ринга: имя → исходники (pack: — набор звуков сторонних библиотек, gen: — сгенерированные ElevenLabs; сами исходники в репозиторий не входят). Собирает node scripts/build-sounds.mjs в kit/arena/sounds/.",
   "sounds": {
     "hit-light": { "kind": "sfx", "what": "лёгкий удар рукой", "from": ["gen:ring-jab", "gen:ring-jab-2", "pack:punch"], "gain": 0.8 },
     "hit-heavy": { "kind": "sfx", "what": "сильный удар рукой", "from": ["gen:ring-punch-heavy", "pack:punch-heavy"], "gain": 1 },

@@ -1,8 +1,10 @@
 // «Ринг моделей» — the game. Title, main menu, roster with fighter cards and their versions, matches with the
 // locker room between rounds, a fight of two brains, a fight of the player against a brain, settings.
 // Everything it shows comes from /api/game: the judge's match snapshots and the contestants' folders.
-import * as E from '/kit/arena/engine/index.js';
+import * as E from '../../kit/arena/engine/index.js';
 import { Sfx } from '../sfx.js';
+import { at, loadGame } from '../data.js';
+import { ringFonts } from '../../kit/arena/render/text.js';
 import { Nav, Pads, controlsHint, padHint, moveList, commandHtml, KEY_OF, PAD_OF, BTN_NAME } from './input.js';
 import { MenuSound } from './sound.js';
 import { figureShot, FigureView } from './figure.js';
@@ -280,7 +282,8 @@ const SCREENS = {
 
   main(_, backIn) {
     if (backIn) refreshData();
-    const items = [['tournament', 'Турнир'], ['matches', 'Матчи'], ['roster', 'Бойцы'], ['custom', 'Свой бой'], ['play', 'Играть самому'], ['settings', 'Настройки']];
+    // a published copy (data.static) has no judge behind it: no tournament console, no developer mode, no ads
+    const items = [...(data.static ? [] : [['tournament', 'Турнир']]), ['matches', 'Матчи'], ['roster', 'Бойцы'], ['custom', 'Свой бой'], ['play', 'Играть самому'], ['settings', 'Настройки']];
     const el = mount(`
       <div class="wrap">
         <div>
@@ -597,8 +600,8 @@ const SCREENS = {
         ${opt('aspect', 'Кадр боя', two('16:9', '9:16', settings.aspect))}
         ${opt('quality', 'Качество', two('Высокое', 'Среднее', settings.quality === 'medium' ? 'Среднее' : 'Высокое'))}
         ${opt('fullscreen', 'Полный экран', two('Вкл', 'Выкл', on(settings.fullscreen)))}
-        ${opt('ads', 'Реклама', two('Вкл', 'Выкл', on(settings.ads)))}
-        <a class="opt" data-nav href="/viewer/dev.html" style="text-decoration:none"><span>Режим разработчика</span><span class="val">→</span></a>
+        ${data.static ? '' : `${opt('ads', 'Реклама', two('Вкл', 'Выкл', on(settings.ads)))}
+        <a class="opt" data-nav href="${at('viewer/dev.html')}" style="text-decoration:none"><span>Режим разработчика</span><span class="val">→</span></a>`}
       </div>`, { id: 'settings', backIn, focus: stack.setFocus ? `[data-key="${stack.setFocus}"]` : null });
     const change = (key, dir) => {
       if (key === 'sound') settings.sound = !settings.sound;
@@ -1109,7 +1112,7 @@ function frame(now) {
 let refreshing = null;
 async function refreshData() {
   if (refreshing || fighting) return refreshing;
-  refreshing = fetch('/api/game', { cache: 'no-store' }).then((r) => r.json()).then((d) => {
+  refreshing = loadGame().then((d) => {
     const changed = JSON.stringify(d) !== JSON.stringify(data);
     data = d;
     return changed;
@@ -1134,11 +1137,9 @@ function startMenuBackdrop() {
 }
 
 async function boot() {
-  try {
-    await document.fonts.load('700 italic 40px Oswald');
-    await document.fonts.load('500 20px Oswald');
-  } catch {}
-  data = await (await fetch('/api/game', { cache: 'no-store' })).json();
+  await ringFonts();
+  data = await loadGame();
+  if (data.static) settings.ads = false;
   requestAnimationFrame(frame);
   // the opening needs the four stages and the contestants (never the dummy); behind the menus later the same
   introReady = (async () => {
@@ -1190,6 +1191,13 @@ async function boot() {
   if (q.get('screen') && SCREENS[q.get('screen')]) {
     stack.push({ name: 'main', args: {} });
     const args = q.get('id') ? { id: q.get('id'), v: q.get('v') ? Number(q.get('v')) : null, tab: q.get('tab') || undefined } : {};
+    // ?screen=play&vs=c/<id> — the opponent is already chosen (the site's «Сразиться» on a fighter's page)
+    const vs = pick[q.get('screen')] === null && fighterById(q.get('vs'));
+    if (vs) {
+      const p = (pick[q.get('screen')] = defaultPick(q.get('screen')));
+      if (p.a.id === vs.id) p.a = p.b;
+      p.b = { id: vs.id, v: topVersion(vs).v };
+    }
     go(q.get('screen'), args);
     return;
   }

@@ -11,7 +11,8 @@ import { renderClip } from '../kit/arena/tools/preview.js';
 process.env.RING_GPU ??= '1';
 
 export const ANNOUNCER = join(RING, 'announcer');
-export const ADS = join(RING, 'ads', 'sponsor');
+// the sponsor pieces of a clip (--ads): the sample without brands; another sponsor's folder replaces it here
+export const ADS = join(RING, 'ads', 'demo');
 
 // The round plays on its own engine snapshot (round-N/<id>/arena/engine), for the show's code and for the brains
 // alike: the recording replays frame for frame even after the ring's engine changed (the rehearsal's round 2

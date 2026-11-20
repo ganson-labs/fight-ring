@@ -1,0 +1,49 @@
+{
+  "moves": [
+    {
+      "id": "jab"
+    },
+    {
+      "id": "low"
+    },
+    {
+      "id": "knee"
+    },
+    {
+      "id": "heavy"
+    },
+    {
+      "id": "overhead"
+    },
+    {
+      "id": "sweep"
+    },
+    {
+      "id": "upper"
+    },
+    {
+      "id": "air_kick"
+    },
+    {
+      "id": "fireball"
+    },
+    {
+      "id": "spike"
+    },
+    {
+      "id": "wave"
+    },
+    {
+      "id": "lance"
+    },
+    {
+      "id": "retreat"
+    },
+    {
+      "id": "smash"
+    },
+    {
+      "id": "barrage"
+    }
+  ]
+}

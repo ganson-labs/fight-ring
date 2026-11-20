@@ -1,0 +1,1063 @@
+{
+  "moves": [
+    {
+      "id": "jab",
+      "name": "Точка",
+      "line": "jab",
+      "anim": {
+        "length": 15,
+        "loop": false,
+        "keys": [
+          {
+            "t": 0,
+            "pose": "listen",
+            "ease": "inout"
+          },
+          {
+            "t": 2,
+            "pose": "aim",
+            "ease": "inout"
+          },
+          {
+            "t": 4,
+            "pose": "jabbed",
+            "ease": "hold"
+          },
+          {
+            "t": 7,
+            "pose": "jabbed",
+            "ease": "inout"
+          },
+          {
+            "t": 15,
+            "pose": "listen",
+            "ease": "inout"
+          }
+        ]
+      },
+      "fx": [
+        {
+          "on": "start",
+          "type": "trail",
+          "bone": "hand_front",
+          "color": "#ffcf68",
+          "size": 0.64,
+          "duration": 13
+        },
+        {
+          "on": "hit",
+          "type": "sparks",
+          "bone": "hand_front",
+          "color": "#ffcf68",
+          "color2": "#fff3bf",
+          "size": 0.8,
+          "count": 12,
+          "duration": 13
+        }
+      ],
+      "sounds": {
+        "start": "whoosh-light",
+        "hit": "hit-light",
+        "block": "block"
+      }
+    },
+    {
+      "id": "low",
+      "name": "Под дверью",
+      "line": "low",
+      "anim": {
+        "length": 22,
+        "loop": false,
+        "keys": [
+          {
+            "t": 0,
+            "pose": "fold",
+            "ease": "inout"
+          },
+          {
+            "t": 4,
+            "pose": "deep",
+            "ease": "inout"
+          },
+          {
+            "t": 7,
+            "pose": "thread",
+            "ease": "hold"
+          },
+          {
+            "t": 11,
+            "pose": "thread",
+            "ease": "inout"
+          },
+          {
+            "t": 22,
+            "pose": "fold",
+            "ease": "inout"
+          }
+        ]
+      },
+      "fx": [
+        {
+          "on": "start",
+          "type": "trail",
+          "bone": "foot_front",
+          "color": "#62e1c5",
+          "size": 0.64,
+          "duration": 20
+        },
+        {
+          "on": "hit",
+          "type": "sparks",
+          "bone": "foot_front",
+          "color": "#62e1c5",
+          "color2": "#fff3bf",
+          "size": 0.8,
+          "count": 12,
+          "duration": 13
+        }
+      ],
+      "sounds": {
+        "start": "whip",
+        "hit": "kick",
+        "block": "block"
+      }
+    },
+    {
+      "id": "knee",
+      "name": "Срочное",
+      "line": "knee",
+      "anim": {
+        "length": 28,
+        "loop": false,
+        "keys": [
+          {
+            "t": 0,
+            "pose": "coil",
+            "ease": "inout"
+          },
+          {
+            "t": 5,
+            "pose": "lean",
+            "ease": "inout"
+          },
+          {
+            "t": 10,
+            "pose": "knee_up",
+            "ease": "hold"
+          },
+          {
+            "t": 14,
+            "pose": "knee_up",
+            "ease": "inout"
+          },
+          {
+            "t": 28,
+            "pose": "stride",
+            "ease": "inout"
+          }
+        ]
+      },
+      "fx": [
+        {
+          "on": "start",
+          "type": "trail",
+          "bone": "thigh_front",
+          "color": "#ff7254",
+          "size": 0.64,
+          "duration": 22
+        },
+        {
+          "on": "hit",
+          "type": "sparks",
+          "bone": "thigh_front",
+          "color": "#ff7254",
+          "color2": "#fff3bf",
+          "size": 0.8,
+          "count": 12,
+          "duration": 13
+        }
+      ],
+      "sounds": {
+        "start": "dash",
+        "hit": "kick-heavy",
+        "block": "block"
+      }
+    },
+    {
+      "id": "heavy",
+      "name": "Чугунный штемпель",
+      "line": "heavy",
+      "anim": {
+        "length": 39,
+        "loop": false,
+        "keys": [
+          {
+            "t": 0,
+            "pose": "listen",
+            "ease": "inout"
+          },
+          {
+            "t": 8,
+            "pose": "wind",
+            "ease": "in"
+          },
+          {
+            "t": 13,
+            "pose": "postmark",
+            "ease": "hold"
+          },
+          {
+            "t": 17,
+            "pose": "postmark",
+            "ease": "inout"
+          },
+          {
+            "t": 29,
+            "pose": "reach",
+            "ease": "inout"
+          },
+          {
+            "t": 39,
+            "pose": "listen",
+            "ease": "inout"
+          }
+        ]
+      },
+      "fx": [
+        {
+          "on": "start",
+          "type": "trail",
+          "bone": "hand_front",
+          "color": "#ffcf68",
+          "size": 0.64,
+          "duration": 22
+        },
+        {
+          "on": "hit",
+          "type": "ring",
+          "bone": "hand_front",
+          "color": "#ffcf68",
+          "color2": "#fff3bf",
+          "size": 0.8,
+          "count": 12,
+          "duration": 13
+        }
+      ],
+      "sounds": {
+        "start": "whoosh-heavy",
+        "hit": "hit-heavy",
+        "block": "block"
+      }
+    },
+    {
+      "id": "overhead",
+      "name": "Крышка ящика",
+      "line": "overhead",
+      "anim": {
+        "length": 39,
+        "loop": false,
+        "keys": [
+          {
+            "t": 0,
+            "pose": "listen",
+            "ease": "inout"
+          },
+          {
+            "t": 8,
+            "pose": "high",
+            "ease": "inout"
+          },
+          {
+            "t": 16,
+            "pose": "seal",
+            "ease": "in"
+          },
+          {
+            "t": 20,
+            "pose": "slam",
+            "ease": "hold"
+          },
+          {
+            "t": 24,
+            "pose": "slam",
+            "ease": "inout"
+          },
+          {
+            "t": 39,
+            "pose": "listen",
+            "ease": "inout"
+          }
+        ]
+      },
+      "fx": [
+        {
+          "on": "start",
+          "type": "trail",
+          "bone": "hand_front",
+          "color": "#ff7254",
+          "size": 0.64,
+          "duration": 22
+        },
+        {
+          "on": "hit",
+          "type": "sparks",
+          "bone": "hand_front",
+          "color": "#ff7254",
+          "color2": "#fff3bf",
+          "size": 0.8,
+          "count": 12,
+          "duration": 13
+        }
+      ],
+      "sounds": {
+        "start": "whip",
+        "hit": "impact-epic",
+        "block": "block"
+      }
+    },
+    {
+      "id": "sweep",
+      "name": "Донная почта",
+      "line": "sweep",
+      "anim": {
+        "length": 42,
+        "loop": false,
+        "keys": [
+          {
+            "t": 0,
+            "pose": "coil",
+            "ease": "inout"
+          },
+          {
+            "t": 8,
+            "pose": "deep",
+            "ease": "in"
+          },
+          {
+            "t": 12,
+            "pose": "trawl",
+            "ease": "hold"
+          },
+          {
+            "t": 17,
+            "pose": "trawl",
+            "ease": "inout"
+          },
+          {
+            "t": 29,
+            "pose": "fold",
+            "ease": "inout"
+          },
+          {
+            "t": 42,
+            "pose": "listen",
+            "ease": "inout"
+          }
+        ]
+      },
+      "fx": [
+        {
+          "on": "start",
+          "type": "trail",
+          "bone": "foot_front",
+          "color": "#62e1c5",
+          "size": 0.64,
+          "duration": 22
+        },
+        {
+          "on": "hit",
+          "type": "sparks",
+          "bone": "foot_front",
+          "color": "#62e1c5",
+          "color2": "#fff3bf",
+          "size": 0.8,
+          "count": 12,
+          "duration": 13
+        }
+      ],
+      "sounds": {
+        "start": "whoosh-heavy",
+        "hit": "kick-heavy",
+        "block": "block"
+      }
+    },
+    {
+      "id": "upper",
+      "name": "Всплытие",
+      "line": "upper",
+      "anim": {
+        "length": 39,
+        "loop": false,
+        "keys": [
+          {
+            "t": 0,
+            "pose": "coil",
+            "ease": "in"
+          },
+          {
+            "t": 3,
+            "pose": "deep",
+            "ease": "in"
+          },
+          {
+            "t": 5,
+            "pose": "buoy",
+            "ease": "out"
+          },
+          {
+            "t": 10,
+            "pose": "high",
+            "ease": "inout"
+          },
+          {
+            "t": 25,
+            "pose": "shield",
+            "ease": "inout"
+          },
+          {
+            "t": 39,
+            "pose": "listen",
+            "ease": "inout"
+          }
+        ]
+      },
+      "fx": [
+        {
+          "on": "start",
+          "type": "trail",
+          "bone": "hand_front",
+          "color": "#ffcf68",
+          "size": 0.64,
+          "duration": 22
+        },
+        {
+          "on": "hit",
+          "type": "ring",
+          "bone": "hand_front",
+          "color": "#ffcf68",
+          "color2": "#fff3bf",
+          "size": 0.8,
+          "count": 12,
+          "duration": 13
+        }
+      ],
+      "sounds": {
+        "start": "whoosh-light",
+        "hit": "magic-impact",
+        "block": "block"
+      }
+    },
+    {
+      "id": "air_kick",
+      "name": "Авиапочта",
+      "line": "air_kick",
+      "anim": {
+        "length": 20,
+        "loop": false,
+        "keys": [
+          {
+            "t": 0,
+            "pose": "float",
+            "ease": "inout"
+          },
+          {
+            "t": 4,
+            "pose": "knee_up",
+            "ease": "in"
+          },
+          {
+            "t": 6,
+            "pose": "flying",
+            "ease": "hold"
+          },
+          {
+            "t": 14,
+            "pose": "flying",
+            "ease": "inout"
+          },
+          {
+            "t": 20,
+            "pose": "drop",
+            "ease": "inout"
+          }
+        ]
+      },
+      "fx": [
+        {
+          "on": "start",
+          "type": "trail",
+          "bone": "foot_front",
+          "color": "#62e1c5",
+          "size": 0.64,
+          "duration": 18
+        },
+        {
+          "on": "hit",
+          "type": "sparks",
+          "bone": "foot_front",
+          "color": "#62e1c5",
+          "color2": "#fff3bf",
+          "size": 0.8,
+          "count": 12,
+          "duration": 13
+        }
+      ],
+      "sounds": {
+        "start": "whip",
+        "hit": "kick",
+        "block": "block"
+      }
+    },
+    {
+      "id": "cyclone",
+      "name": "Водоворот открыток",
+      "line": "cyclone",
+      "anim": {
+        "length": 47,
+        "loop": false,
+        "keys": [
+          {
+            "t": 0,
+            "pose": "coil",
+            "ease": "inout"
+          },
+          {
+            "t": 6,
+            "pose": "turn",
+            "ease": "in"
+          },
+          {
+            "t": 12,
+            "pose": "wheel",
+            "ease": "inout"
+          },
+          {
+            "t": 15,
+            "pose": "wheel_back",
+            "ease": "inout"
+          },
+          {
+            "t": 19,
+            "pose": "wheel",
+            "ease": "inout"
+          },
+          {
+            "t": 23,
+            "pose": "turn",
+            "ease": "inout"
+          },
+          {
+            "t": 34,
+            "pose": "skid",
+            "ease": "inout"
+          },
+          {
+            "t": 47,
+            "pose": "listen",
+            "ease": "inout"
+          }
+        ]
+      },
+      "fx": [
+        {
+          "on": "start",
+          "type": "trail",
+          "bone": "hand_front",
+          "color": "#ff7254",
+          "size": 0.64,
+          "duration": 22
+        },
+        {
+          "on": "hit",
+          "type": "sparks",
+          "bone": "hand_front",
+          "color": "#ff7254",
+          "color2": "#fff3bf",
+          "size": 0.8,
+          "count": 12,
+          "duration": 13
+        },
+        {
+          "on": "active",
+          "type": "afterimage",
+          "color": "#ff7254",
+          "duration": 9,
+          "size": 0.65
+        }
+      ],
+      "sounds": {
+        "start": "whip",
+        "hit": "electric",
+        "block": "block"
+      }
+    },
+    {
+      "id": "breaker",
+      "name": "Сургуч",
+      "line": "breaker",
+      "anim": {
+        "length": 54,
+        "loop": false,
+        "keys": [
+          {
+            "t": 0,
+            "pose": "huddle",
+            "ease": "inout"
+          },
+          {
+            "t": 9,
+            "pose": "wind",
+            "ease": "inout"
+          },
+          {
+            "t": 20,
+            "pose": "seal",
+            "ease": "in"
+          },
+          {
+            "t": 24,
+            "pose": "slam",
+            "ease": "hold"
+          },
+          {
+            "t": 30,
+            "pose": "slam",
+            "ease": "inout"
+          },
+          {
+            "t": 42,
+            "pose": "fold",
+            "ease": "inout"
+          },
+          {
+            "t": 54,
+            "pose": "listen",
+            "ease": "inout"
+          }
+        ]
+      },
+      "fx": [
+        {
+          "on": "start",
+          "type": "trail",
+          "bone": "hand_front",
+          "color": "#ffcf68",
+          "size": 0.64,
+          "duration": 22
+        },
+        {
+          "on": "hit",
+          "type": "ring",
+          "bone": "hand_front",
+          "color": "#ffcf68",
+          "color2": "#fff3bf",
+          "size": 0.8,
+          "count": 12,
+          "duration": 13
+        },
+        {
+          "on": "hit",
+          "type": "shockwave",
+          "color": "#ffcf68",
+          "size": 1.9,
+          "duration": 22
+        }
+      ],
+      "sounds": {
+        "start": "riser",
+        "hit": "impact-epic",
+        "block": "block"
+      }
+    },
+    {
+      "id": "cross",
+      "name": "Обратный адрес",
+      "line": "cross",
+      "anim": {
+        "length": 55,
+        "loop": false,
+        "keys": [
+          {
+            "t": 0,
+            "pose": "read",
+            "ease": "inout"
+          },
+          {
+            "t": 8,
+            "pose": "vanish",
+            "ease": "inout"
+          },
+          {
+            "t": 14,
+            "pose": "turn",
+            "ease": "inout"
+          },
+          {
+            "t": 19,
+            "pose": "wind",
+            "ease": "in"
+          },
+          {
+            "t": 27,
+            "pose": "postmark",
+            "ease": "hold"
+          },
+          {
+            "t": 31,
+            "pose": "postmark",
+            "ease": "inout"
+          },
+          {
+            "t": 55,
+            "pose": "listen",
+            "ease": "inout"
+          }
+        ]
+      },
+      "fx": [
+        {
+          "on": "start",
+          "type": "trail",
+          "bone": "hand_front",
+          "color": "#ff7254",
+          "size": 0.64,
+          "duration": 22
+        },
+        {
+          "on": "hit",
+          "type": "sparks",
+          "bone": "hand_front",
+          "color": "#ff7254",
+          "color2": "#fff3bf",
+          "size": 0.8,
+          "count": 12,
+          "duration": 13
+        },
+        {
+          "on": "active",
+          "type": "afterimage",
+          "color": "#ff7254",
+          "duration": 9,
+          "size": 0.65
+        }
+      ],
+      "sounds": {
+        "start": "teleport-magic",
+        "hit": "hit-heavy",
+        "block": "block"
+      }
+    },
+    {
+      "id": "lance",
+      "name": "Экспресс",
+      "line": "lance",
+      "anim": {
+        "length": 30,
+        "loop": false,
+        "keys": [
+          {
+            "t": 0,
+            "pose": "read",
+            "ease": "inout"
+          },
+          {
+            "t": 5,
+            "pose": "aim",
+            "ease": "in"
+          },
+          {
+            "t": 9,
+            "pose": "launch",
+            "ease": "hold"
+          },
+          {
+            "t": 14,
+            "pose": "launch",
+            "ease": "inout"
+          },
+          {
+            "t": 30,
+            "pose": "listen",
+            "ease": "inout"
+          }
+        ]
+      },
+      "fx": [
+        {
+          "on": "start",
+          "type": "trail",
+          "bone": "hand_front",
+          "color": "#ffcf68",
+          "size": 0.64,
+          "duration": 22
+        },
+        {
+          "on": "hit",
+          "type": "sparks",
+          "bone": "hand_front",
+          "color": "#ffcf68",
+          "color2": "#fff3bf",
+          "size": 0.8,
+          "count": 12,
+          "duration": 13
+        },
+        {
+          "on": "projectile",
+          "type": "glow",
+          "image": "art/lance.png",
+          "color": "#ffcf68",
+          "size": 1
+        }
+      ],
+      "sounds": {
+        "start": "whoosh-light",
+        "hit": "projectile-hit",
+        "block": "block",
+        "projectile": "projectile"
+      }
+    },
+    {
+      "id": "spike",
+      "name": "Летучая рыба",
+      "line": "spike",
+      "anim": {
+        "length": 35,
+        "loop": false,
+        "keys": [
+          {
+            "t": 0,
+            "pose": "offer",
+            "ease": "inout"
+          },
+          {
+            "t": 7,
+            "pose": "wind",
+            "ease": "in"
+          },
+          {
+            "t": 12,
+            "pose": "mailshot",
+            "ease": "hold"
+          },
+          {
+            "t": 17,
+            "pose": "mailshot",
+            "ease": "inout"
+          },
+          {
+            "t": 29,
+            "pose": "offer",
+            "ease": "inout"
+          },
+          {
+            "t": 35,
+            "pose": "listen",
+            "ease": "inout"
+          }
+        ]
+      },
+      "fx": [
+        {
+          "on": "start",
+          "type": "trail",
+          "bone": "hand_front",
+          "color": "#62e1c5",
+          "size": 0.64,
+          "duration": 22
+        },
+        {
+          "on": "hit",
+          "type": "sparks",
+          "bone": "hand_front",
+          "color": "#62e1c5",
+          "color2": "#fff3bf",
+          "size": 0.8,
+          "count": 12,
+          "duration": 13
+        },
+        {
+          "on": "projectile",
+          "type": "glow",
+          "image": "art/spike.png",
+          "color": "#62e1c5",
+          "size": 1
+        }
+      ],
+      "sounds": {
+        "start": "sparkle",
+        "hit": "ice",
+        "block": "block",
+        "projectile": "whip"
+      }
+    },
+    {
+      "id": "slide",
+      "name": "Под килем",
+      "line": "slide",
+      "anim": {
+        "length": 47,
+        "loop": false,
+        "keys": [
+          {
+            "t": 0,
+            "pose": "coil",
+            "ease": "inout"
+          },
+          {
+            "t": 8,
+            "pose": "deep",
+            "ease": "in"
+          },
+          {
+            "t": 14,
+            "pose": "torpedo",
+            "ease": "hold"
+          },
+          {
+            "t": 21,
+            "pose": "torpedo",
+            "ease": "inout"
+          },
+          {
+            "t": 31,
+            "pose": "fold",
+            "ease": "inout"
+          },
+          {
+            "t": 47,
+            "pose": "listen",
+            "ease": "inout"
+          }
+        ]
+      },
+      "fx": [
+        {
+          "on": "start",
+          "type": "trail",
+          "bone": "foot_front",
+          "color": "#62e1c5",
+          "size": 0.64,
+          "duration": 22
+        },
+        {
+          "on": "hit",
+          "type": "sparks",
+          "bone": "foot_front",
+          "color": "#62e1c5",
+          "color2": "#fff3bf",
+          "size": 0.8,
+          "count": 12,
+          "duration": 13
+        },
+        {
+          "on": "active",
+          "type": "afterimage",
+          "color": "#62e1c5",
+          "duration": 9,
+          "size": 0.65
+        }
+      ],
+      "sounds": {
+        "start": "dash",
+        "hit": "ice",
+        "block": "block"
+      }
+    },
+    {
+      "id": "finale",
+      "name": "Вручено лично",
+      "line": "finale",
+      "anim": {
+        "length": 48,
+        "loop": false,
+        "keys": [
+          {
+            "t": 0,
+            "pose": "seal",
+            "ease": "hold"
+          },
+          {
+            "t": 3,
+            "pose": "seal",
+            "ease": "in"
+          },
+          {
+            "t": 8,
+            "pose": "deliver",
+            "ease": "hold"
+          },
+          {
+            "t": 15,
+            "pose": "deliver",
+            "ease": "inout"
+          },
+          {
+            "t": 28,
+            "pose": "offer",
+            "ease": "inout"
+          },
+          {
+            "t": 39,
+            "pose": "salute",
+            "ease": "inout"
+          },
+          {
+            "t": 48,
+            "pose": "listen",
+            "ease": "inout"
+          }
+        ]
+      },
+      "fx": [
+        {
+          "on": "start",
+          "type": "trail",
+          "bone": "hand_front",
+          "color": "#ffcf68",
+          "size": 0.64,
+          "duration": 22
+        },
+        {
+          "on": "hit",
+          "type": "ring",
+          "bone": "hand_front",
+          "color": "#ffcf68",
+          "color2": "#fff3bf",
+          "size": 1.35,
+          "count": 12,
+          "duration": 13
+        },
+        {
+          "on": "active",
+          "type": "afterimage",
+          "color": "#ffcf68",
+          "duration": 9,
+          "size": 0.65
+        },
+        {
+          "on": "hit",
+          "type": "shockwave",
+          "color": "#ffcf68",
+          "size": 1.9,
+          "duration": 22
+        }
+      ],
+      "sounds": {
+        "start": "gong",
+        "hit": "super-hit",
+        "block": "block"
+      },
+      "director": {
+        "title": "ВРУЧЕНО ЛИЧНО",
+        "titleColor": "#ffdc86",
+        "line": "finale",
+        "zoom": 1.18,
+        "angle": "high",
+        "flash": "#ffe3a0",
+        "background": "color",
+        "backgroundColor": "#103946",
+        "slowmo": 0.52
+      }
+    }
+  ]
+}

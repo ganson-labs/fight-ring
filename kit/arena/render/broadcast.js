@@ -86,7 +86,7 @@ export class Broadcast {
       if (this.endStep === null || fight.endReason !== 'ko' || !this.steps?.length) return this.next();
       // the last seconds before the knockout again, slowed down, from a low close camera
       const from = Math.max(0, this.endStep - 110);
-      const rf = createFight({ fighters: this.defs, seed: this.seed });
+      const rf = createFight({ fighters: this.defs, seed: this.seed, start: this.start });
       for (let i = 0; i < from; i++) stepFight(rf, this.steps[i]);
       scene.reset(rf);
       scene.camMode = 'replay';

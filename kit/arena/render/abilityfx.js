@@ -3,6 +3,7 @@
 // The scene creates one AbilityFx and calls setFighters, reset, handle and draw (see scene.js).
 import * as PIXI from 'pixi.js';
 import { ringText, fitText } from './text.js';
+import { arenaObjects } from '../engine/sim.js';
 
 const FONT = 'Oswald, "Arial Narrow", Impact, sans-serif';
 const hexNum = (h) => parseInt(String(h || '#ffffff').slice(1), 16);
@@ -173,9 +174,45 @@ export class AbilityFx {
     const s = this.scene;
     this.emit++;
     const r = rng(fight.tick * 977 + this.emit);
+    // ring 2.8: hits of abilities on their way (fight.pending). Not the whole box (an ability may strike a box the size
+    // of the screen): a sight closes in on the part of the opponent the box covers, with the zone it strikes —
+    // ▲ high or overhead, ▼ low. A box that misses the opponent shows nothing.
+    if (!this.warnG) {
+      this.warnG = new PIXI.Graphics();
+      this.warnG.blendMode = 'add';
+      this.objLayer.addChild(this.warnG);
+    }
+    const g = this.warnG;
+    g.clear();
+    for (const p of fight.pending || []) {
+      if (p.kind !== 'hit') continue;
+      const O = fight.f[1 - p.side];
+      const top = O.posture === 'crouch' ? 185 : 290;
+      const hb = [O.x - 35, O.y, O.x + 35, O.y + top];
+      const [x0, y0, x1, y1] = p.box;
+      const ix0 = Math.max(x0, hb[0]), ix1 = Math.min(x1, hb[2]), iy0 = Math.max(y0, hb[1]), iy1 = Math.min(y1, hb[3]);
+      if (ix0 >= ix1 || iy0 >= iy1) continue;
+      const left = Math.max(0, p.at - fight.tick);
+      const total = Math.max(1, p.at - (p.from ?? p.at - 22)); // ring 3.0: reaction + 7 and more with distance
+      const k = Math.min(1, Math.max(0, 1 - left / total));
+      const color = hexNum(this.assets[p.side]?.def.card.colors.accent);
+      const zone = p.h?.zone;
+      const cx = (ix0 + ix1) / 2;
+      const cy = zone === 'low' ? Math.min(iy1, O.y + 60) : zone === 'high' || zone === 'overhead' ? Math.max(iy0, O.y + top - 50) : (iy0 + iy1) / 2;
+      const r = 26 + 70 * (1 - k);
+      g.circle(cx, -cy, r).stroke({ color, width: 4, alpha: 0.35 + 0.6 * k });
+      g.circle(cx, -cy, 8).fill({ color: 0xffffff, alpha: 0.4 + 0.5 * k });
+      for (const a of [0, Math.PI / 2, Math.PI, Math.PI * 1.5]) g.moveTo(cx + Math.cos(a) * (r + 6), -cy + Math.sin(a) * (r + 6)).lineTo(cx + Math.cos(a) * (r + 22), -cy + Math.sin(a) * (r + 22)).stroke({ color, width: 4, alpha: 0.35 + 0.6 * k });
+      const ay = zone === 'low' ? -cy + r + 34 : zone === 'high' || zone === 'overhead' ? -cy - r - 34 : null;
+      if (ay !== null) {
+        const d = zone === 'low' ? 1 : -1;
+        g.poly([cx - 14, ay - 10 * d, cx + 14, ay - 10 * d, cx, ay + 10 * d]).fill({ color: 0xffffff, alpha: 0.5 + 0.5 * k });
+      }
+    }
+
     // objects
     const live = new Set();
-    for (const o of fight.objects) {
+    for (const o of [...fight.objects, ...arenaObjects(fight)]) {
       if (o.dead) continue;
       live.add(o.id);
       let sp = this.sprites.get(o.id);

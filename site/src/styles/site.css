@@ -1,0 +1,91 @@
+/* The site continues the game (viewer/game.css): a near-black stage, heavy italic Oswald, molten gold for the one
+   main step, every fighter in the colour of its contestant. Reading text is set in Golos Text. */
+:root {
+  --bg: #06070b;
+  --panel: #0e1018;
+  --panel2: #151821;
+  --line: #262a36;
+  --ink: #f4f5f8;
+  --dim: #a9aebd;
+  --mute: #747a8c;
+  --gold: #ffc94a;
+  --gold2: #ff8a1e;
+  --hot: linear-gradient(180deg, #fffdf2 0%, #ffe27a 32%, #ffb02a 50%, #d2440f 53%, #ff8a1e 78%, #ffd46a 100%);
+  --silver: linear-gradient(180deg, #ffffff 0%, #f1f2f6 55%, #c9ccd8 58%, #ffffff 100%);
+  --cut: 14px;
+  --gutter: clamp(16px, 4vw, 48px);
+  --display: Oswald, 'Arial Narrow', Impact, sans-serif;
+  --text: 'Golos Text', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --c: var(--gold);
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { background: var(--bg); -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body { margin: 0; min-height: 100vh; display: flex; flex-direction: column; background: var(--bg); color: var(--ink); font: 400 17px/1.6 var(--text); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+img { display: block; max-width: 100%; height: auto; }
+a { color: inherit; text-decoration-color: color-mix(in srgb, currentColor 40%, transparent); text-underline-offset: .2em; }
+a:hover { text-decoration-color: var(--gold); }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+p { margin: 0 0 1em; max-width: 68ch; }
+code { font: 500 .92em/1.4 ui-monospace, 'SF Mono', Menlo, Consolas, monospace; color: #ffe2a0; }
+pre { margin: 0; padding: 14px 18px; overflow-x: auto; background: var(--panel); border-left: 3px solid var(--gold2); font-size: 15px; }
+pre code { color: var(--ink); }
+[id] { scroll-margin-top: 24px; }
+
+.wrap { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 var(--gutter); }
+main { flex: 1; padding-bottom: 96px; }
+
+/* lettering of the game */
+.slab { margin: 0; font-family: var(--display); font-weight: 700; font-style: italic; text-transform: uppercase; letter-spacing: .01em; line-height: 1.02; }
+h1.slab { font-size: clamp(38px, 6.4vw, 84px); }
+h2.slab { font-size: clamp(26px, 3.4vw, 40px); margin: 72px 0 24px; }
+h3.slab { font-size: 22px; letter-spacing: .02em; }
+/* the gradient paints the glyphs inside the padding box: room for the italic slant and for Й */
+.hot { display: inline-block; padding: .14em .14em .08em .04em; margin: -.14em -.14em -.08em -.04em; background: var(--hot); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 3px 0 #0a0a10) drop-shadow(0 8px 18px rgba(255, 138, 30, .22)); }
+.lead { font-size: clamp(18px, 1.5vw, 21px); line-height: 1.55; color: #dcdfe8; max-width: 56ch; }
+.dim { color: var(--dim); }
+
+/* header */
+.top { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 12px 32px; flex-wrap: wrap; padding-top: 22px; padding-bottom: 22px; }
+.logo { font: italic 700 24px/1 var(--display); text-transform: uppercase; text-decoration: none; letter-spacing: .02em; white-space: nowrap; }
+.nav { display: flex; gap: 6px 26px; flex-wrap: wrap; }
+.nav a { padding: 6px 0; font: italic 500 17px/1.2 var(--display); text-transform: uppercase; letter-spacing: .06em; color: var(--dim); text-decoration: none; border-bottom: 3px solid transparent; }
+.nav a:hover { color: var(--ink); }
+.nav a[aria-current='page'] { color: var(--ink); border-bottom-color: var(--gold2); }
+
+/* buttons: the slanted plates of the game */
+.plate { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 12px 30px; font: italic 700 18px/1.1 var(--display); text-transform: uppercase; letter-spacing: .06em; text-decoration: none; text-align: center; color: var(--ink); background: var(--panel2); clip-path: polygon(var(--cut) 0, 100% 0, calc(100% - var(--cut)) 100%, 0 100%); transition: filter .12s, transform .12s; }
+.plate:hover { filter: brightness(1.25); transform: translateX(2px); }
+.plate.primary { min-height: 60px; padding: 14px 40px; font-size: 21px; color: #160a04; background: linear-gradient(180deg, #ffe27a, #ffb02a 48%, #e2621a 52%, #ffb02a); }
+.plate.primary:hover { filter: brightness(1.08); }
+.steps { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 10px; margin-top: 30px; }
+
+/* a fighter's portrait in a frame of the contestant's colour */
+.frame { position: relative; display: block; background: var(--c); padding: 3px; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 22px), calc(100% - 22px) 100%, 0 100%); }
+.frame img { width: 100%; aspect-ratio: 1; object-fit: cover; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%); background: var(--panel); }
+
+/* tables for reading */
+.table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.table th { padding: 0 14px 10px 0; font: 500 14px/1.3 var(--text); color: var(--mute); text-align: left; vertical-align: bottom; }
+.table td { padding: 14px 14px 14px 0; border-top: 1px solid var(--line); vertical-align: middle; }
+.table .n { text-align: right; white-space: nowrap; }
+.table th:last-child, .table td:last-child { padding-right: 0; }
+.who { display: flex; flex-direction: column; padding-left: 14px; border-left: 4px solid var(--c, var(--line)); line-height: 1.3; }
+.who b { font: italic 700 19px/1.2 var(--display); text-transform: uppercase; letter-spacing: .02em; }
+.who span { font-size: 14px; color: var(--dim); }
+
+.foot { padding-top: 28px; padding-bottom: 36px; border-top: 1px solid var(--line); font-size: 15px; color: var(--dim); }
+
+@media (max-width: 560px) {
+  body { font-size: 16px; }
+  .top { padding-top: 16px; padding-bottom: 12px; }
+  .nav { width: 100%; justify-content: space-between; gap: 4px 12px; }
+  .nav a { font-size: 15px; letter-spacing: .04em; }
+  h2.slab { margin-top: 56px; }
+  .steps { flex-direction: column; align-items: stretch; }
+  .steps .plate { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .plate { transition: none; }
+}

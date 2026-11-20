@@ -1,0 +1,206 @@
+{
+  "description": "A native Russian woman in her early sixties, a formidable Soviet-era chief accountant. Low, firm contralto, slightly husky, dry and unhurried, with steel underneath and a note of weary irony. Flat deadpan bureaucratic delivery: she never shouts, she pronounces verdicts. Clear standard Moscow Russian, crisp consonants, measured pace, authoritative and intimidating in a calm office way. Close studio microphone, clean recording.",
+  "language": "ru",
+  "lines": [
+    {
+      "id": "intro_1",
+      "kind": "intro",
+      "text": "Так. Кто у нас тут без отчёта?"
+    },
+    {
+      "id": "intro_2",
+      "kind": "intro",
+      "text": "Зоя Павловна, главный бухгалтер. Документы на стол."
+    },
+    {
+      "id": "taunt_1",
+      "kind": "taunt",
+      "text": "Переделывайте."
+    },
+    {
+      "id": "read_1",
+      "kind": "taunt",
+      "text": "Повторяетесь. Я записала."
+    },
+    {
+      "id": "punish_2",
+      "kind": "hit",
+      "text": "Недостача!"
+    },
+    {
+      "id": "victory_1",
+      "kind": "victory",
+      "text": "Период закрыт. Следующий!"
+    },
+    {
+      "id": "victory_2",
+      "kind": "victory",
+      "text": "Дебет с кредитом сошёлся. Как всегда."
+    },
+    {
+      "id": "defeat_1",
+      "kind": "defeat",
+      "text": "Это… ошибка в расчётах…"
+    },
+    {
+      "id": "super_1",
+      "kind": "super",
+      "text": "А теперь — годовой отчёт!"
+    },
+    {
+      "id": "taunt_2",
+      "kind": "taunt",
+      "text": "У меня обед до двух. Не затягивайте."
+    },
+    {
+      "id": "taunt_3",
+      "kind": "taunt",
+      "text": "И это всё? Несерьёзно."
+    },
+    {
+      "id": "read_2",
+      "kind": "taunt",
+      "text": "Третий раз одно и то же. Штраф."
+    },
+    {
+      "id": "parry_1",
+      "kind": "other",
+      "text": "Отклонено."
+    },
+    {
+      "id": "throw_1",
+      "kind": "hit",
+      "text": "На выход."
+    },
+    {
+      "id": "antiair_1",
+      "kind": "hit",
+      "text": "Куда без пропуска?"
+    },
+    {
+      "id": "punish_1",
+      "kind": "hit",
+      "text": "Штраф."
+    },
+    {
+      "id": "knockdown_1",
+      "kind": "taunt",
+      "text": "Сидите, сидите."
+    },
+    {
+      "id": "crush_1",
+      "kind": "hit",
+      "text": "Подпись недействительна."
+    },
+    {
+      "id": "prop_1",
+      "kind": "other",
+      "text": "Списано!"
+    },
+    {
+      "id": "shot_1",
+      "kind": "other",
+      "text": "Вам письмо."
+    },
+    {
+      "id": "lowhp_1",
+      "kind": "other",
+      "text": "Работаем сверхурочно."
+    },
+    {
+      "id": "finish_1",
+      "kind": "taunt",
+      "text": "Закрываем период."
+    },
+    {
+      "id": "time_1",
+      "kind": "other",
+      "text": "Рабочий день кончается."
+    },
+    {
+      "id": "hurt_1",
+      "kind": "hurt",
+      "text": "Это вычтут из премии."
+    },
+    {
+      "id": "hurt_2",
+      "kind": "hurt",
+      "text": "Безобразие!"
+    },
+    {
+      "id": "intro_3",
+      "kind": "intro",
+      "text": "Садитесь. Разговор будет недолгим."
+    },
+    {
+      "id": "victory_3",
+      "kind": "victory",
+      "text": "Акт подписан. Свободны."
+    },
+    {
+      "id": "defeat_2",
+      "kind": "defeat",
+      "text": "Я… ухожу на больничный."
+    },
+    {
+      "id": "parry_2",
+      "kind": "other",
+      "text": "Не принимается."
+    },
+    {
+      "id": "throw_2",
+      "kind": "hit",
+      "text": "Освободите кабинет."
+    },
+    {
+      "id": "antiair_2",
+      "kind": "hit",
+      "text": "Сядьте на место."
+    },
+    {
+      "id": "punish_3",
+      "kind": "hit",
+      "text": "Пеня начислена."
+    },
+    {
+      "id": "knockdown_2",
+      "kind": "taunt",
+      "text": "Лежачих не оформляю."
+    },
+    {
+      "id": "crush_2",
+      "kind": "hit",
+      "text": "Печать не та."
+    },
+    {
+      "id": "shot_2",
+      "kind": "other",
+      "text": "Распишитесь в получении."
+    },
+    {
+      "id": "read_3",
+      "kind": "taunt",
+      "text": "Вы предсказуемы, как квартальный отчёт."
+    },
+    {
+      "id": "taunt_4",
+      "kind": "taunt",
+      "text": "Очередь не задерживайте."
+    },
+    {
+      "id": "hurt_3",
+      "kind": "hurt",
+      "text": "Я это запомню."
+    },
+    {
+      "id": "finish_2",
+      "kind": "taunt",
+      "text": "Итого к оплате."
+    },
+    {
+      "id": "time_2",
+      "kind": "other",
+      "text": "До конца смены — всего ничего."
+    }
+  ]
+}

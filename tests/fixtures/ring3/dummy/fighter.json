@@ -1,0 +1,16 @@
+{
+  "name": "Манекен",
+  "motto": "Стою и терплю",
+  "story": "Тренировочный манекен ринга.",
+  "colors": {
+    "primary": "#9a7b58",
+    "secondary": "#76593d",
+    "accent": "#e0c9a0"
+  },
+  "stats": {
+    "health": 5,
+    "power": 0,
+    "speed": 2,
+    "defense": 5
+  }
+}

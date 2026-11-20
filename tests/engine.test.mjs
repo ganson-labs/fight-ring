@@ -8,8 +8,8 @@ import * as E from '../kit/arena/engine/index.js';
 import { readFighterDir, runFight, replayFight } from '../kit/arena/tools/load.js';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
-const KIT = join(root, 'kit', 'fighter');
-const DUMMY = join(root, 'kit', 'arena', 'sparring', 'dummy');
+const KIT = join(root, 'tests', 'fixtures', 'ring3', 'fighter');
+const DUMMY = join(root, 'tests', 'fixtures', 'ring3', 'dummy');
 const raw = (dir) => Object.fromEntries(['fighter', 'body', 'moves', 'voice'].map((f) => [f, JSON.parse(readFileSync(join(dir, `${f}.json`), 'utf8'))]));
 const compile = (input) => {
   const r = E.checkFighter(input);
@@ -104,7 +104,8 @@ test('серия: каждый следующий удар слабее на 20 
   assert.equal(combo.length, 5);
   assert.deepEqual(combo.map((h) => h.combo), [1, 2, 3, 4, 5]);
   for (let k = 1; k < 5; k++) assert.ok(combo[k].damage < combo[k - 1].damage);
-  const expected = [0, 1, 2, 3, 4].map((k) => Math.round(20 * f.derived.damageMul * d.derived.takenMul * 0.8 ** k));
+  // the same move again and again: the combo's ×0.8 and the move's tiredness (S1) together
+  const expected = [0, 1, 2, 3, 4].map((k) => Math.round(20 * f.derived.damageMul * d.derived.takenMul * 0.8 ** k * (1 - E.STALE.slice(0, k).reduce((s, w) => s + w, 0))));
   assert.deepEqual(combo.map((h) => h.damage), expected);
   assert.ok(hits.some((h) => h.type === 'limit'));
 });
@@ -154,7 +155,7 @@ test('проверка ловит перебор очков, бюджета и �
   assert.match(E.checkFighter(e).errors.join('\n'), /предел 250/);
 });
 
-test('парирование гасит удар, бросок бьёт блок, тех ломает бросок', () => {
+test('парирование гасит удар, бросок бьёт блок, свой бросок до захвата ломает бросок (B6)', () => {
   const f = compile(raw(KIT));
   const d = compile(raw(DUMMY));
   const setup = () => {
@@ -172,17 +173,22 @@ test('парирование гасит удар, бросок бьёт блок
   assert.ok(!ev.some((e) => e.type === 'hit'));
   ev = run(setup(), (i) => (i === 0 ? { throw: true } : {}), () => ({ guard: 'high' }));
   assert.ok(ev.some((e) => e.type === 'throw'));
-  ev = run(setup(), (i) => (i === 0 ? { throw: true } : {}), (i) => (i === 9 ? { tech: true } : {}));
+  // the defender throws a moment before the grab: the throws break each other
+  ev = run(setup(), (i) => (i === 0 ? { throw: true } : {}), (i) => (i === 2 ? { throw: true } : {}));
   assert.ok(ev.some((e) => e.type === 'tech'));
   assert.ok(!ev.some((e) => e.type === 'throw'));
+  // once grabbed it is too late: a throw input in the grab does nothing (the brains see their own grab at once)
+  ev = run(setup(), (i) => (i === 0 ? { throw: true } : {}), (i) => (i >= 7 && i <= 14 ? { throw: true } : {}));
+  assert.ok(ev.some((e) => e.type === 'throw'));
+  assert.ok(!ev.some((e) => e.type === 'tech'));
 });
 
 test('блоки конструктора: снаряд, телепорт, заряд, броня', () => {
   const input = raw(KIT);
   input.moves.moves.push(
     { id: 'shot', name: 'Снаряд', slot: 'special', posture: 'stand', blocks: [{ type: 'projectile', startup: 12, recovery: 20, damage: 50, speed: 'mid', zone: 'mid' }], anim: { keys: [{ t: 0, pose: 'stance' }] } },
-    { id: 'blink', name: 'Телепорт', slot: 'special', posture: 'stand', blocks: [{ type: 'teleport', startup: 14, recovery: 10, to: 'behind' }, { type: 'strike', startup: 5, active: 3, recovery: 12, damage: 40, reach: 'mid', zone: 'mid' }], anim: { keys: [{ t: 0, pose: 'stance' }] } },
-    { id: 'big', name: 'Заряд', slot: 'special', posture: 'stand', blocks: [{ type: 'charge', maxHold: 30, bonus: 0.5 }, { type: 'armor', hits: 1 }, { type: 'strike', startup: 14, active: 3, recovery: 20, damage: 40, reach: 'mid', zone: 'mid' }], anim: { keys: [{ t: 0, pose: 'stance' }] } },
+    { id: 'blink', name: 'Телепорт', slot: 'special', posture: 'stand', blocks: [{ type: 'teleport', startup: 14, recovery: 10, to: 'behind' }, { type: 'strike', startup: 5, active: 3, recovery: 16, damage: 30, reach: 'mid', zone: 'mid' }], anim: { keys: [{ t: 0, pose: 'stance' }] } },
+    { id: 'big', name: 'Заряд', slot: 'special', posture: 'stand', blocks: [{ type: 'charge', maxHold: 30, bonus: 0.3 }, { type: 'armor', hits: 1 }, { type: 'strike', startup: 14, active: 3, recovery: 20, damage: 30, reach: 'mid', zone: 'mid' }], anim: { keys: [{ t: 0, pose: 'stance' }] } },
   );
   const r = E.checkFighter(input);
   assert.ok(r.ok, r.errors.join('\n'));

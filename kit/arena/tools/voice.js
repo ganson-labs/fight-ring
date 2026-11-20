@@ -1,7 +1,6 @@
 // `arena voice`: a voice from the description in voice.json (ElevenLabs Voice Design) and the lines recorded
 // into fighter/voice/<id>.mp3. Requests go from the operator's server over ssh, where the key lives: the key never
-// reaches this machine, the contestant folder or the logs. ELEVENLABS_SSH=local runs the same request on this machine
-// (python3 / python), the key read from the local file ELEVENLABS_SSH_ENV: still never in the contestant folder or the logs.
+// reaches this machine, the contestant folder or the logs.
 //   voice design        three previews of the voice → fighter/voice/design/preview-N.mp3
 //   voice pick N        keep preview N as the fighter's voice
 //   voice lines [--only id,id] [--force]   record the lines
@@ -10,11 +9,11 @@ import { spawn } from 'node:child_process';
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
-import { ensure, spend, serviceEnv, ringConfig } from './ring.js';
+import { ensure, spend, serviceEnv, ringConfig, operatorHome } from './ring.js';
 import { resolveFighterDir } from './load.js';
 
 const SERVER_SCRIPT = String.raw`
-import base64, json, sys, urllib.request, urllib.error
+import base64, json, sys, urllib.request, urllib.error, urllib.parse
 P = json.loads(__PARAMS__)
 key = None
 try:
@@ -30,9 +29,9 @@ except OSError as exc:
     sys.stderr.write("key file is not readable: %s\n" % type(exc).__name__); sys.exit(3)
 if not key:
     sys.stderr.write("no ELEVENLABS_API_KEY in the key file\n"); sys.exit(3)
-def call(path, body=None, raw=False):
+def call(path, body=None, raw=False, method=None):
     req = urllib.request.Request("https://api.elevenlabs.io" + path, data=None if body is None else json.dumps(body).encode("utf-8"),
-        method="GET" if body is None else "POST", headers={"xi-api-key": key, "Content-Type": "application/json"})
+        method=method or ("GET" if body is None else "POST"), headers={"xi-api-key": key, "Content-Type": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=180) as r:
             data = r.read()
@@ -41,7 +40,7 @@ def call(path, body=None, raw=False):
         sys.stderr.write("ElevenLabs HTTP %s: %s\n" % (exc.code, msg)); sys.exit(4)
     except Exception as exc:
         sys.stderr.write("ElevenLabs: %s\n" % str(exc).replace(key, "***")[:300]); sys.exit(4)
-    return data if raw else json.loads(data.decode("utf-8"))
+    return data if raw else json.loads(data.decode("utf-8") or "{}")
 a = P["action"]
 if a == "subscription":
     s = call("/v1/user/subscription")
@@ -60,6 +59,30 @@ elif a == "tts":
     if P.get("language"): body["language_code"] = P["language"]
     data = call("/v1/text-to-speech/%s?output_format=mp3_44100_128" % P["voice_id"], body, raw=True)
     out = {"audio": base64.b64encode(data).decode("ascii")}
+elif a == "list":
+    # the judge's sweep of voice slots (judge/voices.js): every voice made by Voice Design, with its name
+    out = {"voices": []}
+    token = None
+    seen = set()
+    for _ in range(20):
+        r = call("/v2/voices?page_size=100&category=generated" + ("&next_page_token=" + urllib.parse.quote(token) if token else ""))
+        for v in r.get("voices", []):
+            if v.get("voice_id") not in seen:
+                seen.add(v.get("voice_id"))
+                out["voices"].append({"voice_id": v.get("voice_id"), "name": v.get("name")})
+        nxt = r.get("next_page_token")
+        if not r.get("has_more") or not nxt or nxt == token: break
+        token = nxt
+    s = call("/v1/user/subscription")
+    out["used"] = s.get("voice_slots_used")
+    out["limit"] = s.get("voice_limit")
+elif a == "delete":
+    # only the ring's own voices: the name is checked here too, next to the key, whatever the caller asked
+    v = call("/v1/voices/%s" % P["voice_id"])
+    if not str(v.get("name", "")).startswith(P["prefix"]) or not P["prefix"].startswith("Ринг · "):
+        sys.stderr.write("refused: the voice is not the ring's\n"); sys.exit(5)
+    call("/v1/voices/%s" % P["voice_id"], method="DELETE")
+    out = {"deleted": P["voice_id"], "name": v.get("name")}
 else:
     sys.stderr.write("unknown action\n"); sys.exit(2)
 sys.stdout.write(json.dumps(out))
@@ -69,7 +92,7 @@ function settings() {
   const env = serviceEnv();
   const host = env.ELEVENLABS_SSH;
   const file = env.ELEVENLABS_SSH_ENV;
-  if (!host || !file) throw new Error('голос не настроен на этой машине: нужен файл ~/.config/fight-ring/services.env с ELEVENLABS_SSH (ssh-имя сервера или local) и ELEVENLABS_SSH_ENV (файл с ELEVENLABS_API_KEY), настраивает оператор ринга (README)');
+  if (!host || !file) throw new Error('голос не настроен на этой машине: нужен файл ~/.config/fight-ring/services.env с ELEVENLABS_SSH и ELEVENLABS_SSH_ENV (настраивает оператор ринга, README)');
   if (host.toLowerCase() === 'off') throw new Error('голос выключен оператором ринга (ELEVENLABS_SSH=off)');
   return { host, file };
 }
@@ -77,10 +100,12 @@ function settings() {
 function server(params, timeoutMs = 240000) {
   const { host, file } = settings();
   return new Promise((resolveP, reject) => {
-    const local = host.toLowerCase() === 'local';
-    const p = local
-      ? spawn(process.platform === 'win32' ? 'python' : 'python3', ['-'], { windowsHide: true })
-      : spawn('ssh', ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=15', host, 'python3', '-'], { windowsHide: true });
+    // ssh reads its config, keys and known hosts from the operator's home: an agent may run with its own home
+    // (Antigravity lives in %LOCALAPPDATA%ight-ring\gemini-<id>), where the operator's host aliases do not exist
+    const op = operatorHome();
+    const cfg = join(op, '.ssh', 'config');
+    const args = [...(existsSync(cfg) ? ['-F', cfg] : []), '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=15', host, 'python3', '-'];
+    const p = spawn('ssh', args, { windowsHide: true, env: { ...process.env, USERPROFILE: op, HOME: op } });
     let out = '';
     let err = '';
     p.stdout.on('data', (d) => (out += d));
@@ -88,7 +113,7 @@ function server(params, timeoutMs = 240000) {
     const timer = setTimeout(() => p.kill(), timeoutMs);
     p.on('close', (code) => {
       clearTimeout(timer);
-      if (code !== 0) return reject(new Error(`ElevenLabs${local ? '' : ' через сервер'}: ${(err.trim().split('\n').pop() || `код ${code}`).slice(0, 400)}`));
+      if (code !== 0) return reject(new Error(`ElevenLabs через сервер: ${(err.trim().split('\n').pop() || `код ${code}`).slice(0, 400)}`));
       try {
         resolveP(JSON.parse(out));
       } catch {
@@ -139,15 +164,37 @@ async function pick(dir, n) {
   if (!p) throw new Error(`нет варианта ${n}: есть ${d.previews.map((x) => x.n).join(', ')}`);
   const name = JSON.parse(readFileSync(join(dir, 'fighter.json'), 'utf8')).name || 'fighter';
   const cfg = ringConfig();
-  const r = await server({ action: 'create', name: `Ринг · ${cfg.id} · ${name}`.slice(0, 60), description: d.description, generated_voice_id: p.generated_voice_id });
-  writeFileSync(stateFile(dir), JSON.stringify({ voice_id: r.voice_id, from: p.file, description: d.description, at: new Date().toISOString() }, null, 2) + '\n');
+  const voiceName = `Ринг · ${cfg.id} · ${name}`.slice(0, 60);
+  const r = await server({ action: 'create', name: voiceName, description: d.description, generated_voice_id: p.generated_voice_id });
+  writeFileSync(stateFile(dir), JSON.stringify({ voice_id: r.voice_id, from: p.file, generated_voice_id: p.generated_voice_id, name: voiceName, description: d.description, at: new Date().toISOString() }, null, 2) + '\n');
   console.log(`Голос бойца — вариант ${p.n}. Теперь: node arena/cli.mjs voice lines`);
+}
+
+// The voice is made again when it is gone. Voice slots of the account are few: after a session the ring deletes the
+// fighter's voice to free its slot and marks voice-id.json `released` (the recorded lines stay as files). The preview
+// the voice was picked from makes the same voice again — ElevenLabs gives back the same voice_id — so recording
+// later (the locker room) works as before. srv: the voice server (tests pass their own).
+export async function voiceIdFor(dir, srv = server, { force = false } = {}) {
+  if (!existsSync(stateFile(dir))) throw new Error('голоса ещё нет: node arena/cli.mjs voice design, затем voice pick <номер>');
+  const st = JSON.parse(readFileSync(stateFile(dir), 'utf8'));
+  if (st.voice_id && !st.released && !force) return st.voice_id;
+  let gid = st.generated_voice_id;
+  if (!gid && existsSync(join(dir, 'voice', 'design', 'design.json'))) {
+    const d = JSON.parse(readFileSync(join(dir, 'voice', 'design', 'design.json'), 'utf8'));
+    gid = d.previews.find((x) => x.file === st.from)?.generated_voice_id;
+  }
+  if (!gid) throw new Error('голос освобождён, а образца, из которого он сделан, нет: node arena/cli.mjs voice design, затем voice pick <номер>');
+  const name = st.name || `Ринг · ${ringConfig().id} · ${JSON.parse(readFileSync(join(dir, 'fighter.json'), 'utf8')).name || 'fighter'}`.slice(0, 60);
+  const r = await srv({ action: 'create', name, description: st.description, generated_voice_id: gid });
+  const next = { ...st, voice_id: r.voice_id, generated_voice_id: gid, name, recreated: new Date().toISOString() };
+  delete next.released;
+  writeFileSync(stateFile(dir), JSON.stringify(next, null, 2) + '\n');
+  return r.voice_id;
 }
 
 async function lines(dir, { only = null, force = false } = {}) {
   const v = readVoice(dir);
-  if (!existsSync(stateFile(dir))) throw new Error('голоса ещё нет: node arena/cli.mjs voice design, затем voice pick <номер>');
-  const { voice_id } = JSON.parse(readFileSync(stateFile(dir), 'utf8'));
+  let voice_id = await voiceIdFor(dir);
   const want = v.lines.filter((l) => (!only || only.includes(l.id)) && (force || !existsSync(join(dir, 'voice', `${l.id}.mp3`))));
   if (!want.length) return console.log('Все реплики уже записаны (перезаписать: --force).');
   const estimate = want.reduce((s, l) => s + Math.max(1, l.text.length / 13), 0);
@@ -155,7 +202,16 @@ async function lines(dir, { only = null, force = false } = {}) {
   let total = 0;
   for (const l of want) {
     ensure('voiceSeconds', Math.max(0.5, l.text.length / 16));
-    const r = await server({ action: 'tts', voice_id, text: l.text, model: v.model || 'eleven_v3', language: v.language });
+    const say = () => server({ action: 'tts', voice_id, text: l.text, model: v.model || 'eleven_v3', language: v.language });
+    let r;
+    try {
+      r = await say();
+    } catch (err) {
+      // deleted on the account while the state still names it: make it again from its preview, once
+      if (!/voice_not_found|HTTP 404|does not exist/i.test(String(err?.message))) throw err;
+      voice_id = await voiceIdFor(dir, server, { force: true });
+      r = await say();
+    }
     const file = join(dir, 'voice', `${l.id}.mp3`);
     writeFileSync(file, Buffer.from(r.audio, 'base64'));
     const sec = mp3Seconds(file);

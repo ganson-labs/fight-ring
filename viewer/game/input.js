@@ -260,7 +260,7 @@ export class Controls {
     const right = k.has('ArrowRight') || k.has('KeyD') || !!p?.right;
     const up = k.has('ArrowUp') || k.has('KeyW') || !!p?.up;
     const dn = k.has('ArrowDown') || k.has('KeyS') || !!p?.down;
-    const v = brainView(fight, side);
+    const v = brainView(fight, side, { live: true });
     const me = v.me;
     const tick = fight.tick;
     const pressed = this.pending.splice(0);
@@ -292,7 +292,6 @@ export class Controls {
     const got = busy ? null : readCommand(this.log, this.options, { airborne: me.airborne, crouching: dn, stance: me.stance ?? null }, tick);
     if (got?.throw) {
       a.throw = true;
-      a.tech = true;
       this.started = tick;
     } else if (got?.move) {
       const m = this.def.movesById[got.move];

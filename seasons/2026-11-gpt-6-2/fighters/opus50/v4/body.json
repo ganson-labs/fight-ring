@@ -1,0 +1,3866 @@
+{
+ "parts": {
+  "pelvis": {
+   "image": "parts/pelvis.png",
+   "pivot": [
+    168,
+    150
+   ],
+   "tip": [
+    168,
+    38
+   ],
+   "width": 0.8,
+   "anchors": {
+    "thigh_front": [
+     205,
+     150
+    ],
+    "thigh_back": [
+     131,
+     150
+    ]
+   }
+  },
+  "torso": {
+   "image": "parts/torso.png",
+   "pivot": [
+    150,
+    355
+   ],
+   "tip": [
+    150,
+    39
+   ],
+   "width": 1,
+   "anchors": {
+    "head": [
+     146,
+     40
+    ],
+    "upper_arm_front": [
+     70,
+     103
+    ],
+    "upper_arm_back": [
+     205,
+     88
+    ]
+   }
+  },
+  "head": {
+   "image": "parts/head.png",
+   "pivot": [
+    148,
+    322
+   ],
+   "tip": [
+    148,
+    133
+   ]
+  },
+  "upper_arm_back": {
+   "image": "parts/upper_arm_back.png",
+   "pivot": [
+    49,
+    75
+   ],
+   "tip": [
+    252,
+    72
+   ],
+   "seat": false,
+   "width": 0.85
+  },
+  "forearm_back": {
+   "image": "parts/forearm_back.png",
+   "pivot": [
+    48,
+    72
+   ],
+   "tip": [
+    254,
+    72
+   ],
+   "seat": false,
+   "width": 0.9
+  },
+  "hand_back": {
+   "image": "parts/hand_back.png",
+   "pivot": [
+    40,
+    105
+   ],
+   "tip": [
+    160,
+    100
+   ],
+   "seat": false
+  },
+  "thigh_back": {
+   "image": "parts/thigh_back.png",
+   "pivot": [
+    57,
+    91
+   ],
+   "tip": [
+    306,
+    92
+   ],
+   "seat": false,
+   "width": 0.72
+  },
+  "shin_back": {
+   "image": "parts/shin_back.png",
+   "pivot": [
+    51,
+    90
+   ],
+   "tip": [
+    260,
+    87
+   ],
+   "seat": false,
+   "width": 0.72
+  },
+  "foot_back": {
+   "image": "parts/foot_back.png",
+   "pivot": [
+    105,
+    142
+   ],
+   "tip": [
+    245,
+    142
+   ],
+   "seat": false
+  },
+  "thigh_front": {
+   "image": "parts/thigh_front.png",
+   "pivot": [
+    57,
+    91
+   ],
+   "tip": [
+    306,
+    92
+   ],
+   "seat": false,
+   "width": 0.72
+  },
+  "shin_front": {
+   "image": "parts/shin_front.png",
+   "pivot": [
+    51,
+    90
+   ],
+   "tip": [
+    260,
+    87
+   ],
+   "seat": false,
+   "width": 0.72
+  },
+  "foot_front": {
+   "image": "parts/foot_front.png",
+   "pivot": [
+    105,
+    142
+   ],
+   "tip": [
+    245,
+    142
+   ],
+   "seat": false
+  },
+  "upper_arm_front": {
+   "image": "parts/upper_arm_front.png",
+   "pivot": [
+    49,
+    75
+   ],
+   "tip": [
+    252,
+    72
+   ],
+   "seat": false,
+   "width": 0.85
+  },
+  "forearm_front": {
+   "image": "parts/forearm_front.png",
+   "pivot": [
+    48,
+    72
+   ],
+   "tip": [
+    254,
+    72
+   ],
+   "seat": false,
+   "width": 0.9
+  },
+  "hand_front": {
+   "image": "parts/hand_front.png",
+   "pivot": [
+    40,
+    105
+   ],
+   "tip": [
+    160,
+    100
+   ],
+   "seat": false
+  },
+  "needle": {
+   "image": "parts/needle.png",
+   "pivot": [
+    6.5,
+    119
+   ],
+   "tip": [
+    40,
+    9
+   ],
+   "z": 8.5,
+   "width": 1.25,
+   "seat": false
+  },
+  "key": {
+   "image": "parts/key.png",
+   "pivot": [
+    40,
+    125
+   ],
+   "tip": [
+    311,
+    125
+   ],
+   "z": 6.8,
+   "seat": false
+  }
+ },
+ "bones": {
+  "needle": {
+   "parent": "head",
+   "attach": 29.3,
+   "side": 11.3,
+   "angle": 0,
+   "length": 28,
+   "spring": {
+    "stiffness": 0.35,
+    "damping": 0.3,
+    "gravity": 0,
+    "lag": 35
+   }
+  },
+  "key": {
+   "parent": "torso",
+   "attach": 44,
+   "side": -27,
+   "angle": 90,
+   "length": 26,
+   "spring": {
+    "stiffness": 0.5,
+    "damping": 0.45,
+    "gravity": 0.2,
+    "lag": 12
+   }
+  }
+ },
+ "ik": {
+  "feet": true
+ },
+ "anims": {
+  "idle": {
+   "loop": true,
+   "length": 60,
+   "keys": [
+    {
+     "t": 0,
+     "pose": {
+      "root": [
+       1.5,
+       -12
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -4.8,
+       "head": 1.3,
+       "upper_arm_front": 36.4,
+       "forearm_front": 135.4,
+       "hand_front": 3,
+       "upper_arm_back": 26.3,
+       "forearm_back": 152.5,
+       "hand_back": 4,
+       "thigh_front": 31.7,
+       "shin_front": -43.9,
+       "foot_front": 12.2,
+       "thigh_back": -5.2,
+       "shin_back": -28.9,
+       "foot_back": 34.1,
+       "needle": 26,
+       "key": 0
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 3,
+     "pose": {
+      "root": [
+       1.4,
+       -9.6
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -3.9,
+       "head": 3.5,
+       "upper_arm_front": 37.4,
+       "forearm_front": 131.1,
+       "hand_front": 5.4,
+       "upper_arm_back": 24.2,
+       "forearm_back": 153.7,
+       "hand_back": 4,
+       "thigh_front": 28.8,
+       "shin_front": -38.3,
+       "foot_front": 9.5,
+       "thigh_back": -9.1,
+       "shin_back": -20.2,
+       "foot_back": 29.3,
+       "needle": 24.7,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 10,
+     "pose": {
+      "root": [
+       0.8,
+       -9
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -4.4,
+       "head": 5.2,
+       "upper_arm_front": 38.4,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 24.4,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 28.2,
+       "shin_front": -36.5,
+       "foot_front": 8.3,
+       "thigh_back": -9.6,
+       "shin_back": -18.4,
+       "foot_back": 28.1,
+       "needle": 13,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 20,
+     "pose": {
+      "root": [
+       -0.7,
+       -9
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -5.6,
+       "head": 8.9,
+       "upper_arm_front": 39.6,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 25.6,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 28.5,
+       "shin_front": -35.7,
+       "foot_front": 7.3,
+       "thigh_back": -7.9,
+       "shin_back": -20.8,
+       "foot_back": 28.7,
+       "needle": -13,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 27,
+     "pose": {
+      "root": [
+       -1.4,
+       -8.6
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -6.1,
+       "head": 10.5,
+       "upper_arm_front": 40.5,
+       "forearm_front": 129.3,
+       "hand_front": 6.4,
+       "upper_arm_back": 25.9,
+       "forearm_back": 154.2,
+       "hand_back": 4,
+       "thigh_front": 28,
+       "shin_front": -34.3,
+       "foot_front": 6.3,
+       "thigh_back": -8,
+       "shin_back": -20,
+       "foot_back": 27.9,
+       "needle": -24.7,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 30,
+     "pose": {
+      "root": [
+       -1.5,
+       -12
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -7.2,
+       "head": 8.7,
+       "upper_arm_front": 38.8,
+       "forearm_front": 135.4,
+       "hand_front": 3,
+       "upper_arm_back": 28.7,
+       "forearm_back": 152.5,
+       "hand_back": 4,
+       "thigh_front": 32.4,
+       "shin_front": -42.6,
+       "foot_front": 10.2,
+       "thigh_back": -2.5,
+       "shin_back": -32,
+       "foot_back": 34.5,
+       "needle": -26,
+       "key": 0
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 33,
+     "pose": {
+      "root": [
+       -1.4,
+       -9.6
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -6.1,
+       "head": 10.5,
+       "upper_arm_front": 39.7,
+       "forearm_front": 131.1,
+       "hand_front": 5.4,
+       "upper_arm_back": 26.4,
+       "forearm_back": 153.7,
+       "hand_back": 4,
+       "thigh_front": 29.4,
+       "shin_front": -36.9,
+       "foot_front": 7.5,
+       "thigh_back": -6.1,
+       "shin_back": -24.1,
+       "foot_back": 30.2,
+       "needle": -24.7,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 40,
+     "pose": {
+      "root": [
+       -0.8,
+       -9
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -5.6,
+       "head": 8.9,
+       "upper_arm_front": 39.6,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 25.6,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 28.5,
+       "shin_front": -35.7,
+       "foot_front": 7.3,
+       "thigh_back": -7.9,
+       "shin_back": -20.8,
+       "foot_back": 28.7,
+       "needle": -13,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 50,
+     "pose": {
+      "root": [
+       0.8,
+       -9
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -4.4,
+       "head": 5.2,
+       "upper_arm_front": 38.4,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 24.4,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 28.2,
+       "shin_front": -36.5,
+       "foot_front": 8.3,
+       "thigh_back": -9.6,
+       "shin_back": -18.4,
+       "foot_back": 28.1,
+       "needle": 13,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 57,
+     "pose": {
+      "root": [
+       1.4,
+       -8.6
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -3.9,
+       "head": 3.5,
+       "upper_arm_front": 38.2,
+       "forearm_front": 129.3,
+       "hand_front": 6.4,
+       "upper_arm_back": 23.7,
+       "forearm_back": 154.2,
+       "hand_back": 4,
+       "thigh_front": 27.5,
+       "shin_front": -35.7,
+       "foot_front": 8.2,
+       "thigh_back": -11.5,
+       "shin_back": -15,
+       "foot_back": 26.6,
+       "needle": 24.7,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    }
+   ]
+  },
+  "walk_forward": {
+   "loop": true,
+   "length": 36,
+   "keys": [
+    {
+     "t": 0,
+     "pose": {
+      "root": [
+       0,
+       -11
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -5,
+       "head": 7,
+       "upper_arm_front": 39,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 25,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 30.9,
+       "shin_front": -41,
+       "foot_front": 10.1,
+       "thigh_back": -5.2,
+       "shin_back": -27.4,
+       "foot_back": 32.6,
+       "needle": 0,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 8,
+     "pose": {
+      "root": [
+       5,
+       -6
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -7,
+       "head": 7,
+       "upper_arm_front": 41,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 27,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 47.9,
+       "shin_front": -57.2,
+       "foot_front": -12,
+       "thigh_back": -17.7,
+       "shin_back": -3,
+       "foot_back": 20.7,
+       "needle": 20,
+       "key": 0
+      }
+     },
+     "ease": "in"
+    },
+    {
+     "t": 14,
+     "pose": {
+      "root": [
+       8,
+       -12
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -6,
+       "head": 7,
+       "upper_arm_front": 40,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 26,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 33.9,
+       "shin_front": -36.5,
+       "foot_front": 2.6,
+       "thigh_back": -7.7,
+       "shin_back": -25.9,
+       "foot_back": 33.6,
+       "needle": 0,
+       "key": 0
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 18,
+     "pose": {
+      "root": [
+       4.8,
+       -10.8
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -5.6,
+       "head": 7,
+       "upper_arm_front": 39.6,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 25.6,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 31.9,
+       "shin_front": -36.7,
+       "foot_front": 4.9,
+       "thigh_back": -8,
+       "shin_back": -23.7,
+       "foot_back": 31.7,
+       "needle": 0,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 26,
+     "pose": {
+      "root": [
+       4,
+       -6
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -5,
+       "head": 7,
+       "upper_arm_front": 39,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 25,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 23.3,
+       "shin_front": -18,
+       "foot_front": -5.3,
+       "thigh_back": 19.3,
+       "shin_back": -62.1,
+       "foot_back": -12,
+       "needle": -20,
+       "key": 0
+      }
+     },
+     "ease": "in"
+    },
+    {
+     "t": 32,
+     "pose": {
+      "root": [
+       0,
+       -11
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -5,
+       "head": 7,
+       "upper_arm_front": 39,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 25,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 30.9,
+       "shin_front": -41,
+       "foot_front": 10.1,
+       "thigh_back": -5.2,
+       "shin_back": -27.4,
+       "foot_back": 32.6,
+       "needle": 0,
+       "key": 0
+      }
+     },
+     "ease": "out"
+    }
+   ]
+  },
+  "walk_back": {
+   "loop": true,
+   "length": 36,
+   "keys": [
+    {
+     "t": 0,
+     "pose": {
+      "root": [
+       0,
+       -11
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -5,
+       "head": 7,
+       "upper_arm_front": 39,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 25,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 30.9,
+       "shin_front": -41,
+       "foot_front": 10.1,
+       "thigh_back": -5.2,
+       "shin_back": -27.4,
+       "foot_back": 32.6,
+       "needle": 0,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 8,
+     "pose": {
+      "root": [
+       -4,
+       -6
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -2,
+       "head": 5,
+       "upper_arm_front": 36,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 22,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 23.6,
+       "shin_front": -27.1,
+       "foot_front": 3.4,
+       "thigh_back": -9.8,
+       "shin_back": -36.5,
+       "foot_back": -12,
+       "needle": 20,
+       "key": 0
+      }
+     },
+     "ease": "in"
+    },
+    {
+     "t": 14,
+     "pose": {
+      "root": [
+       -6,
+       -12
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -3,
+       "head": 5,
+       "upper_arm_front": 37,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 23,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 32.9,
+       "shin_front": -41.4,
+       "foot_front": 8.5,
+       "thigh_back": -24.3,
+       "shin_back": -3,
+       "foot_back": 27.4,
+       "needle": 0,
+       "key": 0
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 18,
+     "pose": {
+      "root": [
+       -3.6,
+       -10.8
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -3.8,
+       "head": 5.8,
+       "upper_arm_front": 37.8,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 23.8,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 31.1,
+       "shin_front": -39.4,
+       "foot_front": 8.3,
+       "thigh_back": -21.4,
+       "shin_back": -3.1,
+       "foot_back": 24.5,
+       "needle": 0,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 26,
+     "pose": {
+      "root": [
+       -3,
+       -6
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -4,
+       "head": 6,
+       "upper_arm_front": 38,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 24,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 34.7,
+       "shin_front": -65.4,
+       "foot_front": -12,
+       "thigh_back": -20,
+       "shin_back": -3,
+       "foot_back": 23,
+       "needle": -20,
+       "key": 0
+      }
+     },
+     "ease": "in"
+    },
+    {
+     "t": 32,
+     "pose": {
+      "root": [
+       0,
+       -11
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -5,
+       "head": 7,
+       "upper_arm_front": 39,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 25,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 30.9,
+       "shin_front": -41,
+       "foot_front": 10.1,
+       "thigh_back": -5.2,
+       "shin_back": -27.4,
+       "foot_back": 32.6,
+       "needle": 0,
+       "key": 0
+      }
+     },
+     "ease": "out"
+    }
+   ]
+  },
+  "crouch": {
+   "loop": true,
+   "length": 60,
+   "keys": [
+    {
+     "t": 0,
+     "pose": {
+      "root": [
+       -0.8,
+       -69
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -18,
+       "head": 14,
+       "upper_arm_front": 68,
+       "forearm_front": 110,
+       "hand_front": 8,
+       "upper_arm_back": 50,
+       "forearm_back": 138,
+       "hand_back": 6,
+       "thigh_front": 78.6,
+       "shin_front": -114.4,
+       "foot_front": 35.8,
+       "thigh_back": 25,
+       "shin_back": -110.3,
+       "foot_back": 85.3,
+       "needle": 22,
+       "key": 0
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 3,
+     "pose": {
+      "root": [
+       -0.9,
+       -66
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -18,
+       "head": 14.1,
+       "upper_arm_front": 68,
+       "forearm_front": 110,
+       "hand_front": 8,
+       "upper_arm_back": 50,
+       "forearm_back": 138,
+       "hand_back": 6,
+       "thigh_front": 76.4,
+       "shin_front": -111.6,
+       "foot_front": 35.2,
+       "thigh_back": 24.8,
+       "shin_back": -107.6,
+       "foot_back": 82.9,
+       "needle": 20.9,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 30,
+     "pose": {
+      "root": [
+       -3.2,
+       -69
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -18,
+       "head": 18,
+       "upper_arm_front": 68,
+       "forearm_front": 110,
+       "hand_front": 8,
+       "upper_arm_back": 50,
+       "forearm_back": 138,
+       "hand_back": 6,
+       "thigh_front": 79.8,
+       "shin_front": -113.5,
+       "foot_front": 33.7,
+       "thigh_back": 27.1,
+       "shin_back": -111.4,
+       "foot_back": 84.4,
+       "needle": -22,
+       "key": 0
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 33,
+     "pose": {
+      "root": [
+       -3.1,
+       -66
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -18,
+       "head": 17.9,
+       "upper_arm_front": 68,
+       "forearm_front": 110,
+       "hand_front": 8,
+       "upper_arm_back": 50,
+       "forearm_back": 138,
+       "hand_back": 6,
+       "thigh_front": 77.6,
+       "shin_front": -110.7,
+       "foot_front": 33.2,
+       "thigh_back": 26.7,
+       "shin_back": -108.7,
+       "foot_back": 82,
+       "needle": -20.9,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    }
+   ]
+  },
+  "jump": {
+   "keys": [
+    {
+     "t": 0,
+     "pose": {
+      "root": [
+       0,
+       0
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -6,
+       "head": 8,
+       "upper_arm_front": 66,
+       "forearm_front": 110,
+       "hand_front": 10,
+       "upper_arm_back": 46,
+       "forearm_back": 140,
+       "hand_back": 5,
+       "thigh_front": 10,
+       "shin_front": -20,
+       "foot_front": 10,
+       "thigh_back": -10,
+       "shin_back": -10,
+       "foot_back": -12,
+       "needle": -10
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 9,
+     "pose": {
+      "root": [
+       0,
+       0
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -12,
+       "head": 10,
+       "upper_arm_front": 82,
+       "forearm_front": 105,
+       "hand_front": 5,
+       "upper_arm_back": 62,
+       "forearm_back": 132,
+       "hand_back": 3,
+       "thigh_front": 100,
+       "shin_front": -120,
+       "foot_front": -12,
+       "thigh_back": 65,
+       "shin_back": -115,
+       "foot_back": -12,
+       "needle": 25
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 26,
+     "pose": {
+      "root": [
+       0,
+       0
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -12,
+       "head": 10,
+       "upper_arm_front": 82,
+       "forearm_front": 105,
+       "hand_front": 5,
+       "upper_arm_back": 62,
+       "forearm_back": 132,
+       "hand_back": 3,
+       "thigh_front": 100,
+       "shin_front": -120,
+       "foot_front": -12,
+       "thigh_back": 65,
+       "shin_back": -115,
+       "foot_back": -12,
+       "needle": 25
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 38,
+     "pose": {
+      "root": [
+       0,
+       0
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -6,
+       "head": 8,
+       "upper_arm_front": 56,
+       "forearm_front": 115,
+       "hand_front": 10,
+       "upper_arm_back": 36,
+       "forearm_back": 145,
+       "hand_back": 5,
+       "thigh_front": 30,
+       "shin_front": -35,
+       "foot_front": -12,
+       "thigh_back": -5,
+       "shin_back": -25,
+       "foot_back": -12,
+       "needle": -15
+      }
+     },
+     "ease": "in"
+    }
+   ]
+  },
+  "block_high": {
+   "keys": [
+    {
+     "t": 0,
+     "pose": {
+      "root": [
+       -1.5,
+       -10.5
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -3.5,
+       "head": 1.5,
+       "upper_arm_front": 45.5,
+       "forearm_front": 131,
+       "hand_front": 5,
+       "upper_arm_back": 32.5,
+       "forearm_back": 151,
+       "hand_back": 4,
+       "thigh_front": 30.6,
+       "shin_front": -39.2,
+       "foot_front": 8.6,
+       "thigh_back": -4.5,
+       "shin_back": -27.4,
+       "foot_back": 31.9,
+       "needle": -4,
+       "key": 0
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 3,
+     "pose": {
+      "root": [
+       -3,
+       -12
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -2,
+       "head": -4,
+       "upper_arm_front": 52,
+       "forearm_front": 132,
+       "hand_front": 4,
+       "upper_arm_back": 40,
+       "forearm_back": 148,
+       "hand_back": 4,
+       "thigh_front": 32.7,
+       "shin_front": -41.9,
+       "foot_front": 9.2,
+       "thigh_back": -1.2,
+       "shin_back": -33.4,
+       "foot_back": 34.5,
+       "needle": 14,
+       "key": 0
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 8,
+     "pose": {
+      "root": [
+       -3,
+       -12
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -2,
+       "head": -4,
+       "upper_arm_front": 52,
+       "forearm_front": 132,
+       "hand_front": 4,
+       "upper_arm_back": 40,
+       "forearm_back": 148,
+       "hand_back": 4,
+       "thigh_front": 32.7,
+       "shin_front": -41.9,
+       "foot_front": 9.2,
+       "thigh_back": -1.2,
+       "shin_back": -33.4,
+       "foot_back": 34.5,
+       "needle": -8,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    }
+   ]
+  },
+  "block_low": {
+   "keys": [
+    {
+     "t": 0,
+     "pose": {
+      "root": [
+       -3,
+       -68
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -16,
+       "head": 11,
+       "upper_arm_front": 55,
+       "forearm_front": 106,
+       "hand_front": 9,
+       "upper_arm_back": 37,
+       "forearm_back": 136.5,
+       "hand_back": 5.5,
+       "thigh_front": 79,
+       "shin_front": -112.6,
+       "foot_front": 33.7,
+       "thigh_back": 26.8,
+       "shin_back": -110.5,
+       "foot_back": 83.6,
+       "needle": -4,
+       "key": 0
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 3,
+     "pose": {
+      "root": [
+       -4,
+       -70
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -14,
+       "head": 6,
+       "upper_arm_front": 42,
+       "forearm_front": 102,
+       "hand_front": 10,
+       "upper_arm_back": 24,
+       "forearm_back": 135,
+       "hand_back": 5,
+       "thigh_front": 80.9,
+       "shin_front": -114,
+       "foot_front": 33.1,
+       "thigh_back": 27.9,
+       "shin_back": -112.7,
+       "foot_back": 84.8,
+       "needle": 14,
+       "key": 0
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 8,
+     "pose": {
+      "root": [
+       -4,
+       -70
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -14,
+       "head": 6,
+       "upper_arm_front": 42,
+       "forearm_front": 102,
+       "hand_front": 10,
+       "upper_arm_back": 24,
+       "forearm_back": 135,
+       "hand_back": 5,
+       "thigh_front": 80.9,
+       "shin_front": -114,
+       "foot_front": 33.1,
+       "thigh_back": 27.9,
+       "shin_back": -112.7,
+       "foot_back": 84.8,
+       "needle": -8,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    }
+   ]
+  },
+  "hit": {
+   "keys": [
+    {
+     "t": 0,
+     "pose": {
+      "root": [
+       -8,
+       -12
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": 14,
+       "head": 12,
+       "upper_arm_front": -4,
+       "forearm_front": 100,
+       "hand_front": -10,
+       "upper_arm_back": -24,
+       "forearm_back": 130,
+       "hand_back": -10,
+       "thigh_front": 33.6,
+       "shin_front": -39.2,
+       "foot_front": 5.7,
+       "thigh_back": 2.8,
+       "shin_back": -37.3,
+       "foot_back": 34.4,
+       "needle": -40,
+       "key": 0
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 5,
+     "pose": {
+      "root": [
+       -8,
+       -12
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": 18,
+       "head": 12,
+       "upper_arm_front": -8,
+       "forearm_front": 100,
+       "hand_front": -10,
+       "upper_arm_back": -28,
+       "forearm_back": 130,
+       "hand_back": -10,
+       "thigh_front": 33.6,
+       "shin_front": -39.2,
+       "foot_front": 5.7,
+       "thigh_back": 2.8,
+       "shin_back": -37.3,
+       "foot_back": 34.4,
+       "needle": 30,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 11,
+     "pose": {
+      "root": [
+       -4,
+       -10.5
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": 4.5,
+       "head": 9.5,
+       "upper_arm_front": 17.5,
+       "forearm_front": 115,
+       "hand_front": -2,
+       "upper_arm_back": 0.5,
+       "forearm_back": 142,
+       "hand_back": -3,
+       "thigh_front": 31,
+       "shin_front": -37.9,
+       "foot_front": 6.8,
+       "thigh_back": -2.3,
+       "shin_back": -29.9,
+       "foot_back": 32.2,
+       "needle": -20,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 18,
+     "pose": {
+      "root": [
+       0,
+       -9
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -5,
+       "head": 7,
+       "upper_arm_front": 39,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 25,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 28.3,
+       "shin_front": -36.1,
+       "foot_front": 7.8,
+       "thigh_back": -8.8,
+       "shin_back": -19.6,
+       "foot_back": 28.4,
+       "needle": 0,
+       "key": 0
+      }
+     }
+    }
+   ]
+  },
+  "hit_low": {
+   "keys": [
+    {
+     "t": 0,
+     "pose": {
+      "root": [
+       -8,
+       -66
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": 4,
+       "head": 16,
+       "upper_arm_front": 16,
+       "forearm_front": 80,
+       "hand_front": -10,
+       "upper_arm_back": -9,
+       "forearm_back": 115,
+       "hand_back": -10,
+       "thigh_front": 79.7,
+       "shin_front": -108.6,
+       "foot_front": 28.9,
+       "thigh_back": 30.9,
+       "shin_back": -110.8,
+       "foot_back": 79.9,
+       "needle": -40,
+       "key": 0
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 5,
+     "pose": {
+      "root": [
+       -8,
+       -66
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": 8,
+       "head": 12,
+       "upper_arm_front": 12,
+       "forearm_front": 80,
+       "hand_front": -10,
+       "upper_arm_back": -13,
+       "forearm_back": 115,
+       "hand_back": -10,
+       "thigh_front": 79.7,
+       "shin_front": -108.6,
+       "foot_front": 28.9,
+       "thigh_back": 30.9,
+       "shin_back": -110.8,
+       "foot_back": 79.9,
+       "needle": 30,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 16,
+     "pose": {
+      "root": [
+       -2,
+       -66
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -18,
+       "head": 16,
+       "upper_arm_front": 68,
+       "forearm_front": 110,
+       "hand_front": 8,
+       "upper_arm_back": 50,
+       "forearm_back": 138,
+       "hand_back": 6,
+       "thigh_front": 77,
+       "shin_front": -111.2,
+       "foot_front": 34.2,
+       "thigh_back": 25.7,
+       "shin_back": -108.2,
+       "foot_back": 82.4,
+       "needle": 0,
+       "key": 0
+      }
+     }
+    }
+   ]
+  },
+  "hit_air": {
+   "keys": [
+    {
+     "t": 0,
+     "pose": {
+      "root": [
+       0,
+       0
+      ],
+      "bones": {
+       "pelvis": 25,
+       "torso": 10,
+       "head": 15,
+       "upper_arm_front": 115,
+       "forearm_front": 40,
+       "hand_front": 10,
+       "upper_arm_back": 135,
+       "forearm_back": 50,
+       "hand_back": 10,
+       "thigh_front": 15,
+       "shin_front": -30,
+       "foot_front": -12,
+       "thigh_back": -5,
+       "shin_back": -40,
+       "foot_back": -12,
+       "needle": -45
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 10,
+     "pose": {
+      "root": [
+       0,
+       0
+      ],
+      "bones": {
+       "pelvis": 40,
+       "torso": 15,
+       "head": 15,
+       "upper_arm_front": 125,
+       "forearm_front": 40,
+       "hand_front": 10,
+       "upper_arm_back": 145,
+       "forearm_back": 40,
+       "hand_back": 10,
+       "thigh_front": 10,
+       "shin_front": -20,
+       "foot_front": -12,
+       "thigh_back": -5,
+       "shin_back": -40,
+       "foot_back": -12,
+       "needle": 40
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 30,
+     "pose": {
+      "root": [
+       0,
+       0
+      ],
+      "bones": {
+       "pelvis": 55,
+       "torso": 15,
+       "head": 10,
+       "upper_arm_front": 110,
+       "forearm_front": 40,
+       "hand_front": 10,
+       "upper_arm_back": 130,
+       "forearm_back": 40,
+       "hand_back": 10,
+       "thigh_front": -5,
+       "shin_front": -20,
+       "foot_front": -12,
+       "thigh_back": -20,
+       "shin_back": -40,
+       "foot_back": -12,
+       "needle": 40
+      }
+     }
+    }
+   ]
+  },
+  "knockdown": {
+   "keys": [
+    {
+     "t": 0,
+     "pose": {
+      "root": [
+       -16,
+       -60
+      ],
+      "bones": {
+       "pelvis": 40,
+       "torso": 12,
+       "head": 12,
+       "upper_arm_front": 78,
+       "forearm_front": 40,
+       "hand_front": 10,
+       "upper_arm_back": 108,
+       "forearm_back": 40,
+       "hand_back": 10,
+       "thigh_front": 10,
+       "shin_front": -20,
+       "foot_front": -30,
+       "thigh_back": -10,
+       "shin_back": -20,
+       "foot_back": -10,
+       "needle": 40
+      }
+     },
+     "ease": "in"
+    },
+    {
+     "t": 9,
+     "pose": {
+      "root": [
+       -30,
+       -128
+      ],
+      "bones": {
+       "pelvis": 88,
+       "torso": 2,
+       "head": 6,
+       "upper_arm_front": 168,
+       "forearm_front": 10,
+       "hand_front": 4,
+       "upper_arm_back": 130,
+       "forearm_back": 20,
+       "hand_back": 10,
+       "thigh_front": -2,
+       "shin_front": 2,
+       "foot_front": -8,
+       "thigh_back": -6,
+       "shin_back": 2,
+       "foot_back": -14,
+       "needle": -60,
+       "key": -100
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 14,
+     "pose": {
+      "root": [
+       -30,
+       -112
+      ],
+      "bones": {
+       "pelvis": 80,
+       "torso": 0,
+       "head": 4,
+       "upper_arm_front": 178,
+       "forearm_front": 10,
+       "hand_front": 4,
+       "upper_arm_back": 140,
+       "forearm_back": 20,
+       "hand_back": 10,
+       "thigh_front": 18,
+       "shin_front": -4,
+       "foot_front": -14,
+       "thigh_back": 12,
+       "shin_back": -2,
+       "foot_back": -20,
+       "needle": 50,
+       "key": -100
+      }
+     },
+     "ease": "in"
+    },
+    {
+     "t": 19,
+     "pose": {
+      "root": [
+       -30,
+       -128
+      ],
+      "bones": {
+       "pelvis": 88,
+       "torso": 2,
+       "head": 6,
+       "upper_arm_front": 168,
+       "forearm_front": 10,
+       "hand_front": 4,
+       "upper_arm_back": 130,
+       "forearm_back": 20,
+       "hand_back": 10,
+       "thigh_front": -2,
+       "shin_front": 2,
+       "foot_front": -8,
+       "thigh_back": -6,
+       "shin_back": 2,
+       "foot_back": -14,
+       "needle": -60,
+       "key": -100
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 30,
+     "pose": {
+      "root": [
+       -30,
+       -128
+      ],
+      "bones": {
+       "pelvis": 88,
+       "torso": 2,
+       "head": 6,
+       "upper_arm_front": 168,
+       "forearm_front": 10,
+       "hand_front": 4,
+       "upper_arm_back": 130,
+       "forearm_back": 20,
+       "hand_back": 10,
+       "thigh_front": -2,
+       "shin_front": 2,
+       "foot_front": -8,
+       "thigh_back": -6,
+       "shin_back": 2,
+       "foot_back": -14,
+       "needle": -30,
+       "key": -100
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 44,
+     "pose": {
+      "root": [
+       -30,
+       -128
+      ],
+      "bones": {
+       "pelvis": 88,
+       "torso": 2,
+       "head": 6,
+       "upper_arm_front": 168,
+       "forearm_front": 10,
+       "hand_front": 4,
+       "upper_arm_back": 130,
+       "forearm_back": 20,
+       "hand_back": 10,
+       "thigh_front": -2,
+       "shin_front": 2,
+       "foot_front": -8,
+       "thigh_back": -6,
+       "shin_back": 2,
+       "foot_back": -14,
+       "needle": -55,
+       "key": -100
+      }
+     }
+    }
+   ]
+  },
+  "getup": {
+   "keys": [
+    {
+     "t": 0,
+     "pose": {
+      "root": [
+       -30,
+       -128
+      ],
+      "bones": {
+       "pelvis": 88,
+       "torso": 2,
+       "head": 6,
+       "upper_arm_front": 168,
+       "forearm_front": 10,
+       "hand_front": 4,
+       "upper_arm_back": 130,
+       "forearm_back": 20,
+       "hand_back": 10,
+       "thigh_front": -2,
+       "shin_front": 2,
+       "foot_front": -8,
+       "thigh_back": -6,
+       "shin_back": 2,
+       "foot_back": -14,
+       "needle": -60,
+       "key": -100
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 7,
+     "pose": {
+      "root": [
+       -24,
+       -90
+      ],
+      "bones": {
+       "pelvis": 40,
+       "torso": -30,
+       "head": 0,
+       "upper_arm_front": -40,
+       "forearm_front": 20,
+       "hand_front": 10,
+       "upper_arm_back": -50,
+       "forearm_back": 20,
+       "hand_back": 10,
+       "thigh_front": 61,
+       "shin_front": -117.5,
+       "foot_front": 16.5,
+       "thigh_back": 40.9,
+       "shin_back": -142.4,
+       "foot_back": 61.5,
+       "needle": 20
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 13,
+     "pose": {
+      "root": [
+       -6,
+       -60
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -20,
+       "head": 18,
+       "upper_arm_front": 70,
+       "forearm_front": 110,
+       "hand_front": 8,
+       "upper_arm_back": 52,
+       "forearm_back": 138,
+       "hand_back": 6,
+       "thigh_front": 74.4,
+       "shin_front": -103.9,
+       "foot_front": 29.4,
+       "thigh_back": 28.1,
+       "shin_back": -104.3,
+       "foot_back": 76.1,
+       "needle": -15,
+       "key": 0
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 20,
+     "pose": {
+      "root": [
+       0,
+       -9
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -5,
+       "head": 7,
+       "upper_arm_front": 39,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 25,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 28.3,
+       "shin_front": -36.1,
+       "foot_front": 7.8,
+       "thigh_back": -8.8,
+       "shin_back": -19.6,
+       "foot_back": 28.4,
+       "needle": 0,
+       "key": 0
+      }
+     }
+    }
+   ]
+  },
+  "dash_forward": {
+   "keys": [
+    {
+     "t": 0,
+     "pose": {
+      "root": [
+       3,
+       -16.5
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -15.5,
+       "head": 19.5,
+       "upper_arm_front": 57.5,
+       "forearm_front": 120,
+       "hand_front": 8,
+       "upper_arm_back": 40.5,
+       "forearm_back": 147,
+       "hand_back": 4.5,
+       "thigh_front": 58.4,
+       "shin_front": -69.1,
+       "foot_front": -12,
+       "thigh_back": -5.7,
+       "shin_back": -34.6,
+       "foot_back": 40.3,
+       "needle": 15,
+       "key": 0
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 4,
+     "pose": {
+      "root": [
+       6,
+       -24
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -26,
+       "head": 32,
+       "upper_arm_front": 76,
+       "forearm_front": 110,
+       "hand_front": 10,
+       "upper_arm_back": 56,
+       "forearm_back": 140,
+       "hand_back": 5,
+       "thigh_front": 64,
+       "shin_front": -80.2,
+       "foot_front": -12,
+       "thigh_back": -6.1,
+       "shin_back": -43.1,
+       "foot_back": 49.2,
+       "needle": 30,
+       "key": 0
+      }
+     },
+     "ease": "linear"
+    },
+    {
+     "t": 11,
+     "pose": {
+      "root": [
+       10,
+       -20
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -24,
+       "head": 30,
+       "upper_arm_front": 58,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 44,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 44.3,
+       "shin_front": -46.8,
+       "foot_front": 2.5,
+       "thigh_back": 12.3,
+       "shin_back": -70.7,
+       "foot_back": -12,
+       "needle": -25,
+       "key": 0
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 16,
+     "pose": {
+      "root": [
+       0,
+       -9
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -5,
+       "head": 7,
+       "upper_arm_front": 39,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 25,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 28.3,
+       "shin_front": -36.1,
+       "foot_front": 7.8,
+       "thigh_back": -8.8,
+       "shin_back": -19.6,
+       "foot_back": 28.4,
+       "needle": 0,
+       "key": 0
+      }
+     }
+    }
+   ]
+  },
+  "dash_back": {
+   "keys": [
+    {
+     "t": 0,
+     "pose": {
+      "root": [
+       -5,
+       -5.5
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": 0.5,
+       "head": 3.5,
+       "upper_arm_front": 36.5,
+       "forearm_front": 131,
+       "hand_front": 6,
+       "upper_arm_back": 23.5,
+       "forearm_back": 153,
+       "hand_back": 3,
+       "thigh_front": 44.8,
+       "shin_front": -71.3,
+       "foot_front": -12,
+       "thigh_back": 1.2,
+       "shin_back": -50.3,
+       "foot_back": -12,
+       "needle": -15,
+       "key": 0
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 5,
+     "pose": {
+      "root": [
+       -10,
+       -2
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": 6,
+       "head": 0,
+       "upper_arm_front": 34,
+       "forearm_front": 132,
+       "hand_front": 6,
+       "upper_arm_back": 22,
+       "forearm_back": 152,
+       "hand_back": 2,
+       "thigh_front": 43.8,
+       "shin_front": -64.8,
+       "foot_front": -12,
+       "thigh_back": 2.5,
+       "shin_back": -47.6,
+       "foot_back": -12,
+       "needle": -30,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 13,
+     "pose": {
+      "root": [
+       -6,
+       -16
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -2,
+       "head": 2,
+       "upper_arm_front": 36,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 22,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 38.3,
+       "shin_front": -47.9,
+       "foot_front": 9.6,
+       "thigh_back": -1,
+       "shin_back": -39.1,
+       "foot_back": 40.1,
+       "needle": 20,
+       "key": 0
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 18,
+     "pose": {
+      "root": [
+       0,
+       -9
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -5,
+       "head": 7,
+       "upper_arm_front": 39,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 25,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 28.3,
+       "shin_front": -36.1,
+       "foot_front": 7.8,
+       "thigh_back": -8.8,
+       "shin_back": -19.6,
+       "foot_back": 28.4,
+       "needle": 0,
+       "key": 0
+      }
+     }
+    }
+   ]
+  },
+  "parry": {
+   "keys": [
+    {
+     "t": 0,
+     "pose": {
+      "root": [
+       0,
+       -9
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -5,
+       "head": 7,
+       "upper_arm_front": 39,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 25,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 28.3,
+       "shin_front": -36.1,
+       "foot_front": 7.8,
+       "thigh_back": -8.8,
+       "shin_back": -19.6,
+       "foot_back": 28.4,
+       "needle": 0,
+       "key": 0
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 2,
+     "pose": {
+      "root": [
+       -2,
+       -11
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": 2,
+       "head": -4,
+       "upper_arm_front": 96,
+       "forearm_front": 88,
+       "hand_front": 14,
+       "upper_arm_back": 22,
+       "forearm_back": 152,
+       "hand_back": 4,
+       "thigh_front": 31.3,
+       "shin_front": -40.1,
+       "foot_front": 8.8,
+       "thigh_back": -3.4,
+       "shin_back": -29.5,
+       "foot_back": 32.9,
+       "needle": -30,
+       "key": 0
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 8,
+     "pose": {
+      "root": [
+       -2,
+       -11
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": 2,
+       "head": -4,
+       "upper_arm_front": 96,
+       "forearm_front": 88,
+       "hand_front": 14,
+       "upper_arm_back": 22,
+       "forearm_back": 152,
+       "hand_back": 4,
+       "thigh_front": 31.3,
+       "shin_front": -40.1,
+       "foot_front": 8.8,
+       "thigh_back": -3.4,
+       "shin_back": -29.5,
+       "foot_back": 32.9,
+       "needle": -30,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 14,
+     "pose": {
+      "root": [
+       0,
+       -9
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -5,
+       "head": 7,
+       "upper_arm_front": 39,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 25,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 28.3,
+       "shin_front": -36.1,
+       "foot_front": 7.8,
+       "thigh_back": -8.8,
+       "shin_back": -19.6,
+       "foot_back": 28.4,
+       "needle": 26,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 20,
+     "pose": {
+      "root": [
+       0,
+       -9
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -5,
+       "head": 7,
+       "upper_arm_front": 39,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 25,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 28.3,
+       "shin_front": -36.1,
+       "foot_front": 7.8,
+       "thigh_back": -8.8,
+       "shin_back": -19.6,
+       "foot_back": 28.4,
+       "needle": 0,
+       "key": 0
+      }
+     }
+    }
+   ]
+  },
+  "throw": {
+   "keys": [
+    {
+     "t": 0,
+     "pose": {
+      "root": [
+       0,
+       -9
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -5,
+       "head": 7,
+       "upper_arm_front": 39,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 25,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 28.3,
+       "shin_front": -36.1,
+       "foot_front": 7.8,
+       "thigh_back": -8.8,
+       "shin_back": -19.6,
+       "foot_back": 28.4,
+       "needle": 0,
+       "key": 0
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 5,
+     "pose": {
+      "root": [
+       8,
+       -12
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -14,
+       "head": 18,
+       "upper_arm_front": 102,
+       "forearm_front": 6,
+       "hand_front": -4,
+       "upper_arm_back": 96,
+       "forearm_back": 14,
+       "hand_back": -6,
+       "thigh_front": 29.9,
+       "shin_front": -46,
+       "foot_front": 16.1,
+       "thigh_back": -12.2,
+       "shin_back": -19.9,
+       "foot_back": 32.1,
+       "needle": 15,
+       "key": 0
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 14,
+     "pose": {
+      "root": [
+       8,
+       -12
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -14,
+       "head": 18,
+       "upper_arm_front": 102,
+       "forearm_front": 6,
+       "hand_front": -4,
+       "upper_arm_back": 96,
+       "forearm_back": 14,
+       "hand_back": -6,
+       "thigh_front": 29.9,
+       "shin_front": -46,
+       "foot_front": 16.1,
+       "thigh_back": -12.2,
+       "shin_back": -19.9,
+       "foot_back": 32.1,
+       "needle": 15,
+       "key": 0
+      }
+     }
+    },
+    {
+     "t": 24,
+     "pose": {
+      "root": [
+       2,
+       -6
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": 12,
+       "head": 2,
+       "upper_arm_front": 148,
+       "forearm_front": 30,
+       "hand_front": 0,
+       "upper_arm_back": 138,
+       "forearm_back": 35,
+       "hand_back": 0,
+       "thigh_front": 23.4,
+       "shin_front": -28.3,
+       "foot_front": 4.9,
+       "thigh_back": -19.6,
+       "shin_back": -3,
+       "foot_back": 22.6,
+       "needle": -30,
+       "key": 0
+      }
+     },
+     "ease": "in"
+    },
+    {
+     "t": 32,
+     "pose": {
+      "root": [
+       12,
+       -26
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -34,
+       "head": 16,
+       "upper_arm_front": 104,
+       "forearm_front": -10,
+       "hand_front": -10,
+       "upper_arm_back": 94,
+       "forearm_back": -10,
+       "hand_back": -10,
+       "thigh_front": 46.7,
+       "shin_front": -66.4,
+       "foot_front": 19.7,
+       "thigh_back": -1.3,
+       "shin_back": -50.6,
+       "foot_back": 51.8,
+       "needle": 45,
+       "key": 0
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 42,
+     "pose": {
+      "root": [
+       12,
+       -26
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -34,
+       "head": 16,
+       "upper_arm_front": 104,
+       "forearm_front": -10,
+       "hand_front": -10,
+       "upper_arm_back": 94,
+       "forearm_back": -10,
+       "hand_back": -10,
+       "thigh_front": 46.7,
+       "shin_front": -66.4,
+       "foot_front": 19.7,
+       "thigh_back": -1.3,
+       "shin_back": -50.6,
+       "foot_back": 51.8,
+       "needle": 45,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 56,
+     "pose": {
+      "root": [
+       0,
+       -9
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -5,
+       "head": 7,
+       "upper_arm_front": 39,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 25,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 28.3,
+       "shin_front": -36.1,
+       "foot_front": 7.8,
+       "thigh_back": -8.8,
+       "shin_back": -19.6,
+       "foot_back": 28.4,
+       "needle": 0,
+       "key": 0
+      }
+     }
+    }
+   ]
+  },
+  "thrown": {
+   "keys": [
+    {
+     "t": 0,
+     "pose": {
+      "root": [
+       -4,
+       -10
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": 10,
+       "head": 6,
+       "upper_arm_front": 50,
+       "forearm_front": 70,
+       "hand_front": -10,
+       "upper_arm_back": 60,
+       "forearm_back": 70,
+       "hand_back": -10,
+       "thigh_front": 30.4,
+       "shin_front": -36.6,
+       "foot_front": 6.2,
+       "thigh_back": -3,
+       "shin_back": -28.3,
+       "foot_back": 31.3,
+       "needle": -30,
+       "key": 0
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 10,
+     "pose": {
+      "root": [
+       -4,
+       -10
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": 10,
+       "head": 6,
+       "upper_arm_front": 50,
+       "forearm_front": 70,
+       "hand_front": -10,
+       "upper_arm_back": 60,
+       "forearm_back": 70,
+       "hand_back": -10,
+       "thigh_front": 30.4,
+       "shin_front": -36.6,
+       "foot_front": 6.2,
+       "thigh_back": -3,
+       "shin_back": -28.3,
+       "foot_back": 31.3,
+       "needle": -30,
+       "key": 0
+      }
+     }
+    },
+    {
+     "t": 18,
+     "pose": {
+      "root": [
+       10,
+       30
+      ],
+      "bones": {
+       "pelvis": 30,
+       "torso": 10,
+       "head": 20,
+       "upper_arm_front": 150,
+       "forearm_front": 40,
+       "hand_front": 10,
+       "upper_arm_back": 170,
+       "forearm_back": 40,
+       "hand_back": 10,
+       "thigh_front": 20,
+       "shin_front": -30,
+       "foot_front": -12,
+       "thigh_back": 0,
+       "shin_back": -40,
+       "foot_back": -12,
+       "needle": 40
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 26,
+     "pose": {
+      "root": [
+       30,
+       10
+      ],
+      "bones": {
+       "pelvis": 120,
+       "torso": 10,
+       "head": 10,
+       "upper_arm_front": 120,
+       "forearm_front": 40,
+       "hand_front": 0,
+       "upper_arm_back": 110,
+       "forearm_back": 40,
+       "hand_back": 0,
+       "thigh_front": -10,
+       "shin_front": -20,
+       "foot_front": -12,
+       "thigh_back": -30,
+       "shin_back": -20,
+       "foot_back": -12,
+       "needle": -40
+      }
+     },
+     "ease": "in"
+    },
+    {
+     "t": 32,
+     "pose": {
+      "root": [
+       -30,
+       -128
+      ],
+      "bones": {
+       "pelvis": 88,
+       "torso": 2,
+       "head": 6,
+       "upper_arm_front": 168,
+       "forearm_front": 10,
+       "hand_front": 4,
+       "upper_arm_back": 130,
+       "forearm_back": 20,
+       "hand_back": 10,
+       "thigh_front": -2,
+       "shin_front": 2,
+       "foot_front": -8,
+       "thigh_back": -6,
+       "shin_back": 2,
+       "foot_back": -14,
+       "needle": -60,
+       "key": -100
+      }
+     }
+    }
+   ]
+  },
+  "dizzy": {
+   "loop": true,
+   "length": 80,
+   "keys": [
+    {
+     "t": 0,
+     "pose": {
+      "root": [
+       4,
+       -16
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -4,
+       "head": 16,
+       "upper_arm_front": 14,
+       "forearm_front": 20,
+       "hand_front": 0,
+       "upper_arm_back": -1,
+       "forearm_back": 25,
+       "hand_back": 0,
+       "thigh_front": 34,
+       "shin_front": -53.8,
+       "foot_front": 19.9,
+       "thigh_back": 2.3,
+       "shin_back": -42.3,
+       "foot_back": 40,
+       "needle": 55,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 20,
+     "pose": {
+      "root": [
+       0,
+       -20
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -14,
+       "head": -4,
+       "upper_arm_front": 24,
+       "forearm_front": 20,
+       "hand_front": 0,
+       "upper_arm_back": 9,
+       "forearm_back": 25,
+       "hand_back": 0,
+       "thigh_front": 39,
+       "shin_front": -59.7,
+       "foot_front": 20.7,
+       "thigh_back": 8.5,
+       "shin_back": -52.7,
+       "foot_back": 44.2,
+       "needle": 0,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 40,
+     "pose": {
+      "root": [
+       -5,
+       -16
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -6,
+       "head": 22,
+       "upper_arm_front": 16,
+       "forearm_front": 20,
+       "hand_front": 0,
+       "upper_arm_back": 1,
+       "forearm_back": 25,
+       "hand_back": 0,
+       "thigh_front": 36.7,
+       "shin_front": -51,
+       "foot_front": 14.3,
+       "thigh_back": 8.9,
+       "shin_back": -47.9,
+       "foot_back": 39,
+       "needle": -55,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 60,
+     "pose": {
+      "root": [
+       0,
+       -22
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -16,
+       "head": -4,
+       "upper_arm_front": 26,
+       "forearm_front": 20,
+       "hand_front": 0,
+       "upper_arm_back": 11,
+       "forearm_back": 25,
+       "hand_back": 0,
+       "thigh_front": 40.7,
+       "shin_front": -62.9,
+       "foot_front": 22.2,
+       "thigh_back": 9.9,
+       "shin_back": -56.2,
+       "foot_back": 46.2,
+       "needle": 0,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    }
+   ]
+  },
+  "intro": {
+   "keys": [
+    {
+     "t": 0,
+     "pose": {
+      "root": [
+       0,
+       -24
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -24,
+       "head": -16,
+       "upper_arm_front": 22,
+       "forearm_front": 4,
+       "hand_front": 0,
+       "upper_arm_back": 16,
+       "forearm_back": 4,
+       "hand_back": 0,
+       "thigh_front": 41.7,
+       "shin_front": -66.5,
+       "foot_front": 24.8,
+       "thigh_back": 14,
+       "shin_back": -61.4,
+       "foot_back": 47.3,
+       "needle": -55,
+       "key": 0
+      }
+     },
+     "ease": "hold"
+    },
+    {
+     "t": 16,
+     "pose": {
+      "root": [
+       0,
+       -24
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -24,
+       "head": -16,
+       "upper_arm_front": 22,
+       "forearm_front": 4,
+       "hand_front": 0,
+       "upper_arm_back": 16,
+       "forearm_back": 4,
+       "hand_back": 0,
+       "thigh_front": 41.7,
+       "shin_front": -66.5,
+       "foot_front": 24.8,
+       "thigh_back": 14,
+       "shin_back": -61.4,
+       "foot_back": 47.3,
+       "needle": -55,
+       "key": 0
+      },
+      "scale": {
+       "key": [
+        1,
+        1
+       ]
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 20,
+     "pose": {
+      "root": [
+       0,
+       -24
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -24,
+       "head": -16,
+       "upper_arm_front": 22,
+       "forearm_front": 4,
+       "hand_front": 0,
+       "upper_arm_back": 16,
+       "forearm_back": 4,
+       "hand_back": 0,
+       "thigh_front": 41.7,
+       "shin_front": -66.5,
+       "foot_front": 24.8,
+       "thigh_back": 14,
+       "shin_back": -61.4,
+       "foot_back": 47.3,
+       "needle": -55,
+       "key": 0
+      },
+      "scale": {
+       "key": [
+        1,
+        0.25
+       ]
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 24,
+     "pose": {
+      "root": [
+       0,
+       -24
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -24,
+       "head": -16,
+       "upper_arm_front": 22,
+       "forearm_front": 4,
+       "hand_front": 0,
+       "upper_arm_back": 16,
+       "forearm_back": 4,
+       "hand_back": 0,
+       "thigh_front": 41.7,
+       "shin_front": -66.5,
+       "foot_front": 24.8,
+       "thigh_back": 14,
+       "shin_back": -61.4,
+       "foot_back": 47.3,
+       "needle": -55,
+       "key": 0
+      },
+      "scale": {
+       "key": [
+        1,
+        1
+       ]
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 28,
+     "pose": {
+      "root": [
+       0,
+       -24
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -24,
+       "head": -16,
+       "upper_arm_front": 22,
+       "forearm_front": 4,
+       "hand_front": 0,
+       "upper_arm_back": 16,
+       "forearm_back": 4,
+       "hand_back": 0,
+       "thigh_front": 41.7,
+       "shin_front": -66.5,
+       "foot_front": 24.8,
+       "thigh_back": 14,
+       "shin_back": -61.4,
+       "foot_back": 47.3,
+       "needle": -55,
+       "key": 0
+      },
+      "scale": {
+       "key": [
+        1,
+        0.25
+       ]
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 32,
+     "pose": {
+      "root": [
+       0,
+       -24
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -24,
+       "head": -16,
+       "upper_arm_front": 22,
+       "forearm_front": 4,
+       "hand_front": 0,
+       "upper_arm_back": 16,
+       "forearm_back": 4,
+       "hand_back": 0,
+       "thigh_front": 41.7,
+       "shin_front": -66.5,
+       "foot_front": 24.8,
+       "thigh_back": 14,
+       "shin_back": -61.4,
+       "foot_back": 47.3,
+       "needle": -55,
+       "key": 0
+      },
+      "scale": {
+       "key": [
+        1,
+        1
+       ]
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 36,
+     "pose": {
+      "root": [
+       0,
+       -24
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -24,
+       "head": -16,
+       "upper_arm_front": 22,
+       "forearm_front": 4,
+       "hand_front": 0,
+       "upper_arm_back": 16,
+       "forearm_back": 4,
+       "hand_back": 0,
+       "thigh_front": 41.7,
+       "shin_front": -66.5,
+       "foot_front": 24.8,
+       "thigh_back": 14,
+       "shin_back": -61.4,
+       "foot_back": 47.3,
+       "needle": -55,
+       "key": 0
+      },
+      "scale": {
+       "key": [
+        1,
+        0.25
+       ]
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 40,
+     "pose": {
+      "root": [
+       0,
+       -24
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -24,
+       "head": -16,
+       "upper_arm_front": 22,
+       "forearm_front": 4,
+       "hand_front": 0,
+       "upper_arm_back": 16,
+       "forearm_back": 4,
+       "hand_back": 0,
+       "thigh_front": 41.7,
+       "shin_front": -66.5,
+       "foot_front": 24.8,
+       "thigh_back": 14,
+       "shin_back": -61.4,
+       "foot_back": 47.3,
+       "needle": -55,
+       "key": 0
+      },
+      "scale": {
+       "key": [
+        1,
+        1
+       ]
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 44,
+     "pose": {
+      "root": [
+       0,
+       -24
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -24,
+       "head": -16,
+       "upper_arm_front": 22,
+       "forearm_front": 4,
+       "hand_front": 0,
+       "upper_arm_back": 16,
+       "forearm_back": 4,
+       "hand_back": 0,
+       "thigh_front": 41.7,
+       "shin_front": -66.5,
+       "foot_front": 24.8,
+       "thigh_back": 14,
+       "shin_back": -61.4,
+       "foot_back": 47.3,
+       "needle": -55,
+       "key": 0
+      },
+      "scale": {
+       "key": [
+        1,
+        0.25
+       ]
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 48,
+     "pose": {
+      "root": [
+       0,
+       -20
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -18.4,
+       "head": -9.6,
+       "upper_arm_front": 21.2,
+       "forearm_front": 22.4,
+       "hand_front": 4,
+       "upper_arm_back": 13.6,
+       "forearm_back": 22.4,
+       "hand_back": 4,
+       "thigh_front": 39.1,
+       "shin_front": -59.6,
+       "foot_front": 20.5,
+       "thigh_back": 8.5,
+       "shin_back": -52.7,
+       "foot_back": 44.2,
+       "needle": -41,
+       "key": 0
+      },
+      "scale": {
+       "key": [
+        1,
+        1
+       ]
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 60,
+     "pose": {
+      "root": [
+       0,
+       -14
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -10,
+       "head": 0,
+       "upper_arm_front": 20,
+       "forearm_front": 50,
+       "hand_front": 10,
+       "upper_arm_back": 10,
+       "forearm_back": 50,
+       "hand_back": 10,
+       "thigh_front": 34.4,
+       "shin_front": -47.5,
+       "foot_front": 13.2,
+       "thigh_back": -1.4,
+       "shin_back": -36,
+       "foot_back": 37.4,
+       "needle": 30,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 70,
+     "pose": {
+      "root": [
+       0,
+       -14
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -2,
+       "head": 8,
+       "upper_arm_front": 12,
+       "forearm_front": 50,
+       "hand_front": 10,
+       "upper_arm_back": 2,
+       "forearm_back": 50,
+       "hand_back": 10,
+       "thigh_front": 34.4,
+       "shin_front": -47.5,
+       "foot_front": 13.2,
+       "thigh_back": -1.4,
+       "shin_back": -36,
+       "foot_back": 37.4,
+       "needle": -30,
+       "key": 0
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 78,
+     "pose": {
+      "root": [
+       0,
+       -12
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -5,
+       "head": 7,
+       "upper_arm_front": 39,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 25,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 32.1,
+       "shin_front": -43.3,
+       "foot_front": 11.2,
+       "thigh_back": -3.8,
+       "shin_back": -30.5,
+       "foot_back": 34.3,
+       "needle": 26,
+       "key": 0
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 90,
+     "pose": {
+      "root": [
+       0,
+       -9
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -5,
+       "head": 7,
+       "upper_arm_front": 39,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 25,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 28.3,
+       "shin_front": -36.1,
+       "foot_front": 7.8,
+       "thigh_back": -8.8,
+       "shin_back": -19.6,
+       "foot_back": 28.4,
+       "needle": -26,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 102,
+     "pose": {
+      "root": [
+       0,
+       -12
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -5,
+       "head": 7,
+       "upper_arm_front": 39,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 25,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 32.1,
+       "shin_front": -43.3,
+       "foot_front": 11.2,
+       "thigh_back": -3.8,
+       "shin_back": -30.5,
+       "foot_back": 34.3,
+       "needle": 26,
+       "key": 0
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 114,
+     "pose": {
+      "root": [
+       0,
+       -9
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -5,
+       "head": 7,
+       "upper_arm_front": 39,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 25,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 28.3,
+       "shin_front": -36.1,
+       "foot_front": 7.8,
+       "thigh_back": -8.8,
+       "shin_back": -19.6,
+       "foot_back": 28.4,
+       "needle": -26,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 120,
+     "pose": {
+      "root": [
+       0,
+       -9
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -5,
+       "head": 7,
+       "upper_arm_front": 39,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 25,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 28.3,
+       "shin_front": -36.1,
+       "foot_front": 7.8,
+       "thigh_back": -8.8,
+       "shin_back": -19.6,
+       "foot_back": 28.4,
+       "needle": 0,
+       "key": 0
+      }
+     }
+    }
+   ]
+  },
+  "victory": {
+   "loop": true,
+   "length": 96,
+   "keys": [
+    {
+     "t": 0,
+     "pose": {
+      "root": [
+       0,
+       -6
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": 4,
+       "head": 8,
+       "upper_arm_front": 126,
+       "forearm_front": 60,
+       "hand_front": 10,
+       "upper_arm_back": 26,
+       "forearm_back": 90,
+       "hand_back": 10,
+       "thigh_front": 22.7,
+       "shin_front": -30.2,
+       "foot_front": 7.6,
+       "thigh_back": -4.6,
+       "shin_back": -19.2,
+       "foot_back": 23.8,
+       "needle": 26,
+       "key": 0
+      },
+      "scale": {
+       "key": [
+        1,
+        1
+       ]
+      }
+     },
+     "ease": "in"
+    },
+    {
+     "t": 12,
+     "pose": {
+      "root": [
+       0,
+       -6
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": 4,
+       "head": 0,
+       "upper_arm_front": 66,
+       "forearm_front": 30,
+       "hand_front": -10,
+       "upper_arm_back": 26,
+       "forearm_back": 90,
+       "hand_back": 10,
+       "thigh_front": 22.7,
+       "shin_front": -30.2,
+       "foot_front": 7.6,
+       "thigh_back": -4.6,
+       "shin_back": -19.2,
+       "foot_back": 23.8,
+       "needle": 26,
+       "key": 0
+      },
+      "scale": {
+       "key": [
+        1,
+        0.25
+       ]
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 24,
+     "pose": {
+      "root": [
+       0,
+       -6
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": 4,
+       "head": 4,
+       "upper_arm_front": 96,
+       "forearm_front": 50,
+       "hand_front": 0,
+       "upper_arm_back": 26,
+       "forearm_back": 90,
+       "hand_back": 10,
+       "thigh_front": 22.7,
+       "shin_front": -30.2,
+       "foot_front": 7.6,
+       "thigh_back": -4.6,
+       "shin_back": -19.2,
+       "foot_back": 23.8,
+       "needle": -26,
+       "key": 0
+      },
+      "scale": {
+       "key": [
+        1,
+        1
+       ]
+      }
+     },
+     "ease": "in"
+    },
+    {
+     "t": 36,
+     "pose": {
+      "root": [
+       0,
+       -6
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": 4,
+       "head": 4,
+       "upper_arm_front": 76,
+       "forearm_front": 160,
+       "hand_front": 10,
+       "upper_arm_back": 26,
+       "forearm_back": 90,
+       "hand_back": 10,
+       "thigh_front": 22.7,
+       "shin_front": -30.2,
+       "foot_front": 7.6,
+       "thigh_back": -4.6,
+       "shin_back": -19.2,
+       "foot_back": 23.8,
+       "needle": -26,
+       "key": 0
+      },
+      "scale": {
+       "key": [
+        1,
+        0.25
+       ]
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 48,
+     "pose": {
+      "root": [
+       0,
+       -6
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": 4,
+       "head": 4,
+       "upper_arm_front": 106,
+       "forearm_front": 50,
+       "hand_front": 0,
+       "upper_arm_back": 26,
+       "forearm_back": 90,
+       "hand_back": 10,
+       "thigh_front": 22.7,
+       "shin_front": -30.2,
+       "foot_front": 7.6,
+       "thigh_back": -4.6,
+       "shin_back": -19.2,
+       "foot_back": 23.8,
+       "needle": 26,
+       "key": 0
+      },
+      "scale": {
+       "key": [
+        1,
+        1
+       ]
+      }
+     },
+     "ease": "in"
+    },
+    {
+     "t": 60,
+     "pose": {
+      "root": [
+       0,
+       -6
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": 4,
+       "head": 4,
+       "upper_arm_front": 116,
+       "forearm_front": -20,
+       "hand_front": 0,
+       "upper_arm_back": 26,
+       "forearm_back": 90,
+       "hand_back": 10,
+       "thigh_front": 22.7,
+       "shin_front": -30.2,
+       "foot_front": 7.6,
+       "thigh_back": -4.6,
+       "shin_back": -19.2,
+       "foot_back": 23.8,
+       "needle": 26,
+       "key": 0
+      },
+      "scale": {
+       "key": [
+        1,
+        0.25
+       ]
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 72,
+     "pose": {
+      "root": [
+       0,
+       -6
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": 4,
+       "head": 6,
+       "upper_arm_front": 136,
+       "forearm_front": 30,
+       "hand_front": 10,
+       "upper_arm_back": 26,
+       "forearm_back": 90,
+       "hand_back": 10,
+       "thigh_front": 22.7,
+       "shin_front": -30.2,
+       "foot_front": 7.6,
+       "thigh_back": -4.6,
+       "shin_back": -19.2,
+       "foot_back": 23.8,
+       "needle": -26,
+       "key": 0
+      },
+      "scale": {
+       "key": [
+        1,
+        1
+       ]
+      }
+     },
+     "ease": "in"
+    },
+    {
+     "t": 84,
+     "pose": {
+      "root": [
+       0,
+       -6
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": 4,
+       "head": 10,
+       "upper_arm_front": 146,
+       "forearm_front": 50,
+       "hand_front": 10,
+       "upper_arm_back": 26,
+       "forearm_back": 90,
+       "hand_back": 10,
+       "thigh_front": 22.7,
+       "shin_front": -30.2,
+       "foot_front": 7.6,
+       "thigh_back": -4.6,
+       "shin_back": -19.2,
+       "foot_back": 23.8,
+       "needle": -26,
+       "key": 0
+      },
+      "scale": {
+       "key": [
+        1,
+        0.25
+       ]
+      }
+     },
+     "ease": "out"
+    }
+   ]
+  },
+  "defeat": {
+   "keys": [
+    {
+     "t": 0,
+     "pose": {
+      "root": [
+       -8,
+       -12
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": 14,
+       "head": 12,
+       "upper_arm_front": -4,
+       "forearm_front": 100,
+       "hand_front": -10,
+       "upper_arm_back": -24,
+       "forearm_back": 130,
+       "hand_back": -10,
+       "thigh_front": 33.6,
+       "shin_front": -39.2,
+       "foot_front": 5.7,
+       "thigh_back": 2.8,
+       "shin_back": -37.3,
+       "foot_back": 34.4,
+       "needle": 30,
+       "key": 0
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 14,
+     "pose": {
+      "root": [
+       0,
+       -16
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -5,
+       "head": -1,
+       "upper_arm_front": 39,
+       "forearm_front": 130,
+       "hand_front": 6,
+       "upper_arm_back": 25,
+       "forearm_back": 154,
+       "hand_back": 4,
+       "thigh_front": 36.4,
+       "shin_front": -51.4,
+       "foot_front": 15,
+       "thigh_back": 0.7,
+       "shin_back": -40.8,
+       "foot_back": 40.1,
+       "needle": -24,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 34,
+     "pose": {
+      "root": [
+       0,
+       -20
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -24,
+       "head": 4,
+       "upper_arm_front": 22,
+       "forearm_front": 4,
+       "hand_front": 0,
+       "upper_arm_back": 16,
+       "forearm_back": 4,
+       "hand_back": 0,
+       "thigh_front": 38.3,
+       "shin_front": -60.2,
+       "foot_front": 21.9,
+       "thigh_back": 11.3,
+       "shin_back": -54.8,
+       "foot_back": 43.4,
+       "needle": 18,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 60,
+     "pose": {
+      "root": [
+       0,
+       -34
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -28,
+       "head": -12,
+       "upper_arm_front": 26,
+       "forearm_front": 4,
+       "hand_front": 0,
+       "upper_arm_back": 20,
+       "forearm_back": 4,
+       "hand_back": 0,
+       "thigh_front": 49.2,
+       "shin_front": -80.2,
+       "foot_front": 31,
+       "thigh_back": 19.5,
+       "shin_back": -75.5,
+       "foot_back": 56,
+       "needle": -12,
+       "key": 0
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 84,
+     "pose": {
+      "root": [
+       -6,
+       -80
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -30,
+       "head": -10,
+       "upper_arm_front": 20,
+       "forearm_front": 5,
+       "hand_front": 0,
+       "upper_arm_back": 15,
+       "forearm_back": 5,
+       "hand_back": 0,
+       "thigh_front": 92.5,
+       "shin_front": -118.6,
+       "foot_front": 26.1,
+       "thigh_back": 46,
+       "shin_back": -128.1,
+       "foot_back": 22.1,
+       "needle": 6
+      }
+     },
+     "ease": "in"
+    },
+    {
+     "t": 96,
+     "pose": {
+      "root": [
+       -6,
+       -92
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -30,
+       "head": -20,
+       "upper_arm_front": 20,
+       "forearm_front": 5,
+       "hand_front": 0,
+       "upper_arm_back": 15,
+       "forearm_back": 5,
+       "hand_back": 0,
+       "thigh_front": 103.1,
+       "shin_front": -127.6,
+       "foot_front": 24.5,
+       "thigh_back": 46.7,
+       "shin_back": -138.4,
+       "foot_back": 31.7,
+       "needle": -60
+      }
+     },
+     "ease": "out"
+    },
+    {
+     "t": 104,
+     "pose": {
+      "root": [
+       -6,
+       -95
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -30,
+       "head": -26,
+       "upper_arm_front": 20,
+       "forearm_front": 5,
+       "hand_front": 0,
+       "upper_arm_back": 15,
+       "forearm_back": 5,
+       "hand_back": 0,
+       "thigh_front": 106,
+       "shin_front": -129.7,
+       "foot_front": 23.7,
+       "thigh_back": 46.5,
+       "shin_back": -140.9,
+       "foot_back": 34.3,
+       "needle": -64
+      }
+     },
+     "ease": "inout"
+    },
+    {
+     "t": 120,
+     "pose": {
+      "root": [
+       -6,
+       -92
+      ],
+      "bones": {
+       "pelvis": 0,
+       "torso": -30,
+       "head": -20,
+       "upper_arm_front": 20,
+       "forearm_front": 5,
+       "hand_front": 0,
+       "upper_arm_back": 15,
+       "forearm_back": 5,
+       "hand_back": 0,
+       "thigh_front": 103.1,
+       "shin_front": -127.6,
+       "foot_front": 24.5,
+       "thigh_back": 46.7,
+       "shin_back": -138.4,
+       "foot_back": 31.7,
+       "needle": -60
+      }
+     }
+    }
+   ]
+  }
+ }
+}

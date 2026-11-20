@@ -1,0 +1,674 @@
+const reach = {short:125, mid:165, long:220};
+const shotSpeed = {slow:6, mid:9, fast:13};
+const attack = id => ({attack:id});
+const clamp = (x,lo,hi) => Math.max(lo, Math.min(hi,x));
+let parryStarted, lastComment, lastHp, guardingTime, activeTime, catalog, habits, lastObserved, previousX, dashSign, seed;
+let lastGetup, lastGrab, wakeAttempt, lowBlocks, cleanWakes;
+let delayedWakes, guardedWakes, wakePlan, escapedByDash, lateHits;
+let guardedLows, lastBlockSeen, spinReplies, blockReplyAt, previousMeter;
+let grabTrial, grabFailures, guardedSamples, neutralSamples, lastGetupPlan;
+let lastBlocked, lastTech, lastEnemyGetup, earlyWakeAttack;
+let shotHp, unansweredShots;
+let projectileReads, closeReads, lastShot, lastParryFrame, enemyMeter, shotDelay, committedRushes;
+let wakeProbe, wakeChoice, wakeEnd, wakeWins;
+let previousBolt, boltContact, releaseAt;
+let waitingForReply, replyCount, replyTiming, replyReach, boltRelease;
+let cast, priorCast, retreatReads;
+let wakeCoverUntil;
+let walkDir, walkRun, shortWalks, recentDashHit;
+let crushUntil, clearedPropUntil;
+
+function random() {
+  seed = (Math.imul(1664525, seed) + 1013904223) >>> 0;
+  return seed / 4294967296;
+}
+
+function learn(o) {
+  const key = o.move ? o.move.id : o.state;
+  const dir=o.canAct?Math.sign(o.vx*o.facing):0;
+  if(dir!==walkDir) {
+    if(walkDir && o.canAct) shortWalks[walkDir]=clamp(shortWalks[walkDir]+(walkRun<6?1:-2),0,6);
+    walkRun=0;
+    walkDir=dir;
+  }
+  if(dir) walkRun++;
+  if (key !== lastObserved || (o.move && o.move.t === 1)) {
+    for (const k of Object.keys(habits)) habits[k] *= 0.94;
+    habits[key] = (habits[key] || 0) + 1;
+  }
+  if (o.state === 'dash' && previousX !== o.x) dashSign = Math.sign(o.x - previousX);
+  previousX = o.x;
+  lastObserved = key;
+}
+function forecast(o,n,s) {
+  let x = o.x;
+  if (o.state === 'hitstun' || o.state === 'blockstun') x += o.vx * (1 - Math.pow(.82,n)) / .18;
+  else if (o.state === 'dash') {
+    const back = o.stateLength === 18, end = Math.min(1,(o.stateTicks+n)/o.stateLength);
+    const distance = back ? 140 : o.derived.dashDistance;
+    x += (dashSign || o.facing) * distance * (Math.pow(1-o.stateTicks/o.stateLength,2)-Math.pow(1-end,2));
+  } else if (o.move && !o.airborne) {
+    for (const g of catalog[o.move.id].segments) {
+      if (g.advance && o.move.t < g.activeStart) {
+        const travel = Math.min(n, g.activeStart-o.move.t) * g.advance / (g.activeStart-g.start);
+        x += o.facing * Math.min(travel, Math.max(0,(s.me.x-x)*o.facing-70));
+      }
+      if (g.type === 'teleport' && o.move.t < g.activeStart && o.move.t+n >= g.activeStart) {
+        const target = s.me.x + o.facing*90;
+        x = g.to === 'behind' ? (target<s.stage.left || target>s.stage.right ? s.me.x-o.facing*90 : target) : x-o.facing*(g.distance || 300);
+      }
+    }
+  } else if(o.canAct && projectileReads>=2 && shortWalks[walkDir]>=3 && walkRun<=4) {
+    x+=o.vx*Math.min(n,walkRun+3);
+  } else x += o.vx * (o.airborne ? n : Math.min(20,n));
+  return clamp(x,s.stage.left,s.stage.right);
+}
+// Integer frame on which the airborne hurtbox disappears at the floor.
+function landingFrame(o) {
+  const v = o.vy - 0.425;
+  return Math.ceil((v + Math.sqrt(v * v + 1.7 * o.y)) / 0.85);
+}
+
+function wakeStrike(s, id, startup, mode='early') {
+  wakeAttempt = { id, mode, contact:s.tick+startup, observeAt: s.tick + startup + s.reaction + 3, hp: s.opponent.hp };
+  return attack(id);
+}
+
+function decide(s) {
+  const m=s.me, o=s.opponent, lag=Math.min(s.tick,s.reaction);
+  if(m.move && (m.move.id==='lance' || m.move.id==='spike') && m.move.t===1) {
+    lastShot=s.tick;
+    priorCast=cast;
+    cast={tick:s.tick,x:m.x};
+    shotDelay=closeReads>=2?Math.floor(random()*16):0;
+  }
+  const caughtShot=Math.abs(o.meter-enemyMeter-12)<.01 ||
+    (lastParryFrame>0 && lastParryFrame<=6 && o.state==='neutral');
+  if(caughtShot && s.tick-lastShot<65) {
+    projectileReads=Math.min(6,projectileReads+1);
+    const sent=cast && cast.tick<=s.tick-lag-9?cast:priorCast;
+    if(sent && s.tick-lag-sent.tick<65) {
+      if(Math.abs(o.x-sent.x)>=248) retreatReads=Math.min(5,retreatReads+2);
+      else closeReads=Math.min(5,closeReads+1);
+    }
+  }
+  lastParryFrame=o.state==='parry'?o.stateTicks:0;
+  enemyMeter=o.meter;
+  if(o.move?.t===1) {
+    if(['rush','slide','flurry','dive'].includes(o.move.id)) committedRushes=Math.min(5,committedRushes+1);
+    if(['fireball','lance','wave'].includes(o.move.id)) committedRushes=Math.max(0,committedRushes-2);
+  }
+  if(wakeProbe?.grab && m.state==='throwing') wakeProbe.landed=true;
+  if(wakeProbe && s.tick>=wakeProbe.check) {
+    if(!wakeProbe.landed && (o.state==='blockstun' || o.state==='parry' || o.hp>=wakeProbe.hp)) {
+      if(wakeProbe.quickReply) wakeChoice=0;
+      else if(wakeWins<2) wakeChoice=(wakeChoice+1)%6;
+      wakeWins=0;
+    } else wakeWins=Math.min(3,wakeWins+1);
+    wakeProbe=null;
+  }
+  if(m.move?.id==='lance' && m.move.t===1) {
+    unansweredShots=o.hp===shotHp?unansweredShots+1:0;
+    shotHp=o.hp;
+  }
+  if(o.hp!==shotHp) unansweredShots=0;
+  if (!catalog) {
+    catalog={};
+    for(const move of o.moves) catalog[move.id]=move;
+  }
+  if(o.state==='blockstun') {
+    lastBlockSeen=s.tick;
+    waitingForReply=true;
+    if(s.tick-lastShot<60) boltRelease=s.tick+o.stateLength-o.stateTicks-lag-1;
+  } else if(waitingForReply) {
+    const gap=s.tick-lastBlockSeen;
+    if(o.move?.t===1) {
+      const g=catalog[o.move.id].segments.find(g=>g.type==='strike');
+      if(gap<=8 && g && g.activeStart<=16) {
+        replyCount=Math.min(6,replyCount+1.5);
+        replyTiming=gap-2+g.activeStart;
+        replyReach=(reach[g.reach] || 165)+(g.advance || 0);
+      } else replyCount=Math.max(0,replyCount-1);
+      waitingForReply=false;
+    } else if(gap>8 || o.state==='throw' || o.state==='dash') {
+      replyCount=Math.max(0,replyCount-1);
+      waitingForReply=false;
+    }
+  }
+  if(o.state==='getup') lastEnemyGetup=s.tick;
+  const wakeAge=s.tick-lastEnemyGetup;
+  if(wakeAge>=1 && wakeAge<=3 && (o.state==='throw' && o.stateTicks===1 ||
+     o.move?.t===1 && catalog[o.move.id].firstActive<=7)) {
+    if(wakeProbe) wakeProbe.quickReply=true;
+    else if(wakeChoice!==0) {wakeChoice=0;wakeWins=0;}
+  }
+  if(wakeAge>0 && wakeAge<=17 && (o.move?.t===1 || o.state==='throw' && o.stateTicks===1))
+    earlyWakeAttack=clamp(earlyWakeAttack+(wakeAge>=7 && wakeAge<=12?2:-1),0,4);
+  if(wakeAge===13 && o.canAct && o.guard) earlyWakeAttack=Math.max(0,earlyWakeAttack-1);
+  if(o.move && o.move.t===1 && s.tick-lastBlockSeen<7)
+    spinReplies=clamp(spinReplies+(o.move.id==='cyclone'?1.5:-1),0,6);
+  if(o.canAct && s.distance<370) {
+    neutralSamples=neutralSamples*.985+1;
+    guardedSamples=guardedSamples*.985+(o.guard==='low'?1:0);
+  }
+  const lowSitter=neutralSamples>14 && guardedSamples/neutralSamples>.52;
+  if(o.state==='hitstun' && lastObserved==='dash') recentDashHit=s.tick;
+  learn(o);
+  if(m.state==='blockstun') lastBlocked=s.tick;
+  if(m.state==='techBreak') lastTech=s.tick;
+  if(wakePlan?.grab && s.tick>=wakePlan.end &&
+     (m.state==='hitstun' || m.state==='juggle' || m.state==='grabbed')) {
+    guardedLows=0; wakePlan=null; grabFailures=2;
+  }
+  if(grabTrial!==null) {
+    if(m.state==='throwing') { grabFailures=0; grabTrial=null; }
+    else if(m.state==='techBreak' || m.state==='hitstun' || s.tick-grabTrial>9) {
+      grabFailures=3; grabTrial=null;
+    }
+  }
+  // Meter awarded on contact is visible immediately. A short blocked poke
+  // gives us time to defend against a spin started on the first free frame.
+  const gained=m.meter-previousMeter;
+  previousMeter=m.meter;
+  // The last position of our own projectile is live. On a metered contact
+  // it locates a defender whose dash still looks uninterrupted on screen.
+  const bolt=s.projectiles.find(p=>p.mine && p.damage===30);
+  const freshBolt=m.move?.id==='lance' && m.move.t===9;
+  const boltHit=Math.abs(gained-4.5)<.025, boltBlock=Math.abs(gained-2.25)<.025;
+  if(!bolt && (previousBolt || freshBolt) && gained>25 && s.distance<380) crushUntil=s.tick+40;
+  if(!bolt && (previousBolt || freshBolt) && (boltHit || boltBlock)) {
+    const vx=previousBolt?.vx ?? m.facing*13;
+    const impact=(previousBolt?.x ?? m.x+m.facing*60)+vx;
+    boltContact={tick:s.tick,x:impact+Math.sign(vx)*49,dir:Math.sign(vx),push:boltHit?5:4.5};
+    releaseAt=s.tick+(boltHit?19:13);
+    boltRelease=boltBlock?releaseAt:-100;
+    if(retreatReads>0 && s.tick-lastShot<17) retreatReads=Math.max(0,retreatReads-.15);
+  }
+  previousBolt=bolt;
+  if(o.state==='blockstun' || o.state==='hitstun') {
+    const release=s.tick+o.stateLength-o.stateTicks-lag-1;
+    if(!boltContact || s.tick-boltContact.tick>lag || release>=releaseAt) releaseAt=release;
+  }
+  if(m.move && (m.move.id==='low' || m.move.id==='jab' || m.move.id==='lance')) {
+    const raw=m.move.id==='low'?35:m.move.id==='jab'?25:30;
+    if(Math.abs(gained-raw*.075)<.025) {
+      const stun=m.move.id==='lance'?13:Math.min(10+Math.floor(raw/10),m.move.duration-m.move.t-2);
+      blockReplyAt=s.tick+stun+12;
+    }
+  }
+  if (m.state === 'getup') lastGetup = s.tick;
+  if (m.state === 'grabbed') lastGrab = s.tick;
+  if (wakeAttempt && m.state==='staggered' && Math.abs(s.tick-wakeAttempt.contact)<=4)
+    wakeAttempt.parried=true;
+  if (wakeAttempt && s.tick >= wakeAttempt.observeAt) {
+    if (wakeAttempt.parried || (o.state==='dash' && o.stateLength===18)) {
+      delayedWakes=4;
+      escapedByDash=!wakeAttempt.parried;
+      cleanWakes=0;
+    } else if (o.hp < wakeAttempt.hp && o.state !== 'blockstun') {
+      if(wakeAttempt.mode==='early') cleanWakes++;
+      else lateHits++;
+      lowBlocks = 0;
+      if(['slide','sweep'].includes(wakeAttempt.id) || wakeAttempt.mode==='letter')
+        guardedLows=Math.max(0,guardedLows-1);
+      if(wakeAttempt.mode==='bait') guardedWakes=4;
+    } else if (o.state === 'blockstun' && ['slide','sweep'].includes(wakeAttempt.id)) {
+      lowBlocks++;
+      guardedLows=Math.min(5,guardedLows+2);
+      cleanWakes = 0;
+      lateHits=0;
+      delayedWakes=0;
+      guardedWakes=0;
+    } else if (o.state==='blockstun' && wakeAttempt.id==='breaker') {
+      guardedWakes=4;
+      lowBlocks=0;
+    } else if(wakeAttempt.mode!=='early') {
+      delayedWakes=0;
+      guardedWakes=0;
+      lateHits=0;
+    }
+    wakeAttempt = null;
+  }
+  activeTime = activeTime*.994 + 1;
+  const covered = Boolean(o.guard && (o.state==='neutral' || o.state==='blockstun'));
+  guardingTime = guardingTime*.994 + (covered?1:0);
+  const entrenched = guardingTime>22 && guardingTime/activeTime>.35;
+  const stoppedDash=boltContact && s.tick-boltContact.tick<=lag && o.state==='dash';
+  const future=n=>{
+    if(!stoppedDash) return Math.abs(forecast(o,lag+n,s)-m.x);
+    const age=s.tick-boltContact.tick+n;
+    const x=boltContact.x+boltContact.dir*boltContact.push*(1-Math.pow(.82,age))/.18;
+    return Math.abs(clamp(x,s.stage.left,s.stage.right)-m.x);
+  };
+  const d=future(0);
+  const mv=o.move && catalog[o.move.id], frame=o.move ? o.move.t+lag : 0;
+  const parryConfirmed=m.canAct && s.tick>parryStarted && s.tick-parryStarted<=7;
+  if(parryConfirmed && o.state==='use') clearedPropUntil=s.tick+lag+1;
+  let threat=999, zone='mid';
+  function danger(t,z) { if(t<threat){threat=t;zone=z;} }
+  for(const p of s.projectiles) {
+    if(p.mine || p.damage===80 && s.tick<=clearedPropUntil) continue;
+    const t=(m.x-p.x)/p.vx-lag-57/Math.abs(p.vx);
+    if(t>=-3) danger(Math.max(0,t),p.zone);
+  }
+  if(o.state==='use' && s.tick>clearedPropUntil && (m.x-o.x)*o.facing>0) {
+    const travel=Math.max(1,Math.ceil((Math.abs(m.x-o.x)-120)/13));
+    const eta=16+travel-o.stateTicks-lag-2;
+    if(eta>=-1) danger(Math.max(0,eta),'mid');
+  }
+  if(mv) for(const g of mv.segments) {
+    if(g.type==='strike' && frame < g.activeEnd && frame+45>=g.activeStart) {
+      const eta=Math.max(1,g.activeStart-frame);
+      if(future(eta) < (reach[g.reach] || 165)+7) danger(eta,g.zone);
+    }
+    if(g.type==='projectile' && o.move.t < g.activeStart) {
+      const t=g.activeStart-frame+(d-115)/shotSpeed[g.speed];
+      if(t>=-2) danger(Math.max(0,t),g.zone);
+    }
+  }
+  const guard=zone==='air'||zone==='overhead'||(o.airborne && o.state!=='juggle')?'high':'low';
+  if(m.canAirMove && future(6)<171 && m.y<200) return attack('air_kick');
+  if(!m.canAct) return {guard};
+  // The first few free frames are throw-protected. Keep the guard through
+  // strikes timed just after getup, including those still hidden by reaction lag.
+  if(s.tick-lastGetup <= 5 && d<375) return {guard};
+  const left=o.stateLength-o.stateTicks-lag;
+  // recordSight stores the pre-action pose. The last observation at tick t-lag
+  // is one physics step older than the fighter after that tick.
+  const airLeft=o.airborne ? landingFrame(o)-lag-1 : Infinity;
+  const landingSoon=o.state==='juggle' && (airLeft<=5 || o.invulnerable);
+  const standUp=o.state==='knockdown'? left+20 : o.state==='getup'?left :
+    landingSoon ? airLeft+65 : -100;
+  const projectileReady=!m.projectileOut;
+  const stale=id=>m.stale[id] || 1;
+  const superReady=m.bars>=3;
+  const close=future(5), middle=future(10);
+  const throwProtected=(o.state==='blockstun' || o.state==='hitstun' || o.state==='getup') && left>-6;
+  const canThrow=close<127 && !o.airborne;
+  const counterGuard=guardedLows>=2 || (guardedLows>=1 && (lowSitter || spinReplies>=1));
+  const lethalSuper=o.bars===3 && m.hp<505*o.derived.damageMul*m.derived.takenMul;
+  const confirmedGuard=o.canAct && o.guard==='low' && Math.abs(o.vx)<1;
+  const losing=m.hp/m.maxHp+.005<o.hp/o.maxHp;
+  const urgent=losing && s.timeLeft<2600;
+  const opening= o.state==='parry' || o.state==='throw' || o.state==='staggered' || o.state==='dizzy' ||
+    (mv && frame>=mv.firstActive && o.move.duration-frame>=5);
+  const readsShots=projectileReads>=2 && committedRushes<3;
+  const chargedFinale=Boolean(catalog.finale) && o.meter>=297;
+  const roomBehind=m.facing>0?m.x-s.stage.left:s.stage.right-m.x;
+  if(readsShots && standUp>0 && chargedFinale) wakeCoverUntil=s.tick+standUp+11;
+  if(readsShots && chargedFinale && s.tick<=wakeCoverUntil) {
+    wakeEnd=null;
+    if(d<232 && roomBehind>7) return {walk:-1,guard:'high'};
+    return {guard:'low'};
+  }
+  if(readsShots && standUp>0) wakeEnd=s.tick+standUp-1;
+  if(readsShots && wakeEnd!==null && !wakeProbe) {
+    const age=s.tick-wakeEnd;
+    if(age>26 || (o.airborne && !landingSoon)) wakeEnd=null;
+    else {
+      const grab=wakeChoice===5 && d<127 && !lethalSuper;
+      const hitAt=[2,10,6,20,2,6][wakeChoice];
+      const cashWake=superReady && wakeWins>=2 && wakeChoice<=2 && !grab && d<212 && o.combo<=1;
+      const id=cashWake?'finale':wakeChoice===4?'breaker':d>210 || stale('slide')>stale('sweep')+.05?'slide':'sweep';
+      const startup=id==='finale'?8:id==='breaker'?24:id==='slide'?14:12;
+      if(age<(grab?5:hitAt-startup)) {
+        if(age< -22 && d>236) return {dash:'forward'};
+        return d>95?{walk:1}:{guard:'low'};
+      }
+      wakeEnd=null;
+      wakeProbe={hp:o.hp,check:s.tick+(grab?17:startup+lag+3),grab};
+      return grab?{throw:true}:attack(id);
+    }
+  }
+  // Acting again inside a parry window means it connected. The delayed picture
+  // may still show the very same projectile coming towards us.
+  if(parryConfirmed && d<=224 && !o.airborne && !o.projectileOut && o.state!=='use' &&
+     !(mv && mv.segments.some(g=>g.type==='projectile'))) {
+    if(superReady && middle<218) return attack('finale');
+    if(canThrow) return {throw:true};
+    if(d<214) return attack('heavy');
+    return attack('knee');
+  }
+  if(parryConfirmed && d>225 && (losing || superReady) && !o.airborne) {
+    if(readsShots) return d>320?{dash:'forward'}:{walk:1};
+    if(d<357 && o.posture!=='crouch') return attack('slide');
+    return attack('cross');
+  }
+  const baitsWakeAttack=earlyWakeAttack>=2 && (grabFailures>0 || earlyWakeAttack>=4);
+  if(standUp>0 && counterGuard && baitsWakeAttack) {
+    // Stay outside the throw. A sweep timed just after the guard drops beats
+    // the startup of a throw or spin without guessing which one comes next.
+    if(standUp>18) {
+      if(d>310 && standUp>31) return {dash:'forward'};
+      if(d>180) return {walk:1};
+      return {guard:'low',walk:d<151?-1:0};
+    }
+    if(!wakePlan && d<220) wakePlan={end:s.tick+standUp-1,bait:true};
+  }
+  if(standUp>0 && counterGuard && !wakePlan?.bait && !baitsWakeAttack) {
+    const reachForGrab=grabFailures===0 && !lethalSuper;
+    // A throw started on the sixth free frame beats a guard held through
+    // wake-up. With room to retreat, a blocked shot is safe against cyclone.
+    if(standUp>18 && reachForGrab) {
+      if(d>253 && standUp>29) return {dash:'forward'};
+      return d>104?{walk:1}:{guard:'low'};
+    }
+    if(standUp>25 && !reachForGrab) {
+      if(d>275) return {walk:1};
+      return {walk:d<237?-1:0,guard:'high'};
+    }
+    if(!lastGetupPlan || Math.abs(lastGetupPlan-(s.tick+standUp-1))>6) {
+      lastGetupPlan=s.tick+standUp-1;
+      wakePlan={end:lastGetupPlan, letter:!reachForGrab || d>145, grab:reachForGrab && d<=145};
+    }
+  }
+  if(wakePlan && (wakePlan.grab || wakePlan.letter)) {
+    const age=s.tick-wakePlan.end;
+    if(age>13) wakePlan=null;
+    else if(wakePlan.grab) {
+      if(age<5) return d>110?{walk:1}:{guard:guard};
+      wakePlan=null;
+      if(close<129) { grabTrial=s.tick; return {throw:true}; }
+      return attack('lance');
+    } else {
+      const travel=9+Math.ceil(Math.max(0,d-118)/13);
+      if(age < 1-travel) return {guard:'low'};
+      wakePlan=null;
+      if(grabFailures>0) grabFailures--;
+      if(projectileReady) return wakeStrike(s,'lance',travel,'letter');
+      return {guard:'low'};
+    }
+  }
+  // Attack after a predicted parry or backdash. If both heights were blocked,
+  // let the opponent leave guard and swing, from outside normal throw range.
+  if(guardedWakes>0 && standUp>18) {
+    if(d>320 && standUp>35) return {dash:'forward'};
+    if(d>184) return {walk:1};
+    return {guard:'high',walk:d<158?-1:0};
+  }
+  if(!wakePlan && standUp>0 && standUp<=18 && d<345 && (delayedWakes>0 || guardedWakes>0)) {
+    const spaceBehind=o.facing>0?o.x-s.stage.left:s.stage.right-o.x;
+    const impactDistance=d+(escapedByDash && !guardedWakes?Math.min(115,spaceBehind):0);
+    wakePlan={end:s.tick+standUp-1, bait:guardedWakes>0,
+      super:superReady && lateHits>=1 && o.combo<=1 && impactDistance<213};
+  }
+  if(wakePlan) {
+    const age=s.tick-wakePlan.end;
+    if(age>11) wakePlan=null;
+    else if(wakePlan.bait) {
+      if(o.bars>=3 && age<8) {
+        if(age===6 && d<213) return {parry:true};
+        return {guard};
+      }
+      if(age<0) return {guard};
+      if(wakePlan.super && age<4) return {guard};
+      const useSuper=wakePlan.super;
+      wakePlan=null;
+      guardedWakes=Math.max(0,guardedWakes-1);
+      if(useSuper) return wakeStrike(s,'finale',8,'bait');
+      if(d>209) return wakeStrike(s,'slide',14,'bait');
+      return wakeStrike(s,'sweep',12,'bait');
+    } else {
+      if(age < (wakePlan.super?2:-4)) return d>175?{walk:1}:{guard};
+      const useSuper=wakePlan.super;
+      wakePlan=null;
+      if(useSuper) return wakeStrike(s,'finale',8,'evade');
+      return wakeStrike(s,'slide',14,'evade');
+    }
+  }
+  if(readsShots && standUp<1 && !o.airborne) {
+    const casting=mv && mv.segments.some(g=>g.type==='projectile');
+    if(threat<=4) return {parry:true};
+    if(threat<15) return {guard};
+    if(s.tick-lastGetup<=lag+2 && d<275 && !mv) return {guard};
+    const spinIn=blockReplyAt-s.tick;
+    if(replyCount>=1.5 && d<replyReach+6 && o.state!=='staggered') {
+      const afterBlock=s.tick-boltRelease;
+      const expected=replyTiming-afterBlock;
+      if(afterBlock>=-3 && expected>=-2) {
+        if(o.meter<296 && expected>=0 && expected<=3) return {parry:true};
+        return {guard};
+      }
+    }
+    if(spinReplies>=1.5 && spinIn>=-1 && spinIn<=13 && d<270) {
+      if(spinIn>=0 && spinIn<=3) return {parry:true};
+      return {guard};
+    }
+    if(mv?.segments[0].type==='teleport' && mv.slot!=='super' && canThrow &&
+       frame<=o.move.duration-5) return {throw:true};
+    const prop=s.props.find(p=>p.in<=0 && Math.abs(m.x-p.x)<=p.reach);
+    // A broken guard leaves time to take the last step into super range.
+    // The guard break itself is visible a reaction window after impact.
+    if(o.state==='staggered' || o.state==='dizzy' || crushUntil>s.tick) {
+      const remaining=crushUntil>s.tick?crushUntil-s.tick:left;
+      const walkTicks=Math.max(0,Math.ceil((d-211)/m.derived.walk));
+      if(superReady && remaining>=walkTicks+8) {
+        if(walkTicks) return {walk:1};
+        crushUntil=-100;
+        return attack('finale');
+      }
+      const toThrow=Math.max(0,Math.ceil((d-119)/m.derived.walk));
+      if(remaining>=toThrow+8 && !o.invulnerable) {
+        if(toThrow) return {walk:1};
+        crushUntil=-100;
+        return {throw:true};
+      }
+      if(prop && remaining>=prop.startup+Math.ceil(Math.max(0,d-117)/prop.speed)+1) {
+        crushUntil=-100;
+        return {use:true};
+      }
+      if(d<=215 && remaining>=13) {crushUntil=-100;return attack(wakeWins>=2?'sweep':'heavy');}
+      if(d<354 && remaining>=14) {crushUntil=-100;return attack('slide');}
+    }
+    if(mv && !o.invulnerable && !casting && mv.segments.every(g=>frame>=g.activeEnd)) {
+      const remain=o.move.duration-frame;
+      if(superReady && d<215 && remain>=8) return attack('finale');
+      if(d<214 && remain>=12) return attack('sweep');
+      if(d<164 && remain>=7) return attack('low');
+      if(d<354 && remain>=15 && o.move.slot==='super') return attack('slide');
+    }
+    if(superReady && d<215 && casting && !o.invulnerable && o.move.duration-frame>=8) return attack('finale');
+    const sinceRelease=s.tick-releaseAt;
+    if(d<219 && sinceRelease>=-7 && sinceRelease<=16 && chargedFinale) {
+      if(d>=137 && roomBehind>234-d && sinceRelease<=4) return {dash:'back'};
+      return {guard:'low'};
+    }
+    if(d<137 && sinceRelease>=-4 && sinceRelease<6 && !o.airborne) return {guard:'low'};
+    if(s.tick-recentDashHit<=37 && sinceRelease>=-3 && sinceRelease<=11 && d<182) {
+      if(d>=130 && projectileReady) return attack('lance');
+      return {guard:'low'};
+    }
+    if(prop && d>440 && threat>32) return {use:true};
+    if(chargedFinale && !o.invulnerable && !mv && d<226 && roomBehind>7) {
+      if(d<127 && roomBehind>97) return {dash:'back'};
+      return {guard:'high',walk:-1};
+    }
+    if(d>(chargedFinale?393:343)) return {dash:'forward'};
+    // At this distance the express letter arrives about as soon as its
+    // launch becomes visible. Closing a little more sets up a guard break.
+    const firingRange=chargedFinale?240:superReady && o.guardGauge>=76?198:retreatReads>=1?203:223;
+    if(d>firingRange) return {walk:1};
+    if(d>=155 && projectileReady) {
+      if(closeReads>=2 && unansweredShots>=2 && s.tick-lastShot<29+shotDelay && !casting) return {guard};
+      return attack('lance');
+    }
+    if(d>=122) return {walk:1};
+    if(o.canAct && s.distance>145 && !stoppedDash) return {guard:'low'};
+    if(o.invulnerable) return {guard};
+    if(throwProtected) return {guard:'low'};
+    if(d>105 && (s.distance>128 || o.move && frame>=o.move.duration)) return attack('low');
+    if(o.guard || o.posture==='crouch' || o.state==='parry') return {throw:true};
+    if(superReady && o.move) return attack('finale');
+    return attack('jab');
+  }
+  if(losing && unansweredShots>=3 && d>224 && !o.airborne && threat>14) {
+    unansweredShots=0;
+    return d<347?attack('cross'):{dash:'forward'};
+  }
+  if(entrenched && !o.airborne && !o.move && standUp<1 && threat>8) {
+    // Pin a stationary guard with mid-height mail. Fire from outside its longest normal.
+    if(superReady && d<215 && (o.state==='staggered' && left>=7 || o.state==='dizzy')) return attack('finale');
+    if(d<227 && m.x-m.facing*150>s.stage.left && m.x-m.facing*150<s.stage.right) return {dash:'back'};
+    if(d<128 && o.guard && o.state==='neutral' && !o.invulnerable) return {throw:true};
+    if(projectileReady) return attack('lance');
+    if(d>380) return {walk:1};
+    return {guard:'high',walk:d<250?-1:0};
+  }
+  if(mv && mv.segments[0].type==='teleport' && mv.segments[0].to==='behind' && !o.airborne && frame < o.move.duration+4) {
+    if(canThrow && mv.slot!=='super' && (frame<=o.move.duration-3 || mv.segments.length>1)) return {throw:true};
+    if(close<125 && mv.slot!=='super') return attack('jab');
+  }
+  if(standUp>0){
+    if(d>175 && standUp>18) return {dash:'forward'};
+    if(!guardedWakes && !delayedWakes && lowBlocks>=1 && standUp<=24 && standUp>=19 && d<158)
+      return wakeStrike(s,'breaker',24);
+    if(standUp>16) return d>100?{walk:1}:{guard:'low'};
+    if(superReady && cleanWakes>=2 && o.combo<=1 && d<215) {
+      if(standUp>8) return {guard:'low'};
+      return wakeStrike(s,'finale',8);
+    }
+    if(entrenched && d<216) return {walk:-1,guard:'high'};
+    if(standUp<=14 && d<340 && stale('slide')>stale('sweep')+.03) return wakeStrike(s,'slide',14);
+    if(standUp<=12 && d<217) return wakeStrike(s,'sweep',12);
+    if(standUp<=14 && d>200 && d<360) return wakeStrike(s,'slide',14);
+    return {guard:'low'};
+  }
+  const readyIn=mv?o.move.duration-frame-1:0;
+  if(mv && (!mv.charge || o.move.phase==='recovery') && !o.airborne && !o.invulnerable && threat>8 && readyIn>=4 &&
+     mv.segments.every(g=>frame>=g.activeEnd)) {
+    if(superReady && readyIn>=8 && future(8)<218) return attack('finale');
+    if(readyIn>=6 && canThrow && !o.guard) return {throw:true};
+    if(readyIn>=13 && future(13)<218) return attack('heavy');
+    if(readyIn>=10 && future(10)<207) return attack('knee');
+    if(readyIn>=7 && close<164) return attack('low');
+    if(close<124) return attack('jab');
+  }
+  if(s.tick-lastBlocked===1 && d<170 && standUp<0 && !o.airborne) {
+    if(d<122) return attack('jab');
+    if(d<164) return attack('low');
+  }
+  if(s.tick-lastTech<6 && !o.airborne && d<265) {
+    if(close<124) return attack('jab');
+    if(close<162) return attack('low');
+    return {guard:'low'};
+  }
+  // A visible parry is already at least a reaction window old. Only spend
+  // its remaining recovery on an attack that actually connects in time.
+  if(o.state==='parry' && !o.airborne && d<230) {
+    if(superReady && left>=8 && d<218) return attack('finale');
+    if(left>=5 && close<123 && o.posture!=='crouch') return attack('upper');
+    if(left>=6 && canThrow) return {throw:true};
+    if(left>=7 && close<165) return attack('low');
+    if(left>=4 && close<125) return attack('jab');
+    if(lethalSuper && left<9) {
+      const behind=m.facing>0?m.x-s.stage.left:s.stage.right-m.x;
+      if(behind>108 && d>133) return {dash:'back'};
+      return {guard:'low'};
+    }
+  }
+  const replyIn=blockReplyAt-s.tick;
+  if(spinReplies>=1 && replyIn>=-2 && replyIn<=16 && d<290) {
+    if(replyIn>=0 && replyIn<=4) return {parry:true};
+    return {guard};
+  }
+  if(superReady && airLeft>8 && !o.invulnerable && middle<218 &&
+     (opening || (o.state==='hitstun' && left>=6) || o.airborne || threat<=10 || (!o.guard && d<175))) return attack('finale');
+  if(threat<=5 && !(zone==='high' && m.posture==='crouch')) return {parry:true};
+  if(zone==='low' && d>390 && threat>=12 && threat<28 && o.projectileOut) return {jump:1};
+  if(threat<13) return {guard};
+  if(urgent && d>410 && threat>=17 && threat<34 && o.projectileOut) return attack('cross');
+  if(urgent && d>420 && (o.projectileOut || o.guard) && !o.invulnerable) return attack('cross');
+  if(o.state==='juggle' || o.airborne) {
+    if(close<122 && airLeft>5 && !o.invulnerable) return attack('upper');
+    if(future(13)<215 && airLeft>13 && !o.invulnerable) return attack('heavy');
+    const shotTime=12+Math.ceil(Math.max(0,d-115)/13);
+    if(projectileReady && d<650 && airLeft>shotTime && !o.invulnerable) return attack('spike');
+    if(o.state==='juggle') return d>175?{walk:1}:{guard:'low'};
+  }
+  if(s.props.some(p=>p.in<=0 && Math.abs(m.x-p.x)<=p.reach) && d>390 && threat>30) return {use:true};
+  if(lethalSuper && d<250 && !o.airborne && (o.canAct || left<10 && !mv) && !m.invulnerable) {
+    if(o.state==='neutral' && !o.guard && d<122 && (habits.throw||0)>1) return attack('jab');
+    const behind=m.facing>0?m.x-s.stage.left:s.stage.right-m.x;
+    if(behind>108 && d>133) return {dash:'back'};
+    return {guard:'low'};
+  }
+  if((counterGuard || spinReplies>=2) && !o.airborne && !o.invulnerable &&
+     (confirmedGuard || o.state==='blockstun' || (lowSitter && o.canAct))) {
+    if(o.state==='neutral' && canThrow && !grabFailures) {grabTrial=s.tick;return {throw:true};}
+    if(d<124) return attack('jab');
+    if(d<166) return attack('low');
+    if(projectileReady) return attack('lance');
+    return {guard:'low'};
+  }
+  if(canThrow && (o.guard || o.state==='parry' || (o.move && o.move.armorLeft>0)) && !o.invulnerable && (o.state!=='parry'||left>=4)) return {throw:true};
+  const meetingAtPointBlank=m.vx*m.facing>2 && d<95;
+  if(canThrow && o.state==='neutral' && o.vx*o.facing>2 &&
+     (meetingAtPointBlank || s.tick-lastGrab<900)) return {throw:true};
+  if(o.state==='hitstun' && left<=2 && !o.airborne && d>=127 && d<215) {
+    if(d<160) return attack('low');
+    if((habits.cyclone||0)+(habits.slide||0)>1) return -left>=7 && -left<=10?{parry:true}:{guard:'low'};
+    return attack('sweep');
+  }
+  if((habits.blink||0)>1.3 && d>=157 && d<300 && !o.guard && !o.airborne && (!o.canAct || o.stateTicks<35)) {
+    if(projectileReady && d>235) return attack('lance');
+    return {guard:'low'};
+  }
+  if(close<123 && (habits.blink||0)>1 && o.posture!=='crouch') return attack('upper');
+  if(close<123 && !o.guard && o.posture!=='crouch' && (habits.throw>1 || stale('upper')>.7 || opening)) return attack('upper');
+  if(close<123 && habits.throw>1) return attack('jab');
+  if(close<128 && opening && !o.invulnerable && o.state!=='throw' && random()<.72) return {throw:true};
+  if(close<126 && o.guard!=='low' && (stale('jab')>.85 || d<98) && random()<.56) return attack('jab');
+  if(o.guard==='low' && !opening && d<300 && (o.canAct || o.state==='blockstun')) {
+    if(d>127) return d>205?{dash:'forward'}:{walk:1};
+    if(throwProtected) return attack('jab');
+    return {throw:true};
+  }
+  if(d<165 && o.guard==='high') return attack('low');
+  if(d<183 && (habits.jab || 0)+(habits.low || 0)>2 && (habits.throw||0)<.6) return attack('breaker');
+  if(d<209 && middle<222 && (opening || stale('heavy')>.84) && !o.guard && random()<.73) return attack('heavy');
+  if(middle<280 && (!o.guard || opening || stale('cyclone')>.83)) return attack('cyclone');
+  if(middle<359 && o.guard!=='low' && (stale('slide')>.71 || !projectileReady)) return attack('slide');
+  if(projectileReady && d>150) {
+    const fast=o.posture==='crouch'|| (habits.sweep||0)>1 || (habits.slide||0)>1 || (d<390 && !o.airborne);
+    return attack(fast || stale('spike')+.07<stale('lance') ? 'lance':'spike');
+  }
+  if(d>330 && (o.projectileOut || (mv && mv.segments.some(g=>g.type==='projectile'))) && random()<.75) return attack('cross');
+  if(d>385) return {dash:'forward'};
+  if(d>202) return {walk:1};
+  if(d<158 && !o.guard) return attack('knee');
+  return attack('heavy');
+}
+export default {
+  init(info) {
+    // One prior from the previous bout; new low hits or a different reply
+    // immediately weaken it. Other matches start without this observation.
+    const rematch=info.options?.round>=3 && info.opponent?.name==='Барон Фонарь';
+    projectileReads=info.options?.round>=2 && info.opponent?.name==='Метроном'?2:0;
+    lastShot=-100;lastParryFrame=0;enemyMeter=0;shotDelay=0;closeReads=0;committedRushes=0;
+    wakeProbe=null;wakeChoice=0;wakeEnd=null;wakeWins=0;
+    previousBolt=null;boltContact=null;releaseAt=-100;
+    waitingForReply=false;replyCount=0;replyTiming=12;replyReach=220;boltRelease=-100;
+    cast=null;priorCast=null;retreatReads=0;wakeCoverUntil=-100;
+    walkDir=0;walkRun=0;shortWalks={'-1':0,1:0};recentDashHit=-100;crushUntil=-100;clearedPropUntil=-100;
+    guardedLows=rematch?1:0; spinReplies=rematch?1:0;
+    lastEnemyGetup=-100; earlyWakeAttack=0;
+    shotHp=-1; unansweredShots=0;
+    lastBlockSeen=-100; blockReplyAt=-100; lastBlocked=-100; lastTech=-100; previousMeter=0;
+    grabTrial=null; grabFailures=0; neutralSamples=0; guardedSamples=0; lastGetupPlan=null;
+    guardedWakes=0; delayedWakes=0; wakePlan=null; escapedByDash=false; lateHits=0;
+    lastGetup=-100; lastGrab=-1000; wakeAttempt=null; lowBlocks=0; cleanWakes=0;
+    parryStarted=-100; lastComment=0; lastHp=0; seed=info.seed>>>0; guardingTime=0; activeTime=0; catalog=null; habits={}; previousX=null; dashSign=0; lastObserved=null;
+  },
+  tick(s) {
+    const action=decide(s);
+    if(action.parry) parryStarted=s.tick;
+    if(s.tick-lastComment>540 && !action.attack) {
+      if(lastHp-s.me.hp>50) action.say='dent';
+      else if(s.opponent.state==='staggered' && s.opponent.stateTicks<3) action.say='mark';
+      else if(s.distance>600 && s.me.hp/s.me.maxHp>s.opponent.hp/s.opponent.maxHp+.12) action.say='wait';
+      if(action.say) lastComment=s.tick;
+    }
+    lastHp=s.me.hp;
+    return action;
+  }
+};

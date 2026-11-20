@@ -59,8 +59,10 @@ test('статистика раунда по записи: здоровье по
   const { analyze } = await import('../judge/match.js');
   const { roundStats, pickMoments, clipTime } = await import('../judge/moments.js');
   const E = await import('../kit/arena/engine/index.js');
-  // the fixture keeps the fighters' rules without their pictures: compile them without the file list
-  const fighters = ['lisb', 'lisa'].map((id) => E.checkFighter(Object.fromEntries(['fighter', 'body', 'moves', 'voice'].map((f) => [f, JSON.parse(readFileSync(join(FIXTURE, 'round-1', id, 'fighter', `${f}.json`), 'utf8'))]))).fighter);
+  // the fixture keeps the fighters' rules without their pictures: compile them without the file list, on the engine of
+  // their round (ring 2.0: the prices of 3.0 put them over the budget)
+  const Old = await import('./fixtures/match-2.0/round-1/lisb/arena/engine/index.js');
+  const fighters = ['lisb', 'lisa'].map((id) => Old.checkFighter(Object.fromEntries(['fighter', 'body', 'moves', 'voice'].map((f) => [f, JSON.parse(readFileSync(join(FIXTURE, 'round-1', id, 'fighter', `${f}.json`), 'utf8'))]))).fighter);
   const replay = JSON.parse(readFileSync(join(FIXTURE, 'round-1', 'replay.json'), 'utf8'));
   const st = roundStats(analyze(fighters, replay), fighters);
   assert.ok(st.hp.length > 4);

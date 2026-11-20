@@ -1,0 +1,1733 @@
+{
+  "moves": [
+    {
+      "id": "jab",
+      "name": "Джеб",
+      "anim": {
+        "keys": [
+          {
+            "t": 0,
+            "pose": {
+              "root": [
+                0,
+                -8
+              ],
+              "bones": {
+                "torso": -8,
+                "head": 6,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          },
+          {
+            "t": 2,
+            "pose": {
+              "root": [
+                0,
+                -10
+              ],
+              "bones": {
+                "torso": -4,
+                "head": 6,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 45,
+                "forearm_front": 115,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          },
+          {
+            "t": 4,
+            "pose": {
+              "root": [
+                10,
+                -12
+              ],
+              "bones": {
+                "torso": -16,
+                "head": 8,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -26,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 103,
+                "forearm_front": 0,
+                "upper_arm_back": 15,
+                "forearm_back": 120
+              }
+            },
+            "ease": "hold"
+          },
+          {
+            "t": 7,
+            "pose": {
+              "root": [
+                10,
+                -12
+              ],
+              "bones": {
+                "torso": -16,
+                "head": 8,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -26,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 103,
+                "forearm_front": 0,
+                "upper_arm_back": 15,
+                "forearm_back": 120
+              }
+            }
+          },
+          {
+            "t": 15,
+            "pose": {
+              "root": [
+                0,
+                -8
+              ],
+              "bones": {
+                "torso": -8,
+                "head": 6,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "low",
+      "name": "Подсечка",
+      "anim": {
+        "keys": [
+          {
+            "t": 0,
+            "pose": {
+              "root": [
+                0,
+                -72
+              ],
+              "bones": {
+                "torso": -15,
+                "head": 10,
+                "thigh_front": 80,
+                "shin_front": -120,
+                "foot_front": 40,
+                "thigh_back": 60,
+                "shin_back": -125,
+                "foot_back": 65,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          },
+          {
+            "t": 7,
+            "pose": {
+              "root": [
+                6,
+                -76
+              ],
+              "bones": {
+                "torso": 6,
+                "head": 4,
+                "thigh_front": 86,
+                "shin_front": -4,
+                "foot_front": 20,
+                "thigh_back": 60,
+                "shin_back": -125,
+                "foot_back": 65,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            },
+            "ease": "hold"
+          },
+          {
+            "t": 10,
+            "pose": {
+              "root": [
+                6,
+                -76
+              ],
+              "bones": {
+                "torso": 6,
+                "head": 4,
+                "thigh_front": 86,
+                "shin_front": -4,
+                "foot_front": 20,
+                "thigh_back": 60,
+                "shin_back": -125,
+                "foot_back": 65,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          },
+          {
+            "t": 22,
+            "pose": {
+              "root": [
+                0,
+                -72
+              ],
+              "bones": {
+                "torso": -15,
+                "head": 10,
+                "thigh_front": 80,
+                "shin_front": -120,
+                "foot_front": 40,
+                "thigh_back": 60,
+                "shin_back": -125,
+                "foot_back": 65,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "knee",
+      "name": "Колено",
+      "anim": {
+        "keys": [
+          {
+            "t": 0,
+            "pose": {
+              "root": [
+                0,
+                -8
+              ],
+              "bones": {
+                "torso": -8,
+                "head": 6,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          },
+          {
+            "t": 6,
+            "pose": {
+              "root": [
+                0,
+                -40
+              ],
+              "bones": {
+                "torso": -18,
+                "head": 10,
+                "thigh_front": 55,
+                "shin_front": -80,
+                "foot_front": 10,
+                "thigh_back": 30,
+                "shin_back": -80,
+                "foot_back": 32,
+                "upper_arm_front": 10,
+                "forearm_front": 100,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          },
+          {
+            "t": 10,
+            "pose": {
+              "root": [
+                14,
+                0
+              ],
+              "bones": {
+                "torso": -6,
+                "head": 4,
+                "thigh_front": 95,
+                "shin_front": -110,
+                "foot_front": 20,
+                "thigh_back": -20,
+                "shin_back": -8,
+                "foot_back": 40,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            },
+            "ease": "hold"
+          },
+          {
+            "t": 13,
+            "pose": {
+              "root": [
+                14,
+                0
+              ],
+              "bones": {
+                "torso": -6,
+                "head": 4,
+                "thigh_front": 95,
+                "shin_front": -110,
+                "foot_front": 20,
+                "thigh_back": -20,
+                "shin_back": -8,
+                "foot_back": 40,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          },
+          {
+            "t": 28,
+            "pose": {
+              "root": [
+                0,
+                -8
+              ],
+              "bones": {
+                "torso": -8,
+                "head": 6,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "heavy",
+      "name": "Прямой",
+      "anim": {
+        "keys": [
+          {
+            "t": 0,
+            "pose": {
+              "root": [
+                0,
+                -8
+              ],
+              "bones": {
+                "torso": -8,
+                "head": 6,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          },
+          {
+            "t": 9,
+            "pose": {
+              "root": [
+                -8,
+                -16
+              ],
+              "bones": {
+                "torso": 14,
+                "head": 0,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": -20,
+                "forearm_front": 90,
+                "upper_arm_back": -30,
+                "forearm_back": 100
+              }
+            }
+          },
+          {
+            "t": 13,
+            "pose": {
+              "root": [
+                22,
+                -18
+              ],
+              "bones": {
+                "torso": -26,
+                "head": 12,
+                "thigh_front": 40,
+                "shin_front": -46,
+                "foot_front": 10,
+                "thigh_back": -34,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 50,
+                "forearm_front": 110,
+                "upper_arm_back": 116,
+                "forearm_back": 0
+              }
+            },
+            "ease": "hold"
+          },
+          {
+            "t": 17,
+            "pose": {
+              "root": [
+                22,
+                -18
+              ],
+              "bones": {
+                "torso": -26,
+                "head": 12,
+                "thigh_front": 40,
+                "shin_front": -46,
+                "foot_front": 10,
+                "thigh_back": -34,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 50,
+                "forearm_front": 110,
+                "upper_arm_back": 116,
+                "forearm_back": 0
+              }
+            }
+          },
+          {
+            "t": 39,
+            "pose": {
+              "root": [
+                0,
+                -8
+              ],
+              "bones": {
+                "torso": -8,
+                "head": 6,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "overhead",
+      "name": "Сверху",
+      "anim": {
+        "keys": [
+          {
+            "t": 0,
+            "pose": {
+              "root": [
+                0,
+                -8
+              ],
+              "bones": {
+                "torso": -8,
+                "head": 6,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          },
+          {
+            "t": 14,
+            "pose": {
+              "root": [
+                0,
+                -4
+              ],
+              "bones": {
+                "torso": 4,
+                "head": -4,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 190,
+                "forearm_front": 10,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          },
+          {
+            "t": 20,
+            "pose": {
+              "root": [
+                12,
+                -16
+              ],
+              "bones": {
+                "torso": -24,
+                "head": 12,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 80,
+                "forearm_front": 6,
+                "upper_arm_back": 15,
+                "forearm_back": 120
+              }
+            },
+            "ease": "hold"
+          },
+          {
+            "t": 23,
+            "pose": {
+              "root": [
+                12,
+                -16
+              ],
+              "bones": {
+                "torso": -24,
+                "head": 12,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 80,
+                "forearm_front": 6,
+                "upper_arm_back": 15,
+                "forearm_back": 120
+              }
+            }
+          },
+          {
+            "t": 39,
+            "pose": {
+              "root": [
+                0,
+                -8
+              ],
+              "bones": {
+                "torso": -8,
+                "head": 6,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "sweep",
+      "name": "Круговая",
+      "anim": {
+        "keys": [
+          {
+            "t": 0,
+            "pose": {
+              "root": [
+                0,
+                -72
+              ],
+              "bones": {
+                "torso": -15,
+                "head": 10,
+                "thigh_front": 80,
+                "shin_front": -120,
+                "foot_front": 40,
+                "thigh_back": 60,
+                "shin_back": -125,
+                "foot_back": 65,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          },
+          {
+            "t": 12,
+            "pose": {
+              "root": [
+                14,
+                -86
+              ],
+              "bones": {
+                "torso": 24,
+                "head": -6,
+                "thigh_front": 92,
+                "shin_front": 0,
+                "foot_front": 10,
+                "thigh_back": 60,
+                "shin_back": -125,
+                "foot_back": 65,
+                "upper_arm_front": -30,
+                "forearm_front": 20,
+                "upper_arm_back": -50,
+                "forearm_back": 30
+              }
+            },
+            "ease": "hold"
+          },
+          {
+            "t": 16,
+            "pose": {
+              "root": [
+                14,
+                -86
+              ],
+              "bones": {
+                "torso": 24,
+                "head": -6,
+                "thigh_front": 92,
+                "shin_front": 0,
+                "foot_front": 10,
+                "thigh_back": 60,
+                "shin_back": -125,
+                "foot_back": 65,
+                "upper_arm_front": -30,
+                "forearm_front": 20,
+                "upper_arm_back": -50,
+                "forearm_back": 30
+              }
+            }
+          },
+          {
+            "t": 42,
+            "pose": {
+              "root": [
+                0,
+                -72
+              ],
+              "bones": {
+                "torso": -15,
+                "head": 10,
+                "thigh_front": 80,
+                "shin_front": -120,
+                "foot_front": 40,
+                "thigh_back": 60,
+                "shin_back": -125,
+                "foot_back": 65,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "upper",
+      "name": "Апперкот",
+      "anim": {
+        "keys": [
+          {
+            "t": 0,
+            "pose": {
+              "root": [
+                0,
+                -8
+              ],
+              "bones": {
+                "torso": -8,
+                "head": 6,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          },
+          {
+            "t": 3,
+            "pose": {
+              "root": [
+                0,
+                -40
+              ],
+              "bones": {
+                "torso": -18,
+                "head": 10,
+                "thigh_front": 55,
+                "shin_front": -80,
+                "foot_front": 10,
+                "thigh_back": 30,
+                "shin_back": -80,
+                "foot_back": 32,
+                "upper_arm_front": 10,
+                "forearm_front": 100,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          },
+          {
+            "t": 5,
+            "pose": {
+              "root": [
+                8,
+                14
+              ],
+              "bones": {
+                "torso": 6,
+                "head": -10,
+                "thigh_front": 10,
+                "shin_front": -10,
+                "foot_front": 40,
+                "thigh_back": -10,
+                "shin_back": -6,
+                "foot_back": 50,
+                "upper_arm_front": 170,
+                "forearm_front": 8,
+                "upper_arm_back": 0,
+                "forearm_back": 110
+              }
+            },
+            "ease": "hold"
+          },
+          {
+            "t": 11,
+            "pose": {
+              "root": [
+                8,
+                14
+              ],
+              "bones": {
+                "torso": 6,
+                "head": -10,
+                "thigh_front": 10,
+                "shin_front": -10,
+                "foot_front": 40,
+                "thigh_back": -10,
+                "shin_back": -6,
+                "foot_back": 50,
+                "upper_arm_front": 170,
+                "forearm_front": 8,
+                "upper_arm_back": 0,
+                "forearm_back": 110
+              }
+            }
+          },
+          {
+            "t": 39,
+            "pose": {
+              "root": [
+                0,
+                -8
+              ],
+              "bones": {
+                "torso": -8,
+                "head": 6,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "air_kick",
+      "name": "Удар в прыжке",
+      "anim": {
+        "keys": [
+          {
+            "t": 0,
+            "pose": {
+              "root": [
+                0,
+                0
+              ],
+              "bones": {
+                "torso": 12,
+                "head": -4,
+                "thigh_front": 60,
+                "shin_front": -8,
+                "foot_front": 20,
+                "thigh_back": 60,
+                "shin_back": -110,
+                "foot_back": 40,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          },
+          {
+            "t": 6,
+            "pose": {
+              "root": [
+                0,
+                0
+              ],
+              "bones": {
+                "torso": 12,
+                "head": -4,
+                "thigh_front": 60,
+                "shin_front": -8,
+                "foot_front": 20,
+                "thigh_back": 60,
+                "shin_back": -110,
+                "foot_back": 40,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            },
+            "ease": "hold"
+          },
+          {
+            "t": 20,
+            "pose": {
+              "root": [
+                0,
+                0
+              ],
+              "bones": {
+                "torso": 12,
+                "head": -4,
+                "thigh_front": 60,
+                "shin_front": -8,
+                "foot_front": 20,
+                "thigh_back": 60,
+                "shin_back": -110,
+                "foot_back": 40,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "fireball",
+      "name": "Снаряд",
+      "anim": {
+        "keys": [
+          {
+            "t": 0,
+            "pose": {
+              "root": [
+                0,
+                -8
+              ],
+              "bones": {
+                "torso": -8,
+                "head": 6,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          },
+          {
+            "t": 10,
+            "pose": {
+              "root": [
+                -8,
+                -16
+              ],
+              "bones": {
+                "torso": 14,
+                "head": 0,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": -20,
+                "forearm_front": 90,
+                "upper_arm_back": -30,
+                "forearm_back": 100
+              }
+            }
+          },
+          {
+            "t": 13,
+            "pose": {
+              "root": [
+                10,
+                -14
+              ],
+              "bones": {
+                "torso": -14,
+                "head": 8,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -26,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 98,
+                "forearm_front": 0,
+                "upper_arm_back": 96,
+                "forearm_back": 0
+              }
+            },
+            "ease": "hold"
+          },
+          {
+            "t": 20,
+            "pose": {
+              "root": [
+                10,
+                -14
+              ],
+              "bones": {
+                "torso": -14,
+                "head": 8,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -26,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 98,
+                "forearm_front": 0,
+                "upper_arm_back": 96,
+                "forearm_back": 0
+              }
+            }
+          },
+          {
+            "t": 38,
+            "pose": {
+              "root": [
+                0,
+                -8
+              ],
+              "bones": {
+                "torso": -8,
+                "head": 6,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "slide",
+      "name": "Подкат",
+      "anim": {
+        "keys": [
+          {
+            "t": 0,
+            "pose": {
+              "root": [
+                0,
+                -72
+              ],
+              "bones": {
+                "torso": -15,
+                "head": 10,
+                "thigh_front": 80,
+                "shin_front": -120,
+                "foot_front": 40,
+                "thigh_back": 60,
+                "shin_back": -125,
+                "foot_back": 65,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          },
+          {
+            "t": 4,
+            "pose": {
+              "root": [
+                14,
+                -86
+              ],
+              "bones": {
+                "torso": 24,
+                "head": -6,
+                "thigh_front": 92,
+                "shin_front": 0,
+                "foot_front": 10,
+                "thigh_back": 60,
+                "shin_back": -125,
+                "foot_back": 65,
+                "upper_arm_front": -30,
+                "forearm_front": 20,
+                "upper_arm_back": -50,
+                "forearm_back": 30
+              }
+            },
+            "ease": "hold"
+          },
+          {
+            "t": 19,
+            "pose": {
+              "root": [
+                14,
+                -86
+              ],
+              "bones": {
+                "torso": 24,
+                "head": -6,
+                "thigh_front": 92,
+                "shin_front": 0,
+                "foot_front": 10,
+                "thigh_back": 60,
+                "shin_back": -125,
+                "foot_back": 65,
+                "upper_arm_front": -30,
+                "forearm_front": 20,
+                "upper_arm_back": -50,
+                "forearm_back": 30
+              }
+            }
+          },
+          {
+            "t": 47,
+            "pose": {
+              "root": [
+                0,
+                -72
+              ],
+              "bones": {
+                "torso": -15,
+                "head": 10,
+                "thigh_front": 80,
+                "shin_front": -120,
+                "foot_front": 40,
+                "thigh_back": 60,
+                "shin_back": -125,
+                "foot_back": 65,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "blink",
+      "name": "За спину",
+      "anim": {
+        "keys": [
+          {
+            "t": 0,
+            "pose": {
+              "root": [
+                0,
+                -8
+              ],
+              "bones": {
+                "torso": -8,
+                "head": 6,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          },
+          {
+            "t": 10,
+            "pose": {
+              "root": [
+                0,
+                -30
+              ],
+              "bones": {
+                "torso": -20,
+                "head": 14,
+                "thigh_front": 50,
+                "shin_front": -70,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 70,
+                "forearm_front": 90,
+                "upper_arm_back": 60,
+                "forearm_back": 100
+              }
+            }
+          },
+          {
+            "t": 16,
+            "pose": {
+              "root": [
+                0,
+                -30
+              ],
+              "bones": {
+                "torso": -20,
+                "head": 14,
+                "thigh_front": 50,
+                "shin_front": -70,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 70,
+                "forearm_front": 90,
+                "upper_arm_back": 60,
+                "forearm_back": 100
+              }
+            }
+          },
+          {
+            "t": 24,
+            "pose": {
+              "root": [
+                0,
+                -8
+              ],
+              "bones": {
+                "torso": -8,
+                "head": 6,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "smash",
+      "name": "Замах",
+      "anim": {
+        "keys": [
+          {
+            "t": 0,
+            "pose": {
+              "root": [
+                0,
+                -8
+              ],
+              "bones": {
+                "torso": -8,
+                "head": 6,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          },
+          {
+            "t": 11,
+            "pose": {
+              "root": [
+                0,
+                -4
+              ],
+              "bones": {
+                "torso": 4,
+                "head": -4,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 190,
+                "forearm_front": 10,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            },
+            "ease": "hold"
+          },
+          {
+            "t": 12,
+            "pose": {
+              "root": [
+                12,
+                -16
+              ],
+              "bones": {
+                "torso": -24,
+                "head": 12,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 80,
+                "forearm_front": 6,
+                "upper_arm_back": 15,
+                "forearm_back": 120
+              }
+            },
+            "ease": "hold"
+          },
+          {
+            "t": 16,
+            "pose": {
+              "root": [
+                12,
+                -16
+              ],
+              "bones": {
+                "torso": -24,
+                "head": 12,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 80,
+                "forearm_front": 6,
+                "upper_arm_back": 15,
+                "forearm_back": 120
+              }
+            }
+          },
+          {
+            "t": 40,
+            "pose": {
+              "root": [
+                0,
+                -8
+              ],
+              "bones": {
+                "torso": -8,
+                "head": 6,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "dive",
+      "name": "Пике",
+      "anim": {
+        "keys": [
+          {
+            "t": 0,
+            "pose": {
+              "root": [
+                0,
+                0
+              ],
+              "bones": {
+                "torso": 12,
+                "head": -4,
+                "thigh_front": 60,
+                "shin_front": -8,
+                "foot_front": 20,
+                "thigh_back": 60,
+                "shin_back": -110,
+                "foot_back": 40,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          },
+          {
+            "t": 5,
+            "pose": {
+              "root": [
+                0,
+                0
+              ],
+              "bones": {
+                "torso": 12,
+                "head": -4,
+                "thigh_front": 60,
+                "shin_front": -8,
+                "foot_front": 20,
+                "thigh_back": 60,
+                "shin_back": -110,
+                "foot_back": 40,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            },
+            "ease": "hold"
+          },
+          {
+            "t": 23,
+            "pose": {
+              "root": [
+                0,
+                0
+              ],
+              "bones": {
+                "torso": 12,
+                "head": -4,
+                "thigh_front": 60,
+                "shin_front": -8,
+                "foot_front": 20,
+                "thigh_back": 60,
+                "shin_back": -110,
+                "foot_back": 40,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "cross",
+      "name": "Удар со спины",
+      "anim": {
+        "keys": [
+          {
+            "t": 0,
+            "pose": {
+              "root": [
+                0,
+                -8
+              ],
+              "bones": {
+                "torso": -8,
+                "head": 6,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          },
+          {
+            "t": 8,
+            "pose": {
+              "root": [
+                0,
+                -30
+              ],
+              "bones": {
+                "torso": -20,
+                "head": 14,
+                "thigh_front": 50,
+                "shin_front": -70,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 70,
+                "forearm_front": 90,
+                "upper_arm_back": 60,
+                "forearm_back": 100
+              }
+            }
+          },
+          {
+            "t": 18,
+            "pose": {
+              "root": [
+                -8,
+                -16
+              ],
+              "bones": {
+                "torso": 14,
+                "head": 0,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": -20,
+                "forearm_front": 90,
+                "upper_arm_back": -30,
+                "forearm_back": 100
+              }
+            }
+          },
+          {
+            "t": 26,
+            "pose": {
+              "root": [
+                10,
+                -12
+              ],
+              "bones": {
+                "torso": -16,
+                "head": 8,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -26,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 103,
+                "forearm_front": 0,
+                "upper_arm_back": 15,
+                "forearm_back": 120
+              }
+            },
+            "ease": "hold"
+          },
+          {
+            "t": 30,
+            "pose": {
+              "root": [
+                10,
+                -12
+              ],
+              "bones": {
+                "torso": -16,
+                "head": 8,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -26,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 103,
+                "forearm_front": 0,
+                "upper_arm_back": 15,
+                "forearm_back": 120
+              }
+            }
+          },
+          {
+            "t": 54,
+            "pose": {
+              "root": [
+                0,
+                -8
+              ],
+              "bones": {
+                "torso": -8,
+                "head": 6,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "ambush",
+      "name": "Засада",
+      "anim": {
+        "keys": [
+          {
+            "t": 0,
+            "pose": {
+              "root": [
+                0,
+                -8
+              ],
+              "bones": {
+                "torso": -8,
+                "head": 6,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          },
+          {
+            "t": 6,
+            "pose": {
+              "root": [
+                0,
+                -30
+              ],
+              "bones": {
+                "torso": -20,
+                "head": 14,
+                "thigh_front": 50,
+                "shin_front": -70,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 70,
+                "forearm_front": 90,
+                "upper_arm_back": 60,
+                "forearm_back": 100
+              }
+            }
+          },
+          {
+            "t": 14,
+            "pose": {
+              "root": [
+                -8,
+                -16
+              ],
+              "bones": {
+                "torso": 14,
+                "head": 0,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": -20,
+                "forearm_front": 90,
+                "upper_arm_back": -30,
+                "forearm_back": 100
+              }
+            }
+          },
+          {
+            "t": 20,
+            "pose": {
+              "root": [
+                22,
+                -18
+              ],
+              "bones": {
+                "torso": -26,
+                "head": 12,
+                "thigh_front": 40,
+                "shin_front": -46,
+                "foot_front": 10,
+                "thigh_back": -34,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 50,
+                "forearm_front": 110,
+                "upper_arm_back": 116,
+                "forearm_back": 0
+              }
+            },
+            "ease": "hold"
+          },
+          {
+            "t": 25,
+            "pose": {
+              "root": [
+                22,
+                -18
+              ],
+              "bones": {
+                "torso": -26,
+                "head": 12,
+                "thigh_front": 40,
+                "shin_front": -46,
+                "foot_front": 10,
+                "thigh_back": -34,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 50,
+                "forearm_front": 110,
+                "upper_arm_back": 116,
+                "forearm_back": 0
+              }
+            }
+          },
+          {
+            "t": 59,
+            "pose": {
+              "root": [
+                0,
+                -8
+              ],
+              "bones": {
+                "torso": -8,
+                "head": 6,
+                "thigh_front": 28,
+                "shin_front": -38,
+                "foot_front": 10,
+                "thigh_back": -18,
+                "shin_back": -14,
+                "foot_back": 32,
+                "upper_arm_front": 55,
+                "forearm_front": 105,
+                "upper_arm_back": 35,
+                "forearm_back": 115
+              }
+            }
+          }
+        ]
+      },
+      "director": {
+        "title": "ЗАСАДА",
+        "zoom": 1.6,
+        "angle": "low",
+        "background": "darken",
+        "slowmo": 0.6
+      }
+    }
+  ]
+}

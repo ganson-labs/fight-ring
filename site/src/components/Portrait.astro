@@ -1,0 +1,25 @@
+---
+// A fighter's portrait in a frame of the contestant's colour.
+import type { Fighter } from '../data/ring';
+import { portrait } from '../lib/portrait';
+import { root } from '../lib/paths';
+
+interface Props {
+  fighter: Fighter;
+  /** the widest the portrait is shown, CSS px */
+  width: number;
+  sizes?: string;
+  eager?: boolean;
+  alt?: string;
+}
+const { fighter, width, sizes, eager = false, alt } = Astro.props;
+const r = root(Astro.url.pathname);
+const img = await portrait(fighter.portraitFile, width);
+---
+<span class="frame" style={`--c:${fighter.color}`}>
+  {img ? (
+    <img src={r + img.src} srcset={img.set.map((s) => `${r}${s.url} ${s.descriptor}`).join(', ')} sizes={sizes ?? `${width}px`} width={img.width} height={img.height} alt={alt ?? `${fighter.name}, боец модели ${fighter.model}`} loading={eager ? 'eager' : 'lazy'} decoding="async" />
+  ) : (
+    <img alt="" width={width} height={width} src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" />
+  )}
+</span>

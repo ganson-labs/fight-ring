@@ -1,0 +1,16 @@
+---
+// Earlier seasons keep their own address; the latest one is tournament/ itself.
+import Page from '../../layouts/Page.astro';
+import SeasonView from '../../components/SeasonView.astro';
+import { seasons } from '../../data/ring';
+import type { Season } from '../../data/ring';
+
+export async function getStaticPaths() {
+  return (await seasons()).slice(1).map((season) => ({ params: { season: season.id }, props: { season } }));
+}
+interface Props { season: Season }
+const { season } = Astro.props;
+---
+<Page title={season.title} description={`${season.title}: сетка, раунды, таблица лиги и расходы моделей.`}>
+  <SeasonView season={season} />
+</Page>

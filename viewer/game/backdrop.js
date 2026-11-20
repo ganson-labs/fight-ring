@@ -3,9 +3,9 @@
 // alone, none — the stage is empty. The sparring dummy and the kit's template never appear here. The scene is
 // calm: no screen flashes and softer effects behind the menu items. Rendered at the window's real pixels.
 import * as PIXI from 'pixi.js';
-import * as E from '/kit/arena/engine/index.js';
-import { Scene } from '/kit/arena/render/scene.js';
-import { Player } from '/kit/arena/render/player.js';
+import * as E from '../../kit/arena/engine/index.js';
+import { Scene } from '../../kit/arena/render/scene.js';
+import { Player } from '../../kit/arena/render/player.js';
 import { BrainHost } from '../brain-host.js';
 
 export class Backdrop {
