@@ -43,6 +43,7 @@ const frameAspect = () => (TOUCH ? (window.innerHeight > window.innerWidth ? '9:
 const PRESS = TOUCH ? 'Коснись экрана' : 'Нажми любую клавишу';
 
 const sfx = new Sfx();
+sfx.ahead(['menu-move', 'menu-select', 'menu-back', 'music-menu', 'vs-impact', 'vs-whoosh', 'whoosh-light', 'whoosh-heavy']);
 const menu = new MenuSound(sfx);
 function applySettings() {
   sfx.set(settings.sound, settings.volume, settings.menuVolume, settings.musicVolume);

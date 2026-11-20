@@ -101,8 +101,20 @@ export class Sfx {
     return new Promise((res, rej) => this.ctx.decodeAudioData(bytes, res, rej)?.catch?.(rej));
   }
 
+  // The files of these sounds are asked for before the first press: a page may fetch without it, only not sound.
+  // The press then has nothing left to wait for but the decoding.
+  ahead(names) {
+    this.raw ??= new Map();
+    for (const n of names) for (const f0 of SOUNDS[n]?.files || []) {
+      const f = this.alt ? altOf(f0) : f0;
+      if (!this.raw.has(f)) this.raw.set(f, fetch(BASE + f).catch(() => null));
+    }
+  }
+
   async load(file) {
-    const r = await fetch(BASE + file);
+    const early = await this.raw?.get(file);
+    this.raw?.delete(file);
+    const r = early || await fetch(BASE + file);
     if (!r.ok) throw new Error(`${file}: ${r.status}`);
     const bytes = await r.arrayBuffer();
     try {
@@ -181,8 +193,12 @@ export class Sfx {
       const cur = this.beds[kind];
       if (cur?.name === name) continue;
       if (cur) {
-        cur.gain.gain.setTargetAtTime(0, t, fade / 4);
-        cur.src.stop(t + fade * 1.5);
+        // a loop asked for a moment ago may still be loading (a phone on a slow network): it has no source yet,
+        // and dropping it from the table is enough — its loader sees that it is no longer wanted
+        if (cur.src) {
+          cur.gain.gain.setTargetAtTime(0, t, fade / 4);
+          cur.src.stop(t + fade * 1.5);
+        }
         delete this.beds[kind];
       }
       if (!name || !SOUNDS[name]) continue;

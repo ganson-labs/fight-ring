@@ -30,9 +30,16 @@ let sfxP = null;
 const mod = import(`${ROOT}play/sfx.js`).catch(() => null);
 let Player = null;
 mod.then((m) => (Player = m));
+// the files of the menu sounds and of the menu music come with the page, so the first press is heard at once
+let early = null;
+mod.then((m) => {
+  if (!m || !settings().sound) return;
+  early = new m.Sfx();
+  early.ahead([...MENU, 'music-menu']);
+});
 function start(m) {
   if (sfx || !m) return sfx;
-  const s = new m.Sfx();
+  const s = early || new m.Sfx();
   const c = settings();
   s.set(c.sound, c.volume, c.menuVolume, c.musicVolume);
   s.unlock();
