@@ -283,7 +283,7 @@ const SCREENS = {
   main(_, backIn) {
     if (backIn) refreshData();
     // a published copy (data.static) has no judge behind it: no tournament console, no developer mode, no ads
-    const items = [...(data.static ? [] : [['tournament', 'Турнир']]), ['matches', 'Матчи'], ['roster', 'Бойцы'], ['custom', 'Свой бой'], ['play', 'Играть самому'], ['settings', 'Настройки']];
+    const items = [...(data.static ? [] : [['tournament', 'Турнир']]), ['matches', 'Матчи'], ['roster', 'Бойцы'], ['custom', 'Свой бой'], ['play', 'Играть самому'], ['settings', 'Настройки'], ...(data.static ? [['site', 'На сайт']] : [])];
     const el = mount(`
       <div class="wrap">
         <div>
@@ -294,6 +294,7 @@ const SCREENS = {
       </div>`, { id: 'main', backIn, focus: stack.mainFocus ? `[data-go="${stack.mainFocus}"]` : null });
     el.querySelectorAll('[data-go]').forEach((b) => (b.onclick = () => {
       stack.mainFocus = b.dataset.go;
+      if (b.dataset.go === 'site') return void (location.href = at(''));
       go(b.dataset.go);
     }));
     $('#legend').innerHTML = legend();

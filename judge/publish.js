@@ -24,7 +24,8 @@ export function publishSeason(season, { matches, title = null, log = console.log
   const missing = matches.filter((id) => !chosen.some((m) => m.id === id));
   if (missing.length) throw new Error(`нет матчей: ${missing.join(', ')}`);
   const out = join(SEASONS, season);
-  rmSync(out, { recursive: true, force: true });
+  // only what this command writes goes: the league table and the spendings laid beside stay
+  for (const own of ['fighters', 'matches', 'game.json']) rmSync(join(out, own), { recursive: true, force: true });
   mkdirSync(out, { recursive: true });
   const url = (...p) => `/${relative(RING, join(out, ...p)).split(sep).join('/')}/`;
 
