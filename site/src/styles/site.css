@@ -161,7 +161,7 @@ html:not(.js) .sound { display: none; }
 .who b { font: italic 700 19px/1.2 var(--display); text-transform: uppercase; letter-spacing: .02em; }
 .who span { font-size: 14px; color: var(--dim); }
 
-.foot { padding-top: 28px; padding-bottom: 36px; border-top: 1px solid var(--line); font-size: 15px; color: var(--dim); }
+.foot { display: flex; flex-wrap: wrap; gap: 10px 28px; padding-top: 28px; padding-bottom: 36px; border-top: 1px solid var(--line); font-size: 15px; color: var(--dim); }
 
 /* ---------- movement ----------
    The page opens with one hit: the title slams in, the first plate follows. Blocks further down (data-rise) come in

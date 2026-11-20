@@ -224,6 +224,8 @@ export interface Season {
   published: string;
   /** a knockout between fighters that were already made: no locker rooms, no league of its own */
   cup: boolean;
+  /** the video about the season (seasons/<id>/links.json), when there is one */
+  video: string | null;
   fighters: Fighter[];
   matches: Match[];
   final: Match | null;
@@ -388,6 +390,7 @@ async function readSeason(id: string): Promise<Season | null> {
     title: game.season.title,
     published: game.season.published,
     cup: !!game.season.cup,
+    video: readJSON<{ video?: string }>(join(dir, 'links.json'))?.video ?? null,
     fighters,
     matches,
     final: matches.find((m) => m.kind === 'final') ?? null,

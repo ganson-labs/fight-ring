@@ -2,6 +2,7 @@
 export const SITE = {
   name: 'Ринг моделей',
   repo: 'https://github.com/ganson-labs/fight-ring',
+  channel: 'https://www.youtube.com/@ganson.p',
   /** the branch the links to files in the repository point at */
   branch: 'main',
   /** `npm start` serves the game here (serve.mjs) */

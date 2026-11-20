@@ -37,7 +37,7 @@ const most = spend ? Math.max(...spend.rows.map((r) => r.minutes + (r.lockerMinu
           <span class="champ-model">{champion.model}</span>
         </p>
       )}
-      {final && firstRound && <div class="steps"><a class="plate primary" href={to(path, watchRound(final, firstRound))}>Смотреть финал</a></div>}
+      {final && firstRound && <div class="steps"><a class="plate primary" href={to(path, watchRound(final, firstRound))}>Смотреть финал</a>{season.video && <a class="plate" href={season.video} target="_blank" rel="noopener">Ролик о турнире</a>}</div>}
     </div>
     {champion && (
       <a class="champ-fig" href={to(path, `fighters/${champion.id}/`)} aria-label={champion.name} tabindex="-1">
