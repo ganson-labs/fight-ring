@@ -6,7 +6,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { extname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ADS } from '../judge/render.js';
-import { SOUNDS } from '../kit/arena/sounds/catalog.js';
+import { SOUNDS, SOUND_ALT } from '../kit/arena/sounds/catalog.js';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 // the judge's working folders (not in git) and what holds other people's words as they are
@@ -66,6 +66,10 @@ test('у каждого звука ринга записаны источник 
   const onDisk = readdirSync(dir).filter((n) => n.endsWith('.ogg')).sort();
   const inCatalog = Object.values(SOUNDS).flatMap((s) => s.files).sort();
   assert.deepEqual(onDisk, inCatalog, 'каталог и папка совпадают');
+  // the copy for a browser that does not decode Opus in Ogg (Safari before 18.4): one for every sound, none without
+  const alts = readdirSync(dir).filter((n) => n.endsWith(`.${SOUND_ALT}`)).sort();
+  assert.deepEqual(alts, onDisk.map((n) => n.replace(/\.ogg$/, `.${SOUND_ALT}`)), 'у каждого звука есть копия в AAC, лишних копий нет');
+  assert.deepEqual(readdirSync(dir).filter((n) => !/\.(ogg|m4a)$/.test(n)).sort(), ['README.md', 'catalog.js'], 'в папке звуков нет файлов без записи');
   const rows = readFileSync(join(dir, 'README.md'), 'utf8').split('\n').filter((l) => /^\| \S+\.ogg \|/.test(l)).map((l) => l.split(' | ').map((x) => x.replace(/^\| | \|$/g, '')));
   assert.deepEqual(rows.map((r) => r[0]).sort(), onDisk, 'в таблице происхождения каждый файл');
   for (const r of rows) assert.ok(r[2] && r[3], `${r[0]}: источник и лицензия`);

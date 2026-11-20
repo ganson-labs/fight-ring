@@ -15,6 +15,7 @@ export const TYPES = {
   '.jpg': 'image/jpeg',
   '.mp3': 'audio/mpeg',
   '.ogg': 'audio/ogg',
+  '.m4a': 'audio/mp4',
   '.mp4': 'video/mp4',
   '.md': 'text/markdown; charset=utf-8',
   '.woff2': 'font/woff2',

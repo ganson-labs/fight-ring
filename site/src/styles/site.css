@@ -203,6 +203,16 @@ html.js [data-rise].in .gauge i.on { transform-origin: left; animation: fill .3s
   .steps { flex-direction: column; align-items: stretch; }
   .steps .plate { width: 100%; }
 }
+/* A phone: fingers and no mouse. Fighting yourself needs keys or a gamepad, so the ways into «Ты против нейросети»
+   (data-hands) are not offered: the game there is for watching. What is pressed is at least 44 px tall. */
+@media (hover: none) and (pointer: coarse) {
+  [data-hands] { display: none !important; }
+  .logo { padding: 11px 0; }
+  .nav a { padding-top: 13px; padding-bottom: 13px; }
+  .sound { height: 44px; }
+  .foot a { padding: 10px 0; }
+  a.rung-name { padding: 12px 0; margin: -12px 0; }
+}
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation: none !important; transition: none !important; }

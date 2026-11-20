@@ -422,3 +422,6 @@ export const SOUNDS = {
 
 // names a fighter can use in moves.json → sounds
 export const SOUND_NAMES = Object.keys(SOUNDS).filter((n) => SOUNDS[n].kind === 'sfx');
+
+// beside every file lies its copy in AAC with this extension, for a browser that does not decode Opus in Ogg
+export const SOUND_ALT = 'm4a';

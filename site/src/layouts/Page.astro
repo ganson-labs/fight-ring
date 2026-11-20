@@ -14,7 +14,7 @@ const nav = [
   { href: 'tournament/', text: 'Турнир' },
   { href: 'fighters/', text: 'Бойцы' },
   { href: 'rating/', text: 'Рейтинг' },
-  { href: PLAY, text: 'Играть самому' },
+  { href: PLAY, text: 'Играть самому', hands: true },
   { href: WATCH, text: 'Стравить модели' },
   { href: 'enter/', text: 'Свой боец' },
 ];
@@ -53,7 +53,7 @@ const imports = JSON.stringify({ imports: { 'pixi.js': `${r}kit/arena/vendor/pix
     <header class="wrap top">
       <a class="logo" href={root(path)}><span class="hot">{SITE.name}</span></a>
       <nav class="nav" aria-label="Разделы">
-        {nav.map((n) => <a href={to(path, n.href)} aria-current={current(n.href) ? 'page' : undefined}>{n.text}</a>)}
+        {nav.map((n) => <a href={to(path, n.href)} aria-current={current(n.href) ? 'page' : undefined} data-hands={n.hands || undefined}>{n.text}</a>)}
       </nav>
       <button class="sound" type="button" data-sound aria-pressed="true" aria-label="Звук">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M3 9.5h4l5-4.5v14l-5-4.5H3z" /><path class="on" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13" /><path class="off" d="m15.5 9.5 5 5m0-5-5 5" /></svg>

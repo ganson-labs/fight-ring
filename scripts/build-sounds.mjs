@@ -1,10 +1,13 @@
 // Builds the ring's sound set kit/arena/sounds/ from scripts/sounds.sources.json:
-//   node scripts/build-sounds.mjs [--check]
+//   node scripts/build-sounds.mjs [--check | --alt]
 // Sources (not part of this repository): a pack of sounds from third-party libraries (RING_SOUND_PACK, with source
 // and licence of every file in its sounds.json) and sounds generated with ElevenLabs (RING_SOUND_GEN). Each file is trimmed of
 // silence, peak-normalised, given short fades (no clicks), loops get a crossfaded seam; Opus in Ogg. Writes the
 // catalogue (catalog.js), the inventory with origins and licences (README.md) and prints a listening report:
 // length, peak, loudness, edges and the loop seam of every file. --check only prints the report of what is built.
+// Every sound gets a second copy in AAC (.m4a) made from the finished .ogg: Safari before 18.4 does not decode Opus in
+// Ogg, and the game falls back to the copy (viewer/sfx.js). --alt makes only these copies from the .ogg files that are
+// there; it needs no sources and leaves the .ogg files, the catalogue and the inventory as they are.
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, rmSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -28,6 +31,27 @@ function decode(file, ch) {
 
 function encode(data, ch, file, kbps) {
   execFileSync('ffmpeg', ['-y', '-v', 'error', '-f', 'f32le', '-ar', String(SR), '-ac', String(ch), '-i', '-', '-c:a', 'libopus', '-b:a', `${kbps}k`, '-vbr', 'on', file], { input: Buffer.from(data.buffer, data.byteOffset, data.byteLength) });
+}
+
+// The AAC copy of a finished sound. ffmpeg's own encoder (it is in every build of ffmpeg) writes how many samples of
+// the encoder's run-in to skip, so the copy decodes to the very length of the .ogg and a loop stays seamless. The
+// copy is a fallback for phones: 64 kbit/s for a mono sound, 96 kbit/s for a stereo loop.
+const ALT = 'm4a';
+function encodeAlt(ogg, ch) {
+  execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', ogg, '-map_metadata', '-1', '-fflags', '+bitexact', '-c:a', 'aac', '-b:a', ch === 2 ? '96k' : '64k', '-flags:a', '+bitexact', '-movflags', '+faststart', ogg.replace(/\.ogg$/, `.${ALT}`)]);
+}
+const samples = (file) => decode(file, 1).length;
+// the copies of every .ogg in the folder, and no copy without its .ogg
+function buildAlts() {
+  const oggs = readdirSync(OUT).filter((f) => f.endsWith('.ogg'));
+  for (const f of oggs) {
+    const ch = Number(execFileSync('ffprobe', ['-v', 'error', '-select_streams', 'a:0', '-show_entries', 'stream=channels', '-of', 'csv=p=0', join(OUT, f)]).toString().trim());
+    encodeAlt(join(OUT, f), ch);
+    const [a, b] = [samples(join(OUT, f)), samples(join(OUT, f.replace(/\.ogg$/, `.${ALT}`)))];
+    if (a !== b) throw new Error(`${f}: копия AAC другой длины (${b} против ${a} отсчётов), петля даст щелчок`);
+  }
+  for (const f of readdirSync(OUT)) if (f.endsWith(`.${ALT}`) && !oggs.includes(f.replace(new RegExp(`\\.${ALT}$`), '.ogg'))) rmSync(join(OUT, f));
+  return oggs.length;
 }
 
 const db = (x) => (x > 0 ? 20 * Math.log10(x) : -120);
@@ -107,6 +131,11 @@ function report(name, file, ch, loop) {
   return { name, seconds: +(n / SR).toFixed(2), peak: +db(peak).toFixed(1), rms: +db(Math.sqrt(s / x.length)).toFixed(1), start: +db(edge(0)).toFixed(0), end: +db(edge(n - 1)).toFixed(0), jump: +jump.toFixed(2), seam: seam === null ? null : +db(seam).toFixed(0) };
 }
 
+if (process.argv.includes('--alt')) {
+  console.log(`копий AAC: ${buildAlts()}`);
+  process.exit(0);
+}
+
 const packMeta = existsSync(join(PACK, 'sounds.json')) ? JSON.parse(readFileSync(join(PACK, 'sounds.json'), 'utf8')) : {};
 function source(ref) {
   const [where, id] = ref.split(':');
@@ -145,13 +174,14 @@ for (const [name, s] of Object.entries(spec)) {
 if (!check) {
   const known = new Set(Object.values(catalog).flatMap((c) => c.files));
   for (const f of readdirSync(OUT)) if (f.endsWith('.ogg') && !known.has(f)) rmSync(join(OUT, f));
-  writeFileSync(join(OUT, 'catalog.js'), `// The ring's sound catalogue, built by scripts/build-sounds.mjs from scripts/sounds.sources.json (origins and\n// licences: README.md here). kind: sfx — a fighter may choose it for a move (moves.json → sounds), ui — menus,\n// ambience and music — stage beds that loop. gain: its level in the ring's mix.\nexport const SOUNDS = ${JSON.stringify(catalog, null, 2)};\n\n// names a fighter can use in moves.json → sounds\nexport const SOUND_NAMES = Object.keys(SOUNDS).filter((n) => SOUNDS[n].kind === 'sfx');\n`);
+  buildAlts();
+  writeFileSync(join(OUT, 'catalog.js'), `// The ring's sound catalogue, built by scripts/build-sounds.mjs from scripts/sounds.sources.json (origins and\n// licences: README.md here). kind: sfx — a fighter may choose it for a move (moves.json → sounds), ui — menus,\n// ambience and music — stage beds that loop. gain: its level in the ring's mix.\nexport const SOUNDS = ${JSON.stringify(catalog, null, 2)};\n\n// names a fighter can use in moves.json → sounds\nexport const SOUND_NAMES = Object.keys(SOUNDS).filter((n) => SOUNDS[n].kind === 'sfx');\n\n// beside every file lies its copy in AAC with this extension, for a browser that does not decode Opus in Ogg\nexport const SOUND_ALT = '${ALT}';\n`);
   // the engine checks moves.json → sounds by these names; it keeps its own copy so a snapshot of the engine runs alone
   writeFileSync(join(root, 'kit', 'arena', 'engine', 'soundnames.js'), `// Names of the ring's sounds a fighter may use in moves.json → sounds. Written by scripts/build-sounds.mjs from the
 // catalogue (kit/arena/sounds/catalog.js); the engine keeps its own copy so its snapshot runs without the sounds.
 export const SOUND_NAMES = ${JSON.stringify(Object.keys(catalog).filter((n) => catalog[n].kind === 'sfx'))};
 `);
-  writeFileSync(join(OUT, 'README.md'), `# Звуки ринга\n\nСобраны \`node scripts/build-sounds.mjs\` из \`scripts/sounds.sources.json\`: тишина по краям обрезана, пик звуков −2 dBFS, края с плавным входом 3 мс и затуханием до 60 мс, петли фона и музыки — бесшовные (хвост перетекает в начало), громкость петель по RMS (фон −21 dBFS, музыка −18 dBFS). Opus в Ogg: звуки моно 96 кбит/с, петли стерео 128 кбит/с. Каталог с уровнями в миксе — \`catalog.js\`, имена для \`moves.json → sounds\` печатает \`node arena/cli.mjs sounds\`.\n\nИсточники: звуки из сторонних библиотек (Pixabay, Sonniss #GameAudioGDC, Mixkit; источник и лицензия каждого файла — в таблице) и звуки, сгенерированные для ринга через ElevenLabs. Исходные файлы в репозиторий не входят. Все лицензии разрешают звук в играх, роликах и коммерческих проектах без указания автора; продавать или раздавать сами звуки отдельной библиотекой нельзя.\n\n| Файл | Что | Источник | Лицензия |\n|---|---|---|---|\n${lines.join('\n')}\n`);
+  writeFileSync(join(OUT, 'README.md'), `# Звуки ринга\n\nСобраны \`node scripts/build-sounds.mjs\` из \`scripts/sounds.sources.json\`: тишина по краям обрезана, пик звуков −2 dBFS, края с плавным входом 3 мс и затуханием до 60 мс, петли фона и музыки — бесшовные (хвост перетекает в начало), громкость петель по RMS (фон −21 dBFS, музыка −18 dBFS). Opus в Ogg: звуки моно 96 кбит/с, петли стерео 128 кбит/с. Рядом с каждым файлом лежит его копия в AAC (\`.m4a\`, моно 64 кбит/с, петли 96 кбит/с), сделанная из готового \`.ogg\`: её берёт Safari до версии 18.4, который не декодирует Opus в Ogg. Источник и лицензия копии те же, что у её \`.ogg\`. Каталог с уровнями в миксе — \`catalog.js\`, имена для \`moves.json → sounds\` печатает \`node arena/cli.mjs sounds\`.\n\nИсточники: звуки из сторонних библиотек (Pixabay, Sonniss #GameAudioGDC, Mixkit; источник и лицензия каждого файла — в таблице) и звуки, сгенерированные для ринга через ElevenLabs. Исходные файлы в репозиторий не входят. Все лицензии разрешают звук в играх, роликах и коммерческих проектах без указания автора; продавать или раздавать сами звуки отдельной библиотекой нельзя.\n\n| Файл | Что | Источник | Лицензия |\n|---|---|---|---|\n${lines.join('\n')}\n`);
 }
 console.log('файл'.padEnd(26), 'сек'.padStart(6), 'пик'.padStart(6), 'RMS'.padStart(6), 'вход'.padStart(5), 'выход'.padStart(6), 'скачок'.padStart(7), 'шов');
 for (const r of rows) console.log(r.name.padEnd(26), String(r.seconds).padStart(6), String(r.peak).padStart(6), String(r.rms).padStart(6), String(r.start).padStart(5), String(r.end).padStart(6), String(r.jump).padStart(7), r.seam ?? '');

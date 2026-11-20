@@ -24,33 +24,39 @@ function save(patch) {
 const MENU = ['menu-move', 'menu-select', 'menu-back', 'vs-impact', 'vs-whoosh', 'title-slam'];
 let sfx = null;
 let sfxP = null;
-// A browser lets a page sound only after a press on it, so the player (the game's own, play/sfx.js) is fetched
-// and started on the first press, and until then the page is silent.
+// A browser lets a page sound only after a press on it, and Safari wants the sound started inside that very press:
+// a player that is still being fetched when the finger comes up has missed it. So the player's code (the game's own,
+// play/sfx.js) is fetched with the page, and a press only starts it; until then the page is silent.
+const mod = import(`${ROOT}play/sfx.js`).catch(() => null);
+let Player = null;
+mod.then((m) => (Player = m));
+function start(m) {
+  if (sfx || !m) return sfx;
+  const s = new m.Sfx();
+  const c = settings();
+  s.set(c.sound, c.volume, c.menuVolume, c.musicVolume);
+  s.unlock();
+  s.preload(MENU);
+  // the menu music goes on from the place the last page left it
+  let at = 0;
+  try {
+    at = Number(sessionStorage.getItem('ring.music')) || 0;
+  } catch {}
+  s.bed({ music: 'music-menu' }, 1.2, at);
+  addEventListener('pagehide', () => {
+    try {
+      sessionStorage.setItem('ring.music', String(s.bedTime('music')));
+    } catch {}
+  });
+  sfx = s;
+  try {
+    sessionStorage.setItem('ring.heard', '1');
+  } catch {}
+  return s;
+}
 function audio() {
   if (!settings().sound) return Promise.resolve(null);
-  sfxP ??= import(`${ROOT}play/sfx.js`).then((m) => {
-    const s = new m.Sfx();
-    const c = settings();
-    s.set(c.sound, c.volume, c.menuVolume, c.musicVolume);
-    s.unlock();
-    s.preload(MENU);
-    // the menu music goes on from the place the last page left it
-    let at = 0;
-    try {
-      at = Number(sessionStorage.getItem('ring.music')) || 0;
-    } catch {}
-    s.bed({ music: 'music-menu' }, 1.2, at);
-    addEventListener('pagehide', () => {
-      try {
-        sessionStorage.setItem('ring.music', String(s.bedTime('music')));
-      } catch {}
-    });
-    sfx = s;
-    try {
-      sessionStorage.setItem('ring.heard', '1');
-    } catch {}
-    return s;
-  }).catch(() => null);
+  sfxP ??= mod.then((m) => start(m) ?? null);
   return sfxP;
 }
 const sounding = () => !!sfx && sfx.ctx?.state === 'running' && settings().sound;
@@ -73,17 +79,25 @@ for (const b of document.querySelectorAll('[data-sound]')) {
       sfx.set(c.sound, c.volume, c.menuVolume, c.musicVolume);
     }
     if (on) {
-      await audio();
+      // inside the press itself, while Safari still counts it
+      if (Player) start(Player);
       sfx?.unlock();
+      await audio();
       play('menu-select');
     }
   });
 }
 addEventListener('storage', (e) => e.key === KEY && showSound());
 
-const unlock = () => audio().then((s) => s?.unlock());
-addEventListener('pointerdown', unlock, { passive: true });
-addEventListener('keydown', unlock);
+// every kind of press: a finger gives a page its sound on the way up («pointerup», «touchend», «click»), not on the
+// way down, and the sound is asked for inside the press itself (play/sfx.js GESTURES)
+const unlock = () => {
+  if (!settings().sound) return;
+  if (sfx) sfx.unlock();
+  else if (Player) start(Player);
+  else audio();
+};
+for (const ev of ['keydown', 'mousedown', 'pointerdown', 'pointerup', 'touchend', 'click']) addEventListener(ev, unlock, { passive: true, capture: true });
 // A visitor who has already pressed something on the site comes to the next page with the right to sound: the
 // page opens with the whoosh of the game's screens.
 let heard = false;

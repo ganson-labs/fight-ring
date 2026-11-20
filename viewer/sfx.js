@@ -2,8 +2,57 @@
 // music and ambience loops and the fighters' lines. One AudioContext; buses for effects, lines, music, ambience
 // and menus; the music ducks while someone speaks. Levels: render/sound.js MIX and each sound's catalogue gain.
 import { SOUNDS, soundFile, MIX } from '../kit/arena/render/sound.js';
+import { SOUND_ALT } from '../kit/arena/sounds/catalog.js';
 
 const BASE = new URL('../kit/arena/sounds/', import.meta.url).href;
+
+// What a browser takes for a press that gives a page its sound. A finger is not a mouse: «pointerdown» and
+// «touchstart» of a touch give nothing (HTML, «activation triggering input event»), the sound starts on the way up —
+// «pointerup», «touchend», «click». A page that listened to «pointerdown» alone stayed silent on an iPhone for good:
+// Safari wants the press at the very moment of resume(), an earlier one does not count.
+export const GESTURES = ['keydown', 'mousedown', 'pointerdown', 'pointerup', 'touchend', 'click'];
+
+// The ring's sounds are Opus in Ogg. Safari decodes that from 18.4 on (iOS 18.4, macOS 15.4); an older one gets the
+// AAC copy that lies beside every sound (scripts/build-sounds.mjs).
+function decodesOgg() {
+  try {
+    return !!new Audio().canPlayType('audio/ogg; codecs="opus"');
+  } catch {
+    return true;
+  }
+}
+const altOf = (file) => file.replace(/\.ogg$/, `.${SOUND_ALT}`);
+
+// An iPhone treats Web Audio as the sound of a page that may be hushed: the switch on its side («без звука») mutes it,
+// while a film in the same page plays on. A page that says it plays media is heard with the switch on:
+// navigator.audioSession where Safari has it (16.4 and later); before that, an <audio> element that plays silence
+// puts the whole page into the same class.
+function loudOnPhone() {
+  try {
+    if (navigator.audioSession) {
+      if (navigator.audioSession.type !== 'playback') navigator.audioSession.type = 'playback';
+      return;
+    }
+  } catch {}
+  const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (!ios) return;
+  if (!loudOnPhone.el) {
+    // a second of silence: 8-bit mono PCM, 8 kHz
+    const n = 8000;
+    const wav = new Uint8Array(44 + n).fill(128);
+    const v = new DataView(wav.buffer);
+    [0x52494646, 36 + n, 0x57415645, 0x666d7420].forEach((x, i) => v.setUint32(i * 4, x, i === 1));
+    [16, 1 | (1 << 16), 8000, 8000, 1 | (8 << 16)].forEach((x, i) => v.setUint32(16 + i * 4, x, true));
+    v.setUint32(36, 0x64617461);
+    v.setUint32(40, n, true);
+    const el = new Audio(URL.createObjectURL(new Blob([wav], { type: 'audio/wav' })));
+    el.loop = true;
+    el.setAttribute('playsinline', '');
+    loudOnPhone.el = el;
+    document.addEventListener('visibilitychange', () => document.hidden && el.pause());
+  }
+  if (loudOnPhone.el.paused) loudOnPhone.el.play().catch(() => {});
+}
 
 export class Sfx {
   constructor() {
@@ -15,11 +64,12 @@ export class Sfx {
     this.buffers = new Map(); // file → Promise<AudioBuffer>
     this.beds = {}; // kind → { name, src, gain }
     this.lines = new Map();
+    this.alt = !decodesOgg(); // the AAC copies instead of Opus in Ogg
   }
 
   unlock() {
     if (!this.ctx) {
-      this.ctx = new AudioContext();
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
       const c = this.ctx;
       this.master = c.createGain();
       const comp = c.createDynamicsCompressor(); // glue and a safety limit on the sum
@@ -40,8 +90,29 @@ export class Sfx {
       this.bus.ambience.gain.value = MIX.ambience;
       this.apply();
     }
-    if (this.ctx.state === 'suspended') this.ctx.resume();
+    if (this.on) loudOnPhone();
+    // «interrupted» is an iPhone's third state: a call or another app took the sound away
+    if (this.ctx.state !== 'running') this.ctx.resume().catch(() => {});
     return this.ctx;
+  }
+
+  // the promise of every browser and the callbacks of Safari before 14.1
+  decode(bytes) {
+    return new Promise((res, rej) => this.ctx.decodeAudioData(bytes, res, rej)?.catch?.(rej));
+  }
+
+  async load(file) {
+    const r = await fetch(BASE + file);
+    if (!r.ok) throw new Error(`${file}: ${r.status}`);
+    const bytes = await r.arrayBuffer();
+    try {
+      return await this.decode(bytes);
+    } catch (e) {
+      // a browser that says it plays Opus in Ogg and does not decode it: the AAC copies from here on
+      if (this.alt || !file.endsWith('.ogg')) throw new Error(`${file}: ${e?.message || 'не декодируется'}`);
+      this.alt = true;
+      return this.load(altOf(file));
+    }
   }
 
   // seconds the loop of this kind has been playing (0 when it is not)
@@ -67,10 +138,7 @@ export class Sfx {
 
   buffer(file) {
     if (!this.buffers.has(file)) {
-      this.buffers.set(file, fetch(BASE + file).then((r) => {
-        if (!r.ok) throw new Error(`${file}: ${r.status}`);
-        return r.arrayBuffer();
-      }).then((b) => this.ctx.decodeAudioData(b)).catch((e) => {
+      this.buffers.set(file, this.load(this.alt ? altOf(file) : file).catch((e) => {
         console.warn('звук', e.message);
         this.buffers.delete(file);
         return null;
@@ -141,7 +209,7 @@ export class Sfx {
   line(base, id) {
     if (!this.on || !base || !this.ctx) return;
     const url = `${base}voice/${id}.mp3`;
-    if (!this.lines.has(url)) this.lines.set(url, fetch(url).then((r) => (r.ok ? r.arrayBuffer() : null)).then((b) => (b ? this.ctx.decodeAudioData(b) : null)).catch(() => null));
+    if (!this.lines.has(url)) this.lines.set(url, fetch(url).then((r) => (r.ok ? r.arrayBuffer() : null)).then((b) => (b ? this.decode(b) : null)).catch(() => null));
     this.lines.get(url).then((buf) => {
       if (!buf) return;
       const src = this.ctx.createBufferSource();

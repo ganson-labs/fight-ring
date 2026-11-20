@@ -51,7 +51,7 @@ const agent = f.agent ? [agentName(f.agent.tool), f.agent.model, f.agent.effort 
           </dl>
         )}
         <div class="steps">
-          <a class="plate primary" href={to(path, playAgainst(f))}>Сразиться</a>
+          <a class="plate primary" href={to(path, playAgainst(f))} data-hands>Сразиться</a>
           <a class="plate" href={to(path, setAgainst(f))}>Стравить с…</a>
           {f.matches.length > 0 && <a class="plate" href="#bouts">Смотреть бои</a>}
         </div>

@@ -150,8 +150,17 @@ export class FightView {
       this.bgCanvas.width = 192;
       this.bgCanvas.height = 108;
       this.bgCtx = this.bgCanvas.getContext('2d');
-      window.addEventListener('resize', () => this.fit());
-      document.addEventListener('fullscreenchange', () => this.fit());
+      // a phone that is turned tells it in its own time: Safari sends «resize» before the window has its new size,
+      // so the frame is fitted again a moment later, and when the address bar slides away (visualViewport)
+      const refit = () => {
+        this.fit();
+        clearTimeout(this.refitT);
+        this.refitT = setTimeout(() => this.fit(), 350);
+      };
+      window.addEventListener('resize', refit);
+      window.addEventListener('orientationchange', refit);
+      window.visualViewport?.addEventListener('resize', refit);
+      document.addEventListener('fullscreenchange', refit);
     }
     if (this.app.canvas.parentNode !== this.frame) this.frame.replaceChildren(this.bgCanvas, this.app.canvas);
     this.frame.hidden = false;
@@ -163,8 +172,14 @@ export class FightView {
   // (devicePixelRatio included); the quality setting caps the pixel density.
   fit() {
     if (!this.app) return;
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
+    // the show on screen was built for the other shape (a phone turned, the setting changed): it is built again
+    if (this.bc && (this.settings().aspect === '9:16') !== this.H > this.W) this.reshape = true;
+    // the window without what a phone keeps for itself: the notch, the rounded corners, the bar at the bottom
+    // (#frame has these as its padding, game.css)
+    const cs = getComputedStyle(this.frame);
+    const px = (k) => parseFloat(cs[k]) || 0;
+    const vw = window.innerWidth - px('paddingLeft') - px('paddingRight');
+    const vh = window.innerHeight - px('paddingTop') - px('paddingBottom');
     const s = Math.min(vw / this.W, vh / this.H);
     const cssW = Math.round(this.W * s);
     const cssH = Math.round(this.H * s);
@@ -185,7 +200,7 @@ export class FightView {
     const r = document.documentElement.style;
     r.setProperty('--frame-w', `${cssW}px`);
     r.setProperty('--frame-h', `${cssH}px`);
-    r.setProperty('--frame-b', `${Math.round((vh - cssH) / 2)}px`);
+    r.setProperty('--frame-b', `${Math.round((vh - cssH) / 2 + px('paddingBottom'))}px`);
   }
 
   // copies the frame into the blurred letterbox now and then (right after a render, while the buffer is fresh)
@@ -202,30 +217,45 @@ export class FightView {
   // show: { round, rerun, wins, firstTo, final }, intro, seed, onFrame }
   async show(o) {
     const id = ++this.run;
-    const { W, H, vertical } = await this.ensure();
-    const app = this.app;
+    let app;
+    let bc;
+    let fight;
+    // Every frame given to the broadcast is remembered: when the frame changes its shape in the middle of a show (a
+    // phone is turned), the show is built again in the new shape and run silently to the same place. A live fight
+    // reads the player as it goes and cannot be run again: it keeps its shape to the end of the round.
+    const dts = [];
+    const build = async (again = false) => {
+      this.bc?.destroy();
+      this.bc = null;
+      this.app?.stage.removeChildren();
+      const { W, H, vertical } = await this.ensure();
+      app = this.app;
+      const scene = new Scene(app, { width: W, height: H, vertical, names: o.names, quality: this.settings().quality || 'high', fast: true });
+      scene.setStage(o.stage);
+      const ads = this.settings().ads ? await loadAds(at('ads/demo/'), { force: true }).catch(() => null) : null;
+      if (ads) attachBillboard(scene, ads);
+      scene.setFighters(o.assets);
+      fight = E.createFight({ fighters: o.assets.map((a) => a.def), seed: o.seed ?? E.RING_SEED });
+      scene.reset(fight);
+      const steps = o.steps || [];
+      const source = o.source || ((f, i) => (i < steps.length ? steps[i] : undefined));
+      let quiet = again;
+      bc = new Broadcast({
+        app, scene, assets: o.assets, fight, steps, source, names: o.names, width: W, height: H, vertical, show: true, intro: o.intro !== false,
+        ...o.show, ads, announcer: true, totalTicks: o.totalTicks || 1, seed: o.seed ?? E.RING_SEED,
+        onSound: (name, gain, variant, delay) => quiet || this.sfx.play(name, gain, variant, delay),
+        onSay: (side, line) => quiet || this.sfx.line(side === 'ring' ? at('announcer/') : o.urls[side], line),
+      });
+      this.bc = bc;
+      this.fight = fight;
+      this.scene = scene;
+      if (again) for (const dt of dts) bc.frame(dt);
+      quiet = false;
+    };
+    await build();
     cancelAnimationFrame(this.raf);
-    this.bc?.destroy();
-    app.stage.removeChildren();
-    const scene = new Scene(app, { width: W, height: H, vertical, names: o.names, quality: this.settings().quality || 'high', fast: true });
-    scene.setStage(o.stage);
-    const ads = this.settings().ads ? await loadAds(at('ads/demo/'), { force: true }).catch(() => null) : null;
-    if (ads) attachBillboard(scene, ads);
-    scene.setFighters(o.assets);
-    const fight = E.createFight({ fighters: o.assets.map((a) => a.def), seed: o.seed ?? E.RING_SEED });
-    scene.reset(fight);
-    const steps = o.steps || [];
-    const source = o.source || ((f, i) => (i < steps.length ? steps[i] : undefined));
-    const bc = new Broadcast({
-      app, scene, assets: o.assets, fight, steps, source, names: o.names, width: W, height: H, vertical, show: true, intro: o.intro !== false,
-      ...o.show, ads, announcer: true, totalTicks: o.totalTicks || 1, seed: o.seed ?? E.RING_SEED,
-      onSound: (name, gain, variant, delay) => this.sfx.play(name, gain, variant, delay),
-      onSay: (side, line) => this.sfx.line(side === 'ring' ? at('announcer/') : o.urls[side], line),
-    });
-    this.bc = bc;
-    this.fight = fight;
+    this.reshape = false;
     this.sfx.bed(stageBeds(o.stage));
-    this.scene = scene;
     this.paused = false;
     // A screen of high density asks for up to 4K of pixels a frame, more than a laptop's video card draws in time.
     // The fight watches its own frames: when they keep coming late, it gives up a fifth of the pixels, down to the
@@ -236,6 +266,17 @@ export class FightView {
       let last = performance.now();
       const loop = (now) => {
         if (id !== this.run) return resolve({ stopped: true });
+        if (this.reshape) {
+          this.reshape = false;
+          if (!o.source) {
+            build(true).catch((e) => console.error('[бой]', e)).then(() => {
+              last = performance.now();
+              if (id === this.run) this.raf = requestAnimationFrame(loop);
+              else resolve({ stopped: true });
+            });
+            return;
+          }
+        }
         const dt = Math.min(0.05, (now - last) / 1000);
         gap += (Math.min(100, now - last) - gap) * 0.05;
         if (++seen > 90 && !this.paused) {
@@ -249,6 +290,7 @@ export class FightView {
         last = now;
         if (!this.paused) {
           o.onFrame?.(dt, bc, fight);
+          if (!o.source) dts.push(dt);
           bc.frame(dt);
         }
         try {

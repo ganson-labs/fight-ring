@@ -2,7 +2,7 @@
 // locker room between rounds, a fight of two brains, a fight of the player against a brain, settings.
 // Everything it shows comes from /api/game: the judge's match snapshots and the contestants' folders.
 import * as E from '../../kit/arena/engine/index.js';
-import { Sfx } from '../sfx.js';
+import { Sfx, GESTURES } from '../sfx.js';
 import { at, ROOT, loadGame, fullFighter, fullMatch } from '../data.js';
 import { ringFonts } from '../../kit/arena/render/text.js';
 import { Nav, Pads, controlsHint, padHint, moveList, commandHtml, KEY_OF, PAD_OF, BTN_NAME } from './input.js';
@@ -33,6 +33,15 @@ const saveSettings = () => {
   applySettings();
 };
 
+// A phone or a tablet: fingers and no mouse. It shows the fight in the shape it is held in (9:16 upright, 16:9 on
+// its side) and has no «Кадр боя» setting; an iPhone has no full screen for a page at all.
+const TOUCH = matchMedia('(hover: none) and (pointer: coarse)').matches;
+const CAN_FS = !!document.documentElement.requestFullscreen && document.fullscreenEnabled !== false;
+document.body.classList.toggle('touch', TOUCH);
+document.body.classList.toggle('no-fs', !CAN_FS);
+const frameAspect = () => (TOUCH ? (window.innerHeight > window.innerWidth ? '9:16' : '16:9') : settings.aspect);
+const PRESS = TOUCH ? 'Коснись экрана' : 'Нажми любую клавишу';
+
 const sfx = new Sfx();
 const menu = new MenuSound(sfx);
 function applySettings() {
@@ -43,6 +52,7 @@ function applySettings() {
 
 // full screen: F or the button in the corner; the choice is remembered and comes back on the first key press
 function setFullscreen(on) {
+  if (!CAN_FS) return;
   const el = document.documentElement;
   try {
     if (on && !document.fullscreenElement) el.requestFullscreen?.({ navigationUI: 'hide' })?.catch(() => {});
@@ -50,6 +60,7 @@ function setFullscreen(on) {
   } catch {}
 }
 function toggleFullscreen() {
+  if (!CAN_FS) return;
   settings.fullscreen = !document.fullscreenElement;
   saveSettings();
   setFullscreen(settings.fullscreen);
@@ -70,7 +81,7 @@ let data = { fighters: [], matches: [], stages: [] };
 const stack = [];
 const ui = $('#ui');
 const overlay = $('#overlay');
-const fightView = new FightView({ frame: $('#frame'), settings: () => settings, sfx });
+const fightView = new FightView({ frame: $('#frame'), settings: () => ({ ...settings, aspect: frameAspect() }), sfx });
 applySettings();
 $('#fsBtn')?.addEventListener('click', () => toggleFullscreen());
 const backdrop = new Backdrop($('#bg'));
@@ -112,11 +123,29 @@ function wakeSound() {
   sfx.preload();
   menuMusic();
 }
-for (const ev of ['pointerdown', 'keydown']) addEventListener(ev, () => {
+// (every kind of press: a finger gives the sound on its way up, not down — sfx.js GESTURES)
+let waking = false;
+for (const ev of GESTURES) addEventListener(ev, () => {
   sfx.unlock();
-  sfx.ctx.resume().then(wakeSound, () => {});
+  if (soundOn || waking) return wakeSound();
+  waking = true;
+  // on an iPhone this stays unanswered until a press that counts comes
+  sfx.ctx.resume().then(wakeSound, () => {}).finally(() => (waking = false));
 }, true);
+// the sound an iPhone took away (a call, another app) comes back with the page
+document.addEventListener('visibilitychange', () => !document.hidden && soundOn && sfx.ctx.state !== 'running' && sfx.ctx.resume().catch(() => {}));
 const pads = new Pads(nav);
+// «Ты против нейросети» needs something to fight with. A phone has neither keys nor a gamepad, so there the game is
+// for watching: the mode is offered once a gamepad is connected or a real key has been pressed.
+let sawKey = false;
+addEventListener('keydown', (e) => {
+  if (e.isTrusted && !(e.target instanceof HTMLInputElement)) sawKey = true;
+}, true);
+const handsOn = () => !TOUCH || sawKey || !!pads.first();
+addEventListener('gamepadconnected', () => {
+  const top = stack[stack.length - 1];
+  if (TOUCH && !fighting && ['main', 'versus', 'play', 'custom'].includes(top?.name)) render(top, true);
+});
 
 const fighterById = (id) => data.fighters.find((f) => f.id === id);
 const contestants = () => data.fighters.filter((f) => !f.training);
@@ -279,6 +308,8 @@ async function render(entry, backIn = false) {
   $('#legend').hidden = entry.name === 'title';
   // a published game shows the way out to the site on every screen of the top level
   $('#siteBtn').hidden = !(data.static && TOP.includes(entry.name));
+  // fingers have no Esc: the way back is a button on every screen that has somewhere to go back to
+  $('#backBtn').hidden = !(stack.length > 1 && !(stack.length === 2 && stack[0].name === 'title'));
   SCREENS[entry.name](entry.args, backIn);
   // a screen comes in with a sweep, the fight select with a heavier one; the way back has the sound of «назад»
   if (!backIn && entry.name !== 'title' && entry.name !== 'main') sfx.play(['versus', 'play', 'custom'].includes(entry.name) ? 'whoosh-heavy' : 'whoosh-light', 0.5);
@@ -302,7 +333,7 @@ const SCREENS = {
     const el = mount(`
       <div class="intro-title">
         <h1 class="intro-logo"><span class="w1" data-t="Ринг">Ринг</span><span class="w2" data-t="моделей">моделей</span></h1>
-        <div class="press">Нажми любую клавишу</div>
+        <div class="press">${PRESS}</div>
       </div>`, { id: 'title' });
     const titleEl = $('.intro-title', el);
     let intro = null;
@@ -326,13 +357,15 @@ const SCREENS = {
     };
     const waitStart = () => {
       nav.anyKey = startGame;
-      el.addEventListener('pointerdown', () => {
-        if (nav.anyKey) {
-          nav.anyKey = null;
-          startGame();
-        }
-      }, { once: true });
     };
+    // a press on the screen is any key: it skips the opening and starts the game. «click» and not «pointerup»: it is
+    // the last event of a touch, so the same touch does not also press the menu that opens under the finger.
+    el.addEventListener('click', () => {
+      const f = nav.anyKey;
+      if (!f) return;
+      nav.anyKey = null;
+      f();
+    });
     // a key while the opening runs: straight to its end (the title stands, «Нажми любую клавишу» pulses)
     const skipKey = () => {
       sfx.unlock();
@@ -368,7 +401,7 @@ const SCREENS = {
   main(_, backIn) {
     if (backIn) refreshData();
     // a published copy (data.static) has no judge behind it: no tournament console, no developer mode, no ads
-    const items = [['play', 'Играть самому'], ['custom', 'Бой нейросетей'], ['roster', 'Бойцы'], ['matches', 'Матчи'], ...(data.static ? [] : [['tournament', 'Турнир']]), ['settings', 'Настройки'], ...(data.static ? [['site', 'На сайт']] : [])];
+    const items = [...(handsOn() ? [['play', 'Играть самому']] : []), ['custom', 'Бой нейросетей'], ['roster', 'Бойцы'], ['matches', 'Матчи'], ...(data.static ? [] : [['tournament', 'Турнир']]), ['settings', 'Настройки'], ...(data.static ? [['site', 'На сайт']] : [])];
     const el = mount(`
       <div class="wrap">
         <div>
@@ -376,7 +409,7 @@ const SCREENS = {
           <nav class="mm">${items.map(([k, t], i) => `<button class="item" data-nav data-go="${k}" style="--i:${i}"><span class="n">0${i + 1}</span>${t}</button>`).join('')}</nav>
         </div>
         <div class="side"><div class="pair"></div><div class="caption"></div></div>
-      </div>`, { id: 'main', backIn, focus: stack.mainFocus ? `[data-go="${stack.mainFocus}"]` : null });
+      </div>`, { id: 'main', backIn, focus: stack.mainFocus && items.some(([k]) => k === stack.mainFocus) ? `[data-go="${stack.mainFocus}"]` : null });
     el.querySelectorAll('[data-go]').forEach((b) => (b.onclick = () => {
       stack.mainFocus = b.dataset.go;
       if (b.dataset.go === 'site') return toSite();
@@ -460,7 +493,7 @@ const SCREENS = {
           <div class="who"><span class="plate">${esc(f.model)}</span>${f.author ? `<span class="by">${esc(f.author)}</span>` : ''}</div>
           <h1 class="name slab hit" data-fit>${esc(ver.name)}</h1>
           <div class="motto" data-motto></div>
-          <div class="acts"><button class="btn primary" data-nav data-fight="play">Сразиться</button><button class="btn" data-nav data-fight="cpu">Стравить</button></div>
+          <div class="acts">${handsOn() ? '<button class="btn primary" data-nav data-fight="play">Сразиться</button>' : ''}<button class="btn ${handsOn() ? '' : 'primary'}" data-nav data-fight="cpu">Стравить</button></div>
           ${f.versions.length > 1 || !f.training ? `<div class="versions">${f.versions.map((x) => `<button class="vchip ${x.v === ver.v ? 'on' : ''}" data-nav data-v="${x.v}" ${x.v === ver.v ? 'data-autofocus' : ''}><span class="v">${x.label}</span><span class="when">${esc(versionWhen(f, x))}</span></button>`).join('')}</div>` : ''}
           <div class="tabs">
             <button class="tab" data-nav data-tab="about">Обзор</button>
@@ -743,9 +776,9 @@ const SCREENS = {
         ${opt('volume', 'Громкость', vol(settings.volume))}
         ${opt('menuVolume', 'Звуки меню', vol(settings.menuVolume))}
         ${opt('musicVolume', 'Музыка', vol(settings.musicVolume))}
-        ${opt('aspect', 'Кадр боя', two('16:9', '9:16', settings.aspect))}
+        ${TOUCH ? '' : opt('aspect', 'Кадр боя', two('16:9', '9:16', settings.aspect))}
         ${opt('quality', 'Качество', two('Высокое', 'Среднее', settings.quality === 'medium' ? 'Среднее' : 'Высокое'))}
-        ${opt('fullscreen', 'Полный экран', two('Вкл', 'Выкл', on(settings.fullscreen)))}
+        ${CAN_FS ? opt('fullscreen', 'Полный экран', two('Вкл', 'Выкл', on(settings.fullscreen))) : ''}
         ${data.static ? '' : `${opt('ads', 'Реклама', two('Вкл', 'Выкл', on(settings.ads)))}
         <a class="opt" data-nav href="${at('viewer/dev.html')}" style="text-decoration:none"><span>Режим разработчика</span><span class="val">→</span></a>`}
       </div>`, { id: 'settings', backIn, still: backIn === null, focus: stack.setFocus ? `[data-key="${stack.setFocus}"]` : null });
@@ -821,6 +854,9 @@ const CPU_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" 
 function versusScreen({ mode = null, focusStart = false } = {}, backIn) {
   initPick();
   if (mode) pick.mode = mode;
+  // nothing to fight with (a phone without a gamepad): the screen is the fight of two programs
+  const hands = handsOn();
+  if (!hands) pick.mode = 'cpu';
   const p = pick;
   const pad = !!pads.first();
   const corner = (s) => `
@@ -836,7 +872,7 @@ function versusScreen({ mode = null, focusStart = false } = {}, backIn) {
   const el = mount(`
     <div class="vs-bg"></div>
     <div class="vs-modes">
-      <button class="vs-mode" data-nav data-mode="play" data-sfx="whoosh-heavy">${pad ? PAD_ICON : KEY_ICON}<span>Ты против нейросети</span></button>
+      ${hands ? `<button class="vs-mode" data-nav data-mode="play" data-sfx="whoosh-heavy">${pad ? PAD_ICON : KEY_ICON}<span>Ты против нейросети</span></button>` : ''}
       <button class="vs-mode" data-nav data-mode="cpu" data-sfx="whoosh-heavy">${CPU_ICON}<span>Нейросеть против нейросети</span></button>
     </div>
     <div class="vs-body">
@@ -1026,6 +1062,7 @@ function enterFight(kind) {
   backdrop.pause(true);
   ui.hidden = true;
   $('#legend').hidden = true;
+  $('#backBtn').hidden = true; // a touch on the fight pauses it, the pause has the way out
   nav.enabled = false;
   overlay.replaceChildren();
   fighting = { kind, paused: false };
@@ -1364,6 +1401,14 @@ window.addEventListener('keydown', (e) => {
   }
 }, true);
 
+// fingers have no Esc: a touch on the fight pauses it, the button in the corner goes back
+let finger = false;
+addEventListener('pointerdown', (e) => (finger = e.pointerType !== 'mouse'), true);
+$('#frame').addEventListener('click', () => {
+  if (finger && fighting && !fighting.paused && !nav.enabled) pauseMenu();
+});
+$('#backBtn').addEventListener('click', () => back());
+
 let padStart = false;
 function frame(now) {
   pads.poll(now);
@@ -1456,19 +1501,20 @@ async function boot() {
       await new Promise((res) => {
         const gate = document.createElement('div');
         gate.id = 'gate';
-        gate.innerHTML = '<div class="press">Нажми любую клавишу</div>';
+        gate.innerHTML = `<div class="press">${PRESS}</div>`;
         document.body.appendChild(gate);
+        // «click» is the end of a touch (sfx.js GESTURES); the press itself turns the sound on in the listener above
         const go = () => {
           removeEventListener('keydown', go, true);
-          removeEventListener('pointerdown', go, true);
           gate.remove();
           res();
         };
         addEventListener('keydown', go, true);
-        addEventListener('pointerdown', go, true);
+        gate.addEventListener('click', go);
       });
       sfx.unlock();
-      await sfx.ctx.resume().catch(() => {});
+      // a browser that still holds the sound back does not hold the game: the next press tries again
+      await Promise.race([sfx.ctx.resume().catch(() => {}), new Promise((r) => setTimeout(r, 300))]);
     }
     wakeSound();
     // the press on the site's link is finished here: its sound was cut by the change of pages

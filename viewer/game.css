@@ -456,3 +456,31 @@ html.cappage, body.cappage { background: transparent !important; }
 #gate { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; background: radial-gradient(ellipse at 50% 60%, rgba(40,22,8,.72), rgba(4,5,9,.94)); cursor: pointer; }
 #gate .press { font-family: Oswald, sans-serif; font-style: italic; font-weight: 500; font-size: clamp(18px, 2.2vw, 34px); letter-spacing: .34em; text-transform: uppercase; color: #f3ecdf; text-shadow: 0 2px 10px #000, 0 0 18px rgba(255,140,40,.45); animation: gatePulse 1.4s ease-in-out infinite; }
 @keyframes gatePulse { 50% { opacity: .35; } }
+
+/* ---------- a phone ---------- */
+/* two quick touches do not zoom the page in (Safari did, and the fight stayed «close» with no way to scroll back);
+   a long touch selects nothing */
+html { touch-action: manipulation; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+input { -webkit-user-select: text; user-select: text; }
+/* the fight frame stays clear of the notch, the rounded corners and the bar at the bottom (viewport-fit=cover lets
+   the page under them); FightView.fit() reads this padding */
+#frame { padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); touch-action: none; }
+/* an iPhone has no full screen for a page: no button for it */
+body.no-fs .fs-btn { display: none; }
+body.no-fs .site-btn { right: 14px; }
+/* fingers have no Esc */
+.back-btn { position: fixed; left: max(12px, env(safe-area-inset-left, 0px)); top: max(12px, env(safe-area-inset-top, 0px)); z-index: 9; width: 44px; height: 44px; display: none; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,.18); border-radius: 8px; background: rgba(6,7,11,.6); color: #e8eaf0; cursor: pointer; }
+body.touch .back-btn { display: flex; }
+body.touch .screen { padding-top: calc(max(12px, env(safe-area-inset-top, 0px)) + 56px); padding-left: max(var(--pad), env(safe-area-inset-left, 0px)); padding-right: max(var(--pad), env(safe-area-inset-right, 0px)); }
+@supports (height: 100dvh) {
+  .ov.wide { max-height: calc(100dvh - 40px); }
+  #main .side { height: min(78dvh, 760px); }
+}
+body.touch .vs-modes { padding-left: 56px; }
+body.touch.no-fs .vs-modes { padding-right: 0; }
+/* over the fight on a phone the button would lie on a health bar */
+body.touch #frame:not([hidden]) ~ .fs-btn { display: none; }
+/* no keys to name; a phone on its side is low, the fight select scrolls there */
+body.touch .legend { display: none; }
+body.touch #versus { overflow-y: auto; }
