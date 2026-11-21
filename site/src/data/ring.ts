@@ -218,6 +218,8 @@ export interface SpendRow {
   lockerMinutes: number | null;
 }
 
+const EVEN_STATS = { health: 3, power: 3, speed: 3, defense: 3 };
+
 export interface Season {
   id: string;
   title: string;
@@ -337,7 +339,8 @@ async function readSeason(id: string): Promise<Season | null> {
     const card = readJSON<RawCard>(join(topDir, 'fighter.json'));
     const rawMoves = readJSON<{ moves: { id: string; name?: string; command?: string }[] }>(join(topDir, 'moves.json'))?.moves ?? [];
     const portrait = card?.portrait ? join(topDir, card.portrait) : null;
-    const stats = card?.stats;
+    // ring 4: a card without the field is the even build, 3 in every stat (engine/fighter.js)
+    const stats = card?.stats ?? EVEN_STATS;
     fighters.push({
       id: f.cid,
       origin: 'season',
@@ -464,7 +467,7 @@ export function roster(): Promise<Fighter[]> {
         story: card.story ?? null,
         added: entry.date ?? null,
         portraitFile: portrait && existsSync(portrait) ? portrait : null,
-        stats: card.stats ? { health: card.stats.health ?? 3, power: card.stats.power ?? 3, speed: card.stats.speed ?? 3, defense: card.stats.defense ?? 3 } : null,
+        stats: { ...EVEN_STATS, ...(card.stats ?? {}) },
         moves: rawMoves.map((m) => ({ id: m.id, name: m.name ?? set.get(m.id)?.name ?? m.id, command: m.command ?? null, slot: set.get(m.id)?.slot ?? null, kitName: set.get(m.id)?.name ?? null })),
         versions: [],
         matches: [...new Map(cups.flatMap((f) => f.matches).map((m) => [m.id, m])).values()],

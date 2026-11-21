@@ -71,6 +71,13 @@ export class Sfx {
     if (!this.ctx) {
       this.ctx = new (window.AudioContext || window.webkitAudioContext)();
       const c = this.ctx;
+      // A page that left the screen falls silent: a phone that was told the page plays media (loudOnPhone) would
+      // otherwise go on playing the menu music under another app. Back on the screen, the sound returns.
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) c.suspend?.().catch?.(() => {});
+        else if (this.on) c.resume?.().catch?.(() => {});
+      });
+      addEventListener('pagehide', () => c.suspend?.().catch?.(() => {}));
       this.master = c.createGain();
       const comp = c.createDynamicsCompressor(); // glue and a safety limit on the sum
       comp.threshold.value = -6;
