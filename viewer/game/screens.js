@@ -643,9 +643,9 @@ export async function lockerFor(data, m, n, cid, { assetsOf, bg = null, buttons 
 
 // defs: the two compiled fighters, steps: the recording (one entry per tick), seed. The same shape as the judge's
 // round stats (judge/moments.js), the part the result screen shows.
-export async function quickStats(defs, steps, seed) {
+export async function quickStats(defs, steps, seed, start = null) {
   const E = await import('../../kit/arena/engine/index.js');
-  const fight = E.createFight({ fighters: defs, seed });
+  const fight = E.createFight({ fighters: defs, seed, start });
   const hp = [];
   const hits = [];
   const supers = [];

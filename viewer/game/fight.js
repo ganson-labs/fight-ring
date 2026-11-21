@@ -89,12 +89,24 @@ export function stageAssets(dir, { hd = true } = {}) {
 export const expand = (runs) => runs.flatMap(([n, s]) => Array(n).fill(s));
 
 // Two brains fight here, in Web Workers, by the ring's rules; the recording is then shown like a round.
-export async function computeFight(urls, assets, { seed = E.RING_SEED, options = {}, progress = () => {} } = {}) {
+// A fight of one's own is new every time: its seed is drawn here, and with it the start — centre, close or far, shaken
+// as in the league (the pair's place, the gap, the first ticks each side waits). Two copies of one fighter no longer
+// mirror each other move for move, and the brains get a seed for their own randomness. The fight stays a record:
+// the seed and the start go with it, and it replays frame for frame.
+// mirror: both corners are one and the same fighter. Two copies of a program in a symmetric position answer alike
+// for ever, whatever the seed, so such a fight starts with one of them at its wall: the position is not symmetric.
+export function freshFight({ mirror = false } = {}) {
+  const seed = (Math.random() * 0x100000000) >>> 0;
+  const names = mirror ? ['wall_left', 'wall_right'] : ['centre', 'close', 'far'];
+  return { seed, start: E.noisyStart(names[seed % names.length], seed) };
+}
+
+export async function computeFight(urls, assets, { seed = E.RING_SEED, start = null, options = {}, progress = () => {} } = {}) {
   const hosts = urls.map((u, i) => new BrainHost(`${u}brain.js`, assets[i].def.card.name));
   try {
     await Promise.all(hosts.map((h) => h.load()));
-    const fight = E.createFight({ fighters: assets.map((a) => a.def), seed });
-    await Promise.all(hosts.map((h, s) => h.init({ side: s, opponent: { name: assets[1 - s].def.card.name }, options, view: E.brainView(fight, s) })));
+    const fight = E.createFight({ fighters: assets.map((a) => a.def), seed, start });
+    await Promise.all(hosts.map((h, s) => h.init({ side: s, seed: (seed ^ Math.imul(s, 0x9e3779b9)) >>> 0, opponent: { name: assets[1 - s].def.card.name }, options, view: E.brainView(fight, s) })));
     const steps = [];
     let tail = 0;
     let shown = 0;
@@ -109,7 +121,7 @@ export async function computeFight(urls, assets, { seed = E.RING_SEED, options =
         progress(fight.tick / E.ROUND_TICKS);
       }
     }
-    return { steps, seed, hash: E.fightHash(fight), winner: fight.winner, reason: fight.endReason };
+    return { steps, seed, start, hash: E.fightHash(fight), winner: fight.winner, reason: fight.endReason };
   } finally {
     hosts.forEach((h) => h.dispose());
   }
@@ -235,7 +247,7 @@ export class FightView {
       const ads = this.settings().ads ? await loadAds(at('ads/demo/'), { force: true }).catch(() => null) : null;
       if (ads) attachBillboard(scene, ads);
       scene.setFighters(o.assets);
-      fight = E.createFight({ fighters: o.assets.map((a) => a.def), seed: o.seed ?? E.RING_SEED });
+      fight = E.createFight({ fighters: o.assets.map((a) => a.def), seed: o.seed ?? E.RING_SEED, start: o.start ?? null });
       scene.reset(fight);
       const steps = o.steps || [];
       const source = o.source || ((f, i) => (i < steps.length ? steps[i] : undefined));
@@ -335,7 +347,8 @@ export class LiveMatch {
     const assets = [this.me.assets, this.cpu.assets];
     const host = new BrainHost(`${this.cpu.url}brain.js`, assets[1].def.card.name);
     await host.load();
-    const seed = E.RING_SEED + this.round * 7919;
+    this.base ??= (Math.random() * 0x100000000) >>> 0; // a new match is not the last one over again
+    const seed = (this.base + this.round * 7919) >>> 0;
     const probe = E.createFight({ fighters: assets.map((a) => a.def), seed });
     await host.init({ side: 1, opponent: { name: assets[0].def.card.name }, options: {}, view: E.brainView(probe, 1) });
     const controls = new Controls(assets[0].def);

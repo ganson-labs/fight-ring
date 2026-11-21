@@ -8,7 +8,7 @@ import { ringFonts } from '../../kit/arena/render/text.js';
 import { Nav, Pads, controlsHint, padHint, moveList, commandHtml, KEY_OF, PAD_OF, BTN_NAME } from './input.js';
 import { MenuSound } from './sound.js';
 import { figureShot, shotCached, FigureView } from './figure.js';
-import { FightView, LiveMatch, computeFight, fighterAssets, previewAssets, heldFighters, useLightPictures, stageAssets, expand } from './fight.js';
+import { FightView, LiveMatch, computeFight, freshFight, fighterAssets, previewAssets, heldFighters, useLightPictures, stageAssets, expand } from './fight.js';
 import { fighterGrid, lazyShots, shotsWaiting, TILE_SHOT } from './select.js';
 import { Backdrop } from './backdrop.js';
 import { Intro } from './intro.js';
@@ -1326,13 +1326,13 @@ async function startCustom(p) {
   try {
     const [assets, stage] = await Promise.all([Promise.all([va.url, vb.url].map(fighterAssets)), stageAssets(stageById(p.stage)?.dir, { hd: settings.quality !== 'medium' })]);
     const txt = $('.txt', el);
-    const rec = await computeFight([va.url, vb.url], assets, { progress: (k) => (txt.textContent = `Считаю бой · ${Math.round(k * 100)}%`) });
+    const rec = await computeFight([va.url, vb.url], assets, { ...freshFight({ mirror: va.url === vb.url }), progress: (k) => (txt.textContent = `Считаю бой · ${Math.round(k * 100)}%`) });
     if (fighting !== token) return;
     overlay.replaceChildren();
     nav.enabled = false;
-    const res = await fightView.show({ assets, urls: [va.url, vb.url], names: [fa.model, fb.model], stage, steps: rec.steps, seed: rec.seed, show: { round: 1, wins: [0, 0], firstTo: 2, final: false, result: false }, totalTicks: E.ROUND_TICKS });
+    const res = await fightView.show({ assets, urls: [va.url, vb.url], names: [fa.model, fb.model], stage, steps: rec.steps, seed: rec.seed, start: rec.start, show: { round: 1, wins: [0, 0], firstTo: 2, final: false, result: false }, totalTicks: E.ROUND_TICKS });
     if (res.stopped || fighting !== token) return;
-    const st = await quickStats(assets.map((a) => a.def), rec.steps, rec.seed);
+    const st = await quickStats(assets.map((a) => a.def), rec.steps, rec.seed, rec.start);
     const cols = pairColors(fa, va, fb, vb);
     const buttons = [['Ещё раз', () => startCustom(p)], ['Другие бойцы', leaveFight]];
     const k = await betweenScreen((html) => resultScreen({
